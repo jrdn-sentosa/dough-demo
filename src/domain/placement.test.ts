@@ -71,7 +71,7 @@ describe('startingPoint: loaf and target', () => {
     expect(s.targetMonths).toBeNull();
     expect(s.targetCents).toBeNull();
     expect(s.emergencyFundBaked).toBe(true);
-    expect(s.nextLoaf).toEqual({ loaf: 'debt-payoff', debtNote: true });
+    expect(s.nextLoaf).toEqual({ loaf: 'debt-payoff', debtNote: true, growTargetMonths: null });
   });
 
   it('"no credit card" is not card debt', () => {

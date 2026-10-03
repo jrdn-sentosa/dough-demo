@@ -1,7 +1,7 @@
 import type { DataAdapter } from '../data/adapter';
-import type { AppData, LoafRecord, Transaction, TransactionSource, TransactionType } from '../data/types';
+import type { AppData, Bake, LoafRecord, Transaction, TransactionSource, TransactionType } from '../data/types';
 import type { LoafId, Stage } from '../domain/types';
-import { progressPercent, stageForBalance } from '../domain/stages';
+import { growthPercent, progressPercent, stageForPercent } from '../domain/stages';
 import { MAX_ENTRY_CENTS, MAX_STARTING_CENTS, checkAmount, type AmountErrorCode } from './amounts';
 import { nowIso } from './clock';
 import { formatCents } from './format';
@@ -13,7 +13,9 @@ export type MoneyErrorCode =
   | 'loaf-exists'
   | 'insufficient'
   | 'starting-too-late'
-  | 'needs-confirmation';
+  | 'needs-confirmation'
+  | 'grow-not-ready'
+  | 'grow-not-bigger';
 
 export interface MoneyFailure {
   ok: false;
@@ -29,14 +31,27 @@ export interface LoafStatus {
   loafId: LoafId;
   targetCents: number;
   balanceCents: number;
-  /** 0-100, clamped. Extra money above the target doesn't push this past 100. */
+  /**
+   * 0-100, clamped. Extra money above the target doesn't push this past 100.
+   * While `growing` it counts the new part only, from `growFromCents` to the target.
+   * For the whole fund, show `balanceCents` of `targetCents` ("$400 of $1,200").
+   */
   percent: number;
+  /** Stage for `percent`, so a growing fund starts again as a dough ball. */
   stage: Stage;
-  /** The fund has been baked at some point (first bake or baked at start). */
+  /** The fund has been baked at some point. */
   baked: boolean;
-  /** Baked before, but the balance is now under the target. */
+  /** Baked before, but a withdrawal left the balance under the target. Not set while growing. */
   rebuilding: boolean;
+  /** A baked fund is being grown toward a bigger target. */
+  growing: boolean;
+  /** The old target, where the new growth starts. Null unless `growing`. */
+  growFromCents: number | null;
+  /** Every bake, oldest first, for the shelf. */
+  bakes: readonly Bake[];
+  /** Date of the first bake. Null if there is none, or the first was "Already built". */
   firstBakedAt: string | null;
+  /** The first bake was savings the student already had. */
   bakedAtStart: boolean;
 }
 
@@ -48,6 +63,8 @@ export interface DepositResult {
   baked: boolean;
   /** `baked` came from a rebuild, so the UI should use "You rebuilt your fund" copy. */
   rebuilt: boolean;
+  /** `baked` reached a bigger target than any earlier bake, so the shelf got another entry. */
+  grown: boolean;
 }
 
 export interface WithdrawalResult {
@@ -83,21 +100,46 @@ export function balanceCents(data: AppData, loafId: LoafId): number {
   return total;
 }
 
+/** Progress toward the current goal: the new part only while growing, otherwise the whole fund. */
+function percentFor(loaf: LoafRecord, balance: number): number {
+  return loaf.growFromCents === null
+    ? progressPercent(balance, loaf.targetCents)
+    : growthPercent(balance, loaf.growFromCents, loaf.targetCents);
+}
+
 export function statusFor(data: AppData, loaf: LoafRecord): LoafStatus {
   const balance = balanceCents(data, loaf.loafId);
-  const percent = progressPercent(balance, loaf.targetCents);
-  const baked = loaf.firstBakedAt !== null || loaf.bakedAtStart;
+  const percent = percentFor(loaf, balance);
+  const baked = loaf.bakes.length > 0;
+  const growing = loaf.growFromCents !== null;
   return {
     loafId: loaf.loafId,
     targetCents: loaf.targetCents,
     balanceCents: balance,
     percent,
-    stage: stageForBalance(balance, loaf.targetCents),
+    stage: stageForPercent(percent),
     baked,
-    rebuilding: baked && percent < 100,
-    firstBakedAt: loaf.firstBakedAt,
-    bakedAtStart: loaf.bakedAtStart,
+    rebuilding: baked && !growing && percent < 100,
+    growing,
+    growFromCents: loaf.growFromCents,
+    bakes: loaf.bakes,
+    firstBakedAt: loaf.bakes[0]?.at ?? null,
+    bakedAtStart: baked && loaf.bakes[0].at === null,
   };
+}
+
+/**
+ * The loaf just reached its target. Adds a shelf entry for the first bake, or
+ * for a target higher than every earlier bake (a grown fund). Finishing a
+ * rebuild at a target already on the shelf adds nothing. Ends any growing.
+ * `at` is null for "Already built".
+ */
+function recordBake(loaf: LoafRecord, at: string | null): { grown: boolean } {
+  const last = loaf.bakes[loaf.bakes.length - 1];
+  loaf.growFromCents = null;
+  if (last && loaf.targetCents <= last.targetCents) return { grown: false };
+  loaf.bakes.push({ targetCents: loaf.targetCents, at });
+  return { grown: last !== undefined };
 }
 
 export async function getLoafStatus(adapter: DataAdapter, loafId: LoafId): Promise<LoafStatus | null> {
@@ -141,8 +183,8 @@ export async function startLoaf(
     loafId,
     targetCents,
     startedAt: await nowIso(adapter),
-    firstBakedAt: null,
-    bakedAtStart: false,
+    bakes: [],
+    growFromCents: null,
   };
   data.loaves.push(loaf);
   await adapter.save(data);
@@ -156,19 +198,27 @@ export interface SetTargetResult {
   baked: boolean;
   /** `baked` came back after an earlier bake, so the UI should use rebuild copy. */
   rebuilt: boolean;
+  /** `baked` reached a bigger target than any earlier bake. */
+  grown: boolean;
 }
 
 /**
  * Changes the target.
- * - Raising it above the balance clears "baked at start".
+ * - Raising it above the balance of a loaf that was only "Already built" undoes
+ *   that bake (the student is still choosing a goal).
  * - Lowering it to or below the balance bakes the loaf, like a deposit crossing
  *   the target. If the balance is only savings the student already had, it is
- *   baked at start (no completion date); otherwise `firstBakedAt` is recorded.
+ *   "Already built" (no completion date); otherwise the bake gets a date.
+ * - `grow: true` is the "Grow your cushion" choice on a baked fund: the old
+ *   target becomes `growFromCents` and progress counts the new part only. It
+ *   fails unless the fund is baked and the new target is bigger. Raising the
+ *   target without `grow` just edits the goal.
  */
 export async function setTarget(
   adapter: DataAdapter,
   loafId: LoafId,
   targetCents: number,
+  options: { grow?: boolean } = {},
 ): Promise<SetTargetResult | MoneyFailure> {
   const bad = checkAmount(targetCents, Number.MAX_SAFE_INTEGER);
   if (bad) return bad;
@@ -177,18 +227,37 @@ export async function setTarget(
   if (!loaf) return fail('no-loaf', NO_LOAF);
 
   const before = statusFor(data, loaf);
-  loaf.targetCents = targetCents;
   const balance = before.balanceCents;
-  if (loaf.bakedAtStart && balance < targetCents) loaf.bakedAtStart = false;
+  let endedGrowing = false;
 
-  const baked = before.percent < 100 && progressPercent(balance, targetCents) >= 100;
-  if (baked && !before.baked) {
+  if (options.grow) {
+    if (!before.baked || (!before.growing && before.percent < 100)) {
+      return fail('grow-not-ready', 'Finish baking this loaf before growing it.');
+    }
+    if (targetCents <= loaf.targetCents) {
+      return fail('grow-not-bigger', 'Pick a goal bigger than your current one.');
+    }
+    loaf.growFromCents ??= loaf.targetCents;
+  } else {
+    if (loaf.growFromCents !== null && targetCents <= loaf.growFromCents) {
+      loaf.growFromCents = null;
+      endedGrowing = true;
+    }
+    const onlyAlreadyBuilt = loaf.bakes.length === 1 && loaf.bakes[0].at === null;
+    if (onlyAlreadyBuilt && balance < targetCents) loaf.bakes = [];
+  }
+  loaf.targetCents = targetCents;
+
+  // A fund that was already at 100% can only bake again by growing, so skip the "was under 100%" check then.
+  const crossed = (options.grow || before.percent < 100) && percentFor(loaf, balance) >= 100;
+  const baked = !endedGrowing && crossed;
+  let grown = false;
+  if (baked) {
     const onlyStarting = data.transactions.every((t) => t.loafId !== loafId || t.type === 'starting');
-    if (onlyStarting) loaf.bakedAtStart = true;
-    else loaf.firstBakedAt = await nowIso(adapter);
+    grown = recordBake(loaf, onlyStarting ? null : await nowIso(adapter)).grown;
   }
   await adapter.save(data);
-  return { ok: true, status: statusFor(data, loaf), baked, rebuilt: baked && before.baked };
+  return { ok: true, status: statusFor(data, loaf), baked, rebuilt: baked && before.baked && !grown, grown };
 }
 
 /**
@@ -214,7 +283,7 @@ export async function addStarting(
     return fail('needs-confirmation', `Is ${formatCents(amountCents)} right?`, { needsConfirmation: true });
   }
   const tx = newTransaction(data, loafId, 'starting', amountCents, await nowIso(adapter), options.source ?? 'manual');
-  if (amountCents >= loaf.targetCents) loaf.bakedAtStart = true;
+  if (amountCents >= loaf.targetCents) recordBake(loaf, null);
   await adapter.save(data);
   return { ok: true, transaction: tx, status: statusFor(data, loaf) };
 }
@@ -234,11 +303,17 @@ export async function deposit(
   const before = statusFor(data, loaf);
   const at = await nowIso(adapter);
   const tx = newTransaction(data, loafId, 'deposit', amountCents, at, options.source ?? 'manual');
-  const afterPercent = progressPercent(before.balanceCents + amountCents, loaf.targetCents);
-  const baked = before.percent < 100 && afterPercent >= 100;
-  if (baked && !before.baked) loaf.firstBakedAt = at;
+  const baked = before.percent < 100 && percentFor(loaf, before.balanceCents + amountCents) >= 100;
+  const { grown } = baked ? recordBake(loaf, at) : { grown: false };
   await adapter.save(data);
-  return { ok: true, transaction: tx, status: statusFor(data, loaf), baked, rebuilt: baked && before.baked };
+  return {
+    ok: true,
+    transaction: tx,
+    status: statusFor(data, loaf),
+    baked,
+    rebuilt: baked && before.baked && !grown,
+    grown,
+  };
 }
 
 export async function withdraw(
@@ -258,6 +333,7 @@ export async function withdraw(
     return fail('insufficient', withdrawalTooBigMessage(formatCents(available)), { availableCents: available });
   }
   const tx = newTransaction(data, loafId, 'withdrawal', amountCents, await nowIso(adapter), options.source ?? 'manual');
+  loaf.growFromCents = null; // progress goes back to balance / target
   await adapter.save(data);
   return { ok: true, transaction: tx, status: statusFor(data, loaf), message: REBUILD_MESSAGE };
 }

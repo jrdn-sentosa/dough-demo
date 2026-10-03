@@ -1,5 +1,29 @@
 import { describe, expect, it } from 'vitest';
-import { progressPercent, stageForBalance, stageForPercent } from './stages';
+import { growthPercent, progressPercent, stageForBalance, stageForPercent } from './stages';
+
+describe('growthPercent', () => {
+  // A fund baked at $400 is being grown to $1,200: the new part is $800.
+  it('starts at 0, a dough ball, when the fund has just reached the old target', () => {
+    expect(growthPercent(40_000, 40_000, 120_000)).toBe(0);
+    expect(stageForPercent(growthPercent(40_000, 40_000, 120_000))).toBe('mix');
+  });
+
+  it('counts the new part only', () => {
+    expect(growthPercent(60_000, 40_000, 120_000)).toBe(25);
+    expect(growthPercent(80_000, 40_000, 120_000)).toBe(50);
+    expect(growthPercent(100_000, 40_000, 120_000)).toBe(75);
+  });
+
+  it('is 100 at the new target and clamps above it', () => {
+    expect(growthPercent(120_000, 40_000, 120_000)).toBe(100);
+    expect(growthPercent(150_000, 40_000, 120_000)).toBe(100);
+  });
+
+  it('is 0 when the balance is under the old target or the target is not bigger', () => {
+    expect(growthPercent(30_000, 40_000, 120_000)).toBe(0);
+    expect(growthPercent(50_000, 120_000, 120_000)).toBe(0);
+  });
+});
 
 describe('stageForPercent', () => {
   it.each([

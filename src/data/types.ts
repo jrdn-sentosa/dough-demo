@@ -19,14 +19,28 @@ export interface Transaction {
   at: string;
 }
 
+/** One bake on the shelf. A fund that has been grown has more than one. */
+export interface Bake {
+  /** The target that was reached. The shelf turns it into months using the student's essentials. */
+  targetCents: number;
+  /** ISO string in UTC from the demo clock, or null for "Already built" (existing savings covered it). */
+  at: string | null;
+}
+
 export interface LoafRecord {
   loafId: LoafId;
   targetCents: number;
   startedAt: string;
-  /** Set once, the first time deposits reach the target. Never cleared. */
-  firstBakedAt: string | null;
-  /** Existing savings already covered the target, so there is no completion date. */
-  bakedAtStart: boolean;
+  /**
+   * Every bake, oldest first. Never cleared by withdrawals, so the shelf keeps
+   * the first bake. A new entry is added only when a higher target is reached.
+   */
+  bakes: Bake[];
+  /**
+   * Set while the student grows a baked fund toward a bigger target: the old
+   * target, where the new growth starts. Cleared by a withdrawal or the next bake.
+   */
+  growFromCents: number | null;
 }
 
 export interface ClockState {

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   creditedSavings,
   essentialsFigure,
+  monthsForTarget,
   roundUpToFifty,
   savingsMeetTarget,
   targetForMonths,
@@ -60,6 +61,18 @@ describe('targetForMonths', () => {
     expect(targetForMonths(40_000, 1)).toBe(40_000);
     expect(targetForMonths(40_000, 3)).toBe(120_000);
     expect(targetForMonths(40_000, 6)).toBe(240_000);
+  });
+});
+
+describe('monthsForTarget', () => {
+  it('divides the target by monthly essentials', () => {
+    expect(monthsForTarget(40_000, 40_000)).toBe(1);
+    expect(monthsForTarget(120_000, 40_000)).toBe(3);
+    expect(monthsForTarget(240_000, 40_000)).toBe(6);
+  });
+
+  it('is 0 when essentials are 0', () => {
+    expect(monthsForTarget(40_000, 0)).toBe(0);
   });
 });
 

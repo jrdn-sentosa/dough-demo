@@ -20,3 +20,12 @@ export function stageForPercent(percent: number): Stage {
 export function stageForBalance(balanceCents: number, targetCents: number): Stage {
   return stageForPercent(progressPercent(balanceCents, targetCents));
 }
+
+/**
+ * Progress on the new part only, while a baked fund grows toward a bigger target.
+ * `fromCents` is the old target, where the growth starts, so the loaf restarts as
+ * a dough ball instead of shrinking.
+ */
+export function growthPercent(balanceCents: number, fromCents: number, targetCents: number): number {
+  return progressPercent(balanceCents - fromCents, targetCents - fromCents);
+}

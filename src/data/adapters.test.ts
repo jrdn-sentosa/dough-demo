@@ -91,6 +91,36 @@ describe('local adapter safety', () => {
     expect(loaded.transactions.map((t) => t.source)).toEqual(['manual', 'plaid', 'seed', 'manual']);
   });
 
+  describe('loaves saved before bakes existed', () => {
+    const old = { loafId: 'emergency-fund', targetCents: 40_000, startedAt: '2026-01-01T00:00:00.000Z' };
+    const load = (loaves: unknown[]) =>
+      createLocalAdapter(fakeStorage({ [STORAGE_KEY]: JSON.stringify({ ...emptyData(), loaves }) })).load();
+
+    it('turns firstBakedAt into one dated bake', async () => {
+      const { loaves } = await load([{ ...old, firstBakedAt: '2026-02-01T00:00:00.000Z', bakedAtStart: false }]);
+      expect(loaves[0].bakes).toEqual([{ targetCents: 40_000, at: '2026-02-01T00:00:00.000Z' }]);
+      expect(loaves[0].growFromCents).toBeNull();
+      expect(loaves[0]).not.toHaveProperty('firstBakedAt');
+      expect(loaves[0]).not.toHaveProperty('bakedAtStart');
+    });
+
+    it('turns bakedAtStart into one "Already built" bake', async () => {
+      const { loaves } = await load([{ ...old, firstBakedAt: null, bakedAtStart: true }]);
+      expect(loaves[0].bakes).toEqual([{ targetCents: 40_000, at: null }]);
+    });
+
+    it('gives an unbaked loaf no bakes', async () => {
+      const { loaves } = await load([{ ...old, firstBakedAt: null, bakedAtStart: false }]);
+      expect(loaves[0].bakes).toEqual([]);
+    });
+
+    it('keeps bakes and growFromCents that are already saved', async () => {
+      const bakes = [{ targetCents: 40_000, at: null }];
+      const { loaves } = await load([{ ...old, bakes, growFromCents: 40_000 }]);
+      expect(loaves[0]).toMatchObject({ bakes, growFromCents: 40_000 });
+    });
+  });
+
   it('does not crash when storage is blocked, and keeps data in memory', async () => {
     const adapter = createLocalAdapter(throwingStorage);
     expect(await adapter.load()).toEqual(emptyData());

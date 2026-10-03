@@ -43,6 +43,11 @@ export function targetForMonths(monthlyEssentialsCents: number, months: TargetMo
   return monthlyEssentialsCents * months;
 }
 
+/** How many months of essentials a target covers. Used to label bakes and to pick the next loaf. */
+export function monthsForTarget(targetCents: number, monthlyEssentialsCents: number): number {
+  return monthlyEssentialsCents > 0 ? targetCents / monthlyEssentialsCents : 0;
+}
+
 /** Existing savings credited at the band's lower bound, unless an exact amount is given. */
 export function creditedSavings(bandId: string, exactCents?: number): number {
   if (exactCents !== undefined && exactCents >= 0) return exactCents;

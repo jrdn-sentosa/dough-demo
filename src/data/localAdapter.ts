@@ -1,5 +1,5 @@
 import type { DataAdapter } from './adapter';
-import { TRANSACTION_SOURCES, emptyData, type AppData, type TransactionSource } from './types';
+import { TRANSACTION_SOURCES, emptyData, type AppData, type Bake, type LoafRecord, type TransactionSource } from './types';
 
 export const STORAGE_KEY = 'dough:v1';
 
@@ -23,10 +23,26 @@ function isAppData(value: unknown): value is AppData {
   );
 }
 
-/** Rows saved before `source` existed (or with a bad value) count as manual. */
-function withSources(data: AppData): AppData {
+/**
+ * Loaves saved before `bakes` existed had `firstBakedAt` and `bakedAtStart`.
+ * Turn those into a one-entry bake list, and default `growFromCents` to null.
+ */
+function withBakes(loaf: LoafRecord): LoafRecord {
+  const legacy = loaf as LoafRecord & { firstBakedAt?: string | null; bakedAtStart?: boolean };
+  const { firstBakedAt, bakedAtStart, ...rest } = legacy;
+  let bakes: Bake[];
+  if (Array.isArray(rest.bakes)) bakes = rest.bakes;
+  else if (typeof firstBakedAt === 'string') bakes = [{ targetCents: rest.targetCents, at: firstBakedAt }];
+  else if (bakedAtStart === true) bakes = [{ targetCents: rest.targetCents, at: null }];
+  else bakes = [];
+  return { ...rest, bakes, growFromCents: typeof rest.growFromCents === 'number' ? rest.growFromCents : null };
+}
+
+/** Fills in fields that older saved data didn't have. Rows saved before `source` existed (or with a bad value) count as manual. */
+function withDefaults(data: AppData): AppData {
   return {
     ...data,
+    loaves: data.loaves.map(withBakes),
     transactions: data.transactions.map((t) => ({
       ...t,
       source: TRANSACTION_SOURCES.includes(t.source) ? t.source : ('manual' as TransactionSource),
@@ -56,7 +72,7 @@ export function createLocalAdapter(storage?: StorageLike): DataAdapter {
         const raw = resolveStorage()?.getItem(STORAGE_KEY);
         if (raw) {
           const parsed: unknown = JSON.parse(raw);
-          if (isAppData(parsed)) return withSources(parsed);
+          if (isAppData(parsed)) return withDefaults(parsed);
         }
       } catch {
         // fall through to the in-memory copy or fresh data
