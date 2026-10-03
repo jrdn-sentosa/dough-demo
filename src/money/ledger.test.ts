@@ -219,6 +219,57 @@ describe('withdrawing after baked', () => {
   });
 });
 
+describe('changing the target', () => {
+  beforeEach(() => startEf(400));
+
+  it('bakes the loaf and returns baked: true when the new target is below the balance', async () => {
+    await ok(deposit(adapter, EF, dollars(150)));
+    const r = await ok(setTarget(adapter, EF, dollars(100)));
+    expect(r).toMatchObject({ baked: true, rebuilt: false });
+    expect(r.status).toMatchObject({ stage: 'baked', percent: 100, balanceCents: dollars(150), bakedAtStart: false });
+    expect(r.status.firstBakedAt).not.toBeNull();
+  });
+
+  it('bakes when the new target equals the balance', async () => {
+    await ok(deposit(adapter, EF, dollars(150)));
+    const r = await ok(setTarget(adapter, EF, dollars(150)));
+    expect(r.baked).toBe(true);
+  });
+
+  it('does not bake when the new target is still above the balance', async () => {
+    await ok(deposit(adapter, EF, dollars(150)));
+    const r = await ok(setTarget(adapter, EF, dollars(200)));
+    expect(r).toMatchObject({ baked: false, status: { baked: false, percent: 75, firstBakedAt: null } });
+  });
+
+  it('counts as baked at start, with no completion date, when only existing savings meet the new target', async () => {
+    await ok(addStarting(adapter, EF, dollars(150)));
+    const r = await ok(setTarget(adapter, EF, dollars(100)));
+    expect(r.baked).toBe(true);
+    expect(r.status).toMatchObject({ bakedAtStart: true, firstBakedAt: null, rebuilding: false });
+  });
+
+  it('does not celebrate again when the loaf was already at 100%', async () => {
+    await ok(deposit(adapter, EF, dollars(400)));
+    const baked = await getLoafStatus(adapter, EF);
+    const r = await ok(setTarget(adapter, EF, dollars(300)));
+    expect(r.baked).toBe(false);
+    expect(r.status.firstBakedAt).toBe(baked?.firstBakedAt);
+  });
+
+  it('flags rebuilt: true when lowering the target finishes a rebuild, keeping the first bake', async () => {
+    const first = await ok(deposit(adapter, EF, dollars(400)));
+    await ok(withdraw(adapter, EF, dollars(200)));
+    const r = await ok(setTarget(adapter, EF, dollars(200)));
+    expect(r).toMatchObject({ baked: true, rebuilt: true, status: { rebuilding: false } });
+    expect(r.status.firstBakedAt).toBe(first.status.firstBakedAt);
+  });
+
+  it('rejects a target that is zero or negative', async () => {
+    expect(await setTarget(adapter, EF, 0)).toMatchObject({ ok: false, code: 'not-positive' });
+  });
+});
+
 describe('transaction source', () => {
   beforeEach(() => startEf());
 

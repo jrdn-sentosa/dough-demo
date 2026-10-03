@@ -149,24 +149,46 @@ export async function startLoaf(
   return { ok: true, loaf };
 }
 
+export interface SetTargetResult {
+  ok: true;
+  status: LoafStatus;
+  /** The new target is at or below the balance, so the loaf just baked (same rule as a deposit). */
+  baked: boolean;
+  /** `baked` came back after an earlier bake, so the UI should use rebuild copy. */
+  rebuilt: boolean;
+}
+
 /**
- * Changes the target. If existing savings had counted as baked and the new
- * target is bigger than the balance, the loaf is no longer baked at start.
+ * Changes the target.
+ * - Raising it above the balance clears "baked at start".
+ * - Lowering it to or below the balance bakes the loaf, like a deposit crossing
+ *   the target. If the balance is only savings the student already had, it is
+ *   baked at start (no completion date); otherwise `firstBakedAt` is recorded.
  */
 export async function setTarget(
   adapter: DataAdapter,
   loafId: LoafId,
   targetCents: number,
-): Promise<{ ok: true; status: LoafStatus } | MoneyFailure> {
+): Promise<SetTargetResult | MoneyFailure> {
   const bad = checkAmount(targetCents, Number.MAX_SAFE_INTEGER);
   if (bad) return bad;
   const data = await adapter.load();
   const loaf = data.loaves.find((l) => l.loafId === loafId);
   if (!loaf) return fail('no-loaf', NO_LOAF);
+
+  const before = statusFor(data, loaf);
   loaf.targetCents = targetCents;
-  if (loaf.bakedAtStart && balanceCents(data, loafId) < targetCents) loaf.bakedAtStart = false;
+  const balance = before.balanceCents;
+  if (loaf.bakedAtStart && balance < targetCents) loaf.bakedAtStart = false;
+
+  const baked = before.percent < 100 && progressPercent(balance, targetCents) >= 100;
+  if (baked && !before.baked) {
+    const onlyStarting = data.transactions.every((t) => t.loafId !== loafId || t.type === 'starting');
+    if (onlyStarting) loaf.bakedAtStart = true;
+    else loaf.firstBakedAt = await nowIso(adapter);
+  }
   await adapter.save(data);
-  return { ok: true, status: statusFor(data, loaf) };
+  return { ok: true, status: statusFor(data, loaf), baked, rebuilt: baked && before.baked };
 }
 
 /**
