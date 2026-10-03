@@ -1,0 +1,72 @@
+{
+  "draft": true,
+  "title": "Let's get to know your money",
+  "intro": "Five quick questions about your situation. There are no right answers and nothing is graded. Ranges are fine, and you can change anything later.",
+  "questions": [
+    {
+      "id": "essentials",
+      "kind": "single",
+      "prompt": "About how much do you need each month to cover your essentials?",
+      "help": "Rent, food, phone, transportation, and anything else you'd need to get by for a month. If your housing or meals are prepaid, count only what you still pay each month.",
+      "options": [
+        { "id": "under-250", "label": "Under $250" },
+        { "id": "250-499", "label": "$250–$499" },
+        { "id": "500-749", "label": "$500–$749" },
+        { "id": "750-999", "label": "$750–$999" },
+        { "id": "1000-1499", "label": "$1,000–$1,499" },
+        { "id": "1500-plus", "label": "$1,500 and up" },
+        { "id": "not-sure", "label": "Not sure" }
+      ]
+    },
+    {
+      "id": "existing-savings",
+      "kind": "single",
+      "prompt": "How much money do you already have set aside for emergencies?",
+      "help": "Money you'd reach for if something urgent came up. Leave out money you've set aside for rent, tuition, or other planned costs.",
+      "options": [
+        { "id": "none", "label": "None" },
+        { "id": "1-99", "label": "$1–$99" },
+        { "id": "100-249", "label": "$100–$249" },
+        { "id": "250-499", "label": "$250–$499" },
+        { "id": "500-999", "label": "$500–$999" },
+        { "id": "1000-plus", "label": "$1,000 and up" }
+      ]
+    },
+    {
+      "id": "accounts",
+      "kind": "multi",
+      "prompt": "Which of these accounts do you have?",
+      "help": "Choose all that apply. This helps us skip steps you've already done.",
+      "options": [
+        { "id": "checking", "label": "Checking account" },
+        { "id": "regular-savings", "label": "Regular savings account" },
+        { "id": "high-yield-savings", "label": "High-yield savings account" },
+        { "id": "retirement", "label": "Retirement account (Roth IRA, 401(k), 403(b))" },
+        { "id": "investment", "label": "Investment account or investing app" },
+        { "id": "none", "label": "None of these" },
+        { "id": "not-sure", "label": "Not sure" }
+      ]
+    },
+    {
+      "id": "card-debt",
+      "kind": "single",
+      "prompt": "Do you carry a credit card balance from month to month?",
+      "help": "Carrying a balance means you don't pay the full amount by the due date, so interest gets added.",
+      "options": [
+        { "id": "yes", "label": "Yes" },
+        { "id": "no", "label": "No" },
+        { "id": "no-card", "label": "I don't have a credit card" }
+      ]
+    },
+    {
+      "id": "earned-income",
+      "kind": "single",
+      "prompt": "Do you earn income from a job?",
+      "help": "Part-time, full-time, work-study, or gig work all count.",
+      "options": [
+        { "id": "yes", "label": "Yes" },
+        { "id": "no", "label": "No" }
+      ]
+    }
+  ]
+}

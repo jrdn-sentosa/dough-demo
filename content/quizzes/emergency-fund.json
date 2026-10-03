@@ -1,0 +1,59 @@
+{
+  "draft": true,
+  "loaf": "emergency-fund",
+  "questions": [
+    {
+      "id": "ef-q1",
+      "question": "What is an emergency fund for?",
+      "choices": ["A spring break trip", "A surprise car repair", "New textbooks"],
+      "answer": 1,
+      "explain": "It's for urgent costs you couldn't plan for. A trip and textbooks are things you can see coming, so they belong in your regular budget.",
+      "lesson": "ef-what-its-for",
+      "timestamp": 8
+    },
+    {
+      "id": "ef-q2",
+      "question": "Which of these counts as an essential when you work out your monthly number?",
+      "choices": ["Rent", "Streaming subscriptions", "Eating out with friends", "Shopping for fun"],
+      "answer": 0,
+      "explain": "Essentials are what you'd need to get by for a month, like rent, food, phone, and transportation. Extras like streaming, eating out, and shopping are left out.",
+      "lesson": "ef-how-much",
+      "timestamp": 10
+    },
+    {
+      "id": "ef-q3",
+      "question": "What's a good first goal for an emergency fund?",
+      "choices": ["One month of essentials", "A full year of essentials", "Whatever's left at the end of the month"],
+      "answer": 0,
+      "explain": "One month of essentials is small enough to reach in a semester and covers many common surprises. You can build toward three or six months later.",
+      "lesson": "ef-how-much",
+      "timestamp": 42
+    },
+    {
+      "id": "ef-q4",
+      "question": "Where is a good place to keep your emergency fund?",
+      "choices": [
+        "In the same account you spend from every day",
+        "In a high-yield savings account, separate from checking",
+        "In a stock you think will go up"
+      ],
+      "answer": 1,
+      "explain": "A separate savings account keeps it from being spent by accident, and a high-yield one pays much more than a regular savings account. Investments can drop in value right when you need cash.",
+      "lesson": "ef-where-to-keep",
+      "timestamp": 10
+    },
+    {
+      "id": "ef-q5",
+      "question": "What should you look for when choosing where to keep your fund?",
+      "choices": [
+        "It's insured by the FDIC (banks) or NCUA (credit unions)",
+        "It's the account with the flashiest ads",
+        "It charges a monthly fee"
+      ],
+      "answer": 0,
+      "explain": "FDIC or NCUA insurance protects your money, up to the legal limit, even if the institution runs into trouble. Ads don't tell you that, and fees only take away from your savings.",
+      "lesson": "ef-where-to-keep",
+      "timestamp": 42
+    }
+  ]
+}
