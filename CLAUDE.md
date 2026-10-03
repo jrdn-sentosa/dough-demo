@@ -48,6 +48,8 @@ src/
                 VideoPlayer, QuizQuestion, LessonRow
   domain/       pure logic: placement scoring, targets, stages,
                 recommendations, quiz grading (no React, no Supabase)
+  content/      typed loader for everything in content/ (import.meta.glob),
+                throws on malformed content; review-page renderer
   money/        simulated deposits and withdrawals, demo clock
   data/         the only code that talks to storage: DataAdapter interface,
                 localStorage and in-memory adapters, Supabase later
@@ -173,6 +175,14 @@ The emergency fund loaf is the first loaf for students with under 3 months cover
 - **While it rises (short text tips, unlocked by stage):** Shape "Why small deposits add up", Proof "Make it automatic", Bake "When it's the right time to use it", Baked "Choosing your next loaf".
 
 ## Lessons and quizzes
+
+### Content rules (financial copy)
+
+- **Draft flag:** every content file carries a boolean `draft`. The app shows a "Draft content" note while it is `true`. Removing the flag after review must not break anything.
+- **Nothing that goes stale:** no specific interest rates, yields, or dollar figures. Say "much more than a regular savings account," not a rate. (Placement range labels are the one exception; they come from the bands.)
+- **No brand names:** never name specific banks, credit unions, or apps.
+- **Insurance:** when explaining high-yield savings, say the account should be insured by the FDIC (banks) or the NCUA (credit unions).
+- **Plain language:** about a 2-minute read per lesson summary. Tests enforce the number, name, and FDIC/NCUA rules.
 
 - Lessons are videos with captions (WebVTT) and a short text summary below. Track "watched" when the student reaches 90% of the video or taps "Mark as watched."
 - **Missing video:** no fake video files. If a lesson's video file is missing, show a "Video coming soon" poster with the lesson summary and a "Mark as watched" button. Real videos are added later by filename in `public/videos/<loaf>/`.
@@ -343,5 +353,6 @@ Content for the Index funds, Bonds, Roth IRA, and Debt payoff loaves (cards only
 - For changes touching more than 3 files, propose a short plan first.
 - Keep `src/domain/` pure and covered by tests. Run `npm run test` and `npm run build` before saying a task is done.
 - Lesson, quiz, and loaf content lives in `content/`, never hardcoded in components.
+- `docs/content-review.md` lists all learner-facing copy on one page. It is generated: after any change to `content/`, run `npm run test -- -u` to regenerate it. A test fails if it is stale.
 - Small, focused commits with clear messages.
 - When a decision changes (stack, rules, flow, design), update this file in the same change.
