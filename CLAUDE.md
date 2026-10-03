@@ -48,7 +48,8 @@ src/
   domain/       pure logic: placement scoring, targets, stages,
                 recommendations, quiz grading (no React, no Supabase)
   money/        simulated deposits and withdrawals, demo clock
-  data/         the only code that talks to Supabase
+  data/         the only code that talks to storage: DataAdapter interface,
+                localStorage and in-memory adapters, Supabase later
   styles/       tokens.css, global.css
 content/
   placement.json            placement quiz questions and scoring
@@ -200,7 +201,7 @@ The emergency fund loaf is the first loaf for students with under 3 months cover
 
 - **Saving setup:** the student picks a habit and sees both suggestions: **weekly** = target ÷ 12 weeks (about one semester), rounded up to the nearest $5, minimum $5; **per paycheck** = 10% of each paycheck. Placement doesn't ask income type, so the student chooses. They also see the suggested account type (high-yield savings). In the demo there is no real account. Students with no savings account of any kind get an extra step about opening a high-yield savings account; students who already have one skip it.
 - **Adding money:** "I moved money to savings" logs a simulated deposit.
-- **Progress** = money added to this loaf ÷ this loaf's target.
+- **Progress** = this loaf's balance (its `starting`, deposit, and withdrawal rows) ÷ this loaf's target.
 
 | Stage | Progress | Illustration |
 |---|---|---|
@@ -215,7 +216,7 @@ The emergency fund loaf is the first loaf for students with under 3 months cover
 
 ## Withdrawals
 
-- Emergency withdrawals are always allowed, instantly.
+- Emergency withdrawals are always allowed, instantly, up to the loaf's balance.
 - The loaf shrinks to the stage that matches the new balance.
 - The message is supportive, never guilt: "You used your fund for what it's for. Let's rebuild." Never use words like "failed," "lost," or "broke your streak."
 
@@ -232,7 +233,16 @@ The emergency fund loaf is the first loaf for students with under 3 months cover
 
 - Store all money as **integer cents**. Format only at display time.
 - Dates are ISO strings in UTC; display in the user's local time.
-- Supabase tables: `profiles` (essentials range, existing savings range, `accounts`, `cardDebt`, `earnedIncome`, `monthsCovered`), `placement_results`, `loaves`, `transactions`, `lesson_progress`, `quiz_attempts`.
+- **Every balance comes only from transaction rows** (`src/money/`). The data adapter stores and returns raw rows and never a balance.
+- **Existing savings** are a transaction of type `starting` ("Savings you already had" in history), not a separate field. It must be a loaf's first row, and only one is allowed per loaf.
+- **Amounts** are positive integer cents. Zero, negatives, and non-whole cents are rejected. Deposits and withdrawals over $10,000 in one entry are rejected with a friendly "check for a typo" message. `starting` allows up to $100,000: above $10,000 it returns `needsConfirmation` (nothing is written) so the UI can ask "Is that right?" and call again with `confirmed: true`.
+- **Withdrawals** can't exceed the loaf's balance. The result carries `availableCents` and a friendly message, not an error.
+- **Reaching the target:** a deposit that takes progress from under 100% to 100% or more returns `baked: true`. Extra money above the target stays in that loaf's balance (progress is clamped at 100%). The next loaf has its own rows and starts at zero.
+- **Rebuild mode:** withdrawing from a baked emergency fund (including one baked at start) brings the loaf back to Home as `rebuilding`, at the stage matching its balance, with "You used your fund for what it's for. Let's rebuild." The shelf keeps the record of the first bake (`firstBakedAt` is never cleared). When a rebuild reaches the target again, the result has `baked: true` and `rebuilt: true`.
+- **Demo clock** (`src/money/clock.ts`): `now()`, `advance(days)`, `reset()`. It is saved as part of the data so it survives a reload. Every transaction's date comes from it. Only this file reads the real time.
+- **Local storage:** one versioned key, `dough:v1`. If saved data is missing, unreadable, or the wrong version, start fresh instead of crashing. Every read and write is wrapped in try/catch because some browsers block storage in private mode. If writes are blocked, the app keeps working from memory.
+- **Tests** use an in-memory adapter that implements the same `DataAdapter` interface, so they never touch real browser storage.
+- Supabase tables: `profiles` (essentials range, existing savings range, `accounts`, `cardDebt`, `earnedIncome`, `monthsCovered`), `placement_results`, `loaves`, `transactions` (with a `type` of `starting`, `deposit`, or `withdrawal`), `lesson_progress`, `quiz_attempts`.
 - Row Level Security is on for every table. Users can only read and write their own rows.
 - Env vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` in `.env.local`.
 

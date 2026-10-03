@@ -10,7 +10,7 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
 |---|---|---|
 | 1 | Scaffold and design system | Done |
 | 2 | Domain core | Done |
-| 3 | Money layer and local adapter | To do |
+| 3 | Money layer and local adapter | Done |
 | 4 | Draft content and loader | To do |
 | 5 | First-time flow | To do |
 | 6 | Lessons and loaf quiz | To do |
@@ -42,6 +42,8 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
    - `src/money/`: deposits, withdrawals, balance derived from raw rows, and the demo clock.
    - `DataAdapter` interface in `src/data/` plus a `localStorage` implementation that only stores and returns raw rows.
    - Email-only fake sign-in, labeled local-only in the code and UI, replaced in milestone 10.
+   - Notes (done): `DataAdapter` is async (`load`/`save`, never throw) so the Supabase adapter fits later. Adapters: `localAdapter` (`dough:v1`, takes a `StorageLike` so tests use a fake), `memoryAdapter`. `src/money/` has `clock`, `amounts`, `ledger`, `messages`, `format`. Money functions return `{ ok: true, ... } | { ok: false, code, message }` and never throw. `deposit` returns `baked` and `rebuilt`; `withdraw` returns the rebuild message; `addStarting` returns `needsConfirmation` over $10,000 (cap $100,000). Rebuild mode is derived from `firstBakedAt`/`bakedAtStart` plus balance, not stored. The local sign-in UI is milestone 5; only `src/data/session.ts` exists so far.
+   - Milestone 9 seed: Maya's 6 weeks of past deposits need explicit dates, so add a seed-only function inside `src/money/` that takes dates. Normal deposit and withdraw never accept a date.
 4. **Draft content and loader**
    - `placement.json` (5 situation questions; the essentials question explains what to count, see CLAUDE.md).
    - `loaves/emergency-fund.json`, including the 4 rising tips.
@@ -72,7 +74,7 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
    - Withdrawal with the supportive message and shrinking loaf.
    - Stage-unlocked tips.
 8. **Loaf done and shelf**
-   - LoafComplete celebration.
+   - LoafComplete celebration. When `baked: true` comes with `rebuilt: true` (a rebuild, not the first bake), use different copy: "You rebuilt your fund". The shelf keeps the first bake's record.
    - Shelf with completion months and outlines.
    - ChooseLoaf with Coming-soon cards (including Debt payoff) and the debt note.
 9. **Demo mode, Settings, and PWA**
