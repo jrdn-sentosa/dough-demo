@@ -219,6 +219,31 @@ describe('withdrawing after baked', () => {
   });
 });
 
+describe('transaction source', () => {
+  beforeEach(() => startEf());
+
+  it('defaults to manual for every row type', async () => {
+    await ok(addStarting(adapter, EF, dollars(10)));
+    await ok(deposit(adapter, EF, dollars(10)));
+    await ok(withdraw(adapter, EF, dollars(5)));
+    const rows = await listTransactions(adapter, EF);
+    expect(rows.map((r) => r.source)).toEqual(['manual', 'manual', 'manual']);
+  });
+
+  it('records the source when one is given', async () => {
+    await ok(addStarting(adapter, EF, dollars(10), { source: 'plaid' }));
+    await ok(deposit(adapter, EF, dollars(10), { source: 'seed' }));
+    await ok(withdraw(adapter, EF, dollars(5), { source: 'plaid' }));
+    const rows = await listTransactions(adapter, EF);
+    expect(rows.map((r) => r.source)).toEqual(['plaid', 'seed', 'plaid']);
+  });
+
+  it('does not change balances, stages, or the baked flag', async () => {
+    const r = await ok(deposit(adapter, EF, dollars(400), { source: 'plaid' }));
+    expect(r).toMatchObject({ baked: true, status: { balanceCents: dollars(400), percent: 100 } });
+  });
+});
+
 describe('loaf lookups', () => {
   it('fails politely for a loaf that was never started', async () => {
     expect(await deposit(adapter, EF, 500)).toMatchObject({ ok: false, code: 'no-loaf' });

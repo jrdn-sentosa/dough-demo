@@ -36,6 +36,7 @@ function contract(name: string, make: () => DataAdapter) {
         id: 'tx-1',
         loafId: 'emergency-fund',
         type: 'deposit',
+        source: 'manual',
         amountCents: 500,
         at: '2026-01-01T00:00:00.000Z',
       });
@@ -73,6 +74,21 @@ describe('local adapter safety', () => {
   ])('starts fresh when saved data is %s', async (_label, raw) => {
     const adapter = createLocalAdapter(fakeStorage({ [STORAGE_KEY]: raw }));
     expect(await adapter.load()).toEqual(emptyData());
+  });
+
+  it('keeps each source and treats rows saved without one as manual', async () => {
+    const row = { id: 'tx-1', loafId: 'emergency-fund', type: 'deposit', amountCents: 500, at: '2026-01-01T00:00:00.000Z' };
+    const raw = JSON.stringify({
+      ...emptyData(),
+      transactions: [
+        row,
+        { ...row, id: 'tx-2', source: 'plaid' },
+        { ...row, id: 'tx-3', source: 'seed' },
+        { ...row, id: 'tx-4', source: 'bogus' },
+      ],
+    });
+    const loaded = await createLocalAdapter(fakeStorage({ [STORAGE_KEY]: raw })).load();
+    expect(loaded.transactions.map((t) => t.source)).toEqual(['manual', 'plaid', 'seed', 'manual']);
   });
 
   it('does not crash when storage is blocked, and keeps data in memory', async () => {

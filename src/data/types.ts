@@ -3,11 +3,17 @@ import type { LoafId } from '../domain/types';
 /** `starting` is savings the student already had when they began the loaf. */
 export type TransactionType = 'starting' | 'deposit' | 'withdrawal';
 
+/** Where a row came from: typed in by the student, read from a linked bank (Plaid milestone), or demo seed data. */
+export type TransactionSource = 'manual' | 'plaid' | 'seed';
+
+export const TRANSACTION_SOURCES: readonly TransactionSource[] = ['manual', 'plaid', 'seed'];
+
 /** One raw row. The amount is always positive; the sign comes from `type`. */
 export interface Transaction {
   id: string;
   loafId: LoafId;
   type: TransactionType;
+  source: TransactionSource;
   amountCents: number;
   /** ISO string in UTC, always taken from the demo clock. */
   at: string;

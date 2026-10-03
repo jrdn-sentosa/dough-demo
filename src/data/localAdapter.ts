@@ -1,5 +1,5 @@
 import type { DataAdapter } from './adapter';
-import { emptyData, type AppData } from './types';
+import { TRANSACTION_SOURCES, emptyData, type AppData, type TransactionSource } from './types';
 
 export const STORAGE_KEY = 'dough:v1';
 
@@ -21,6 +21,17 @@ function isAppData(value: unknown): value is AppData {
     clock !== null &&
     Number.isInteger(clock.offsetDays)
   );
+}
+
+/** Rows saved before `source` existed (or with a bad value) count as manual. */
+function withSources(data: AppData): AppData {
+  return {
+    ...data,
+    transactions: data.transactions.map((t) => ({
+      ...t,
+      source: TRANSACTION_SOURCES.includes(t.source) ? t.source : ('manual' as TransactionSource),
+    })),
+  };
 }
 
 /**
@@ -45,7 +56,7 @@ export function createLocalAdapter(storage?: StorageLike): DataAdapter {
         const raw = resolveStorage()?.getItem(STORAGE_KEY);
         if (raw) {
           const parsed: unknown = JSON.parse(raw);
-          if (isAppData(parsed)) return parsed;
+          if (isAppData(parsed)) return withSources(parsed);
         }
       } catch {
         // fall through to the in-memory copy or fresh data

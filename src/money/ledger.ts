@@ -1,5 +1,5 @@
 import type { DataAdapter } from '../data/adapter';
-import type { AppData, LoafRecord, Transaction, TransactionType } from '../data/types';
+import type { AppData, LoafRecord, Transaction, TransactionSource, TransactionType } from '../data/types';
 import type { LoafId, Stage } from '../domain/types';
 import { progressPercent, stageForBalance } from '../domain/stages';
 import { MAX_ENTRY_CENTS, MAX_STARTING_CENTS, checkAmount, type AmountErrorCode } from './amounts';
@@ -119,8 +119,9 @@ function newTransaction(
   type: TransactionType,
   amountCents: number,
   at: string,
+  source: TransactionSource,
 ): Transaction {
-  const tx: Transaction = { id: `tx-${data.transactions.length + 1}`, loafId, type, amountCents, at };
+  const tx: Transaction = { id: `tx-${data.transactions.length + 1}`, loafId, type, source, amountCents, at };
   data.transactions.push(tx);
   return tx;
 }
@@ -177,7 +178,7 @@ export async function addStarting(
   adapter: DataAdapter,
   loafId: LoafId,
   amountCents: number,
-  options: { confirmed?: boolean } = {},
+  options: { confirmed?: boolean; source?: TransactionSource } = {},
 ): Promise<StartingResult | MoneyFailure> {
   const bad = checkAmount(amountCents, MAX_STARTING_CENTS);
   if (bad) return bad;
@@ -190,7 +191,7 @@ export async function addStarting(
   if (amountCents > MAX_ENTRY_CENTS && !options.confirmed) {
     return fail('needs-confirmation', `Is ${formatCents(amountCents)} right?`, { needsConfirmation: true });
   }
-  const tx = newTransaction(data, loafId, 'starting', amountCents, await nowIso(adapter));
+  const tx = newTransaction(data, loafId, 'starting', amountCents, await nowIso(adapter), options.source ?? 'manual');
   if (amountCents >= loaf.targetCents) loaf.bakedAtStart = true;
   await adapter.save(data);
   return { ok: true, transaction: tx, status: statusFor(data, loaf) };
@@ -200,6 +201,7 @@ export async function deposit(
   adapter: DataAdapter,
   loafId: LoafId,
   amountCents: number,
+  options: { source?: TransactionSource } = {},
 ): Promise<DepositResult | MoneyFailure> {
   const data = await adapter.load();
   const loaf = data.loaves.find((l) => l.loafId === loafId);
@@ -209,7 +211,7 @@ export async function deposit(
 
   const before = statusFor(data, loaf);
   const at = await nowIso(adapter);
-  const tx = newTransaction(data, loafId, 'deposit', amountCents, at);
+  const tx = newTransaction(data, loafId, 'deposit', amountCents, at, options.source ?? 'manual');
   const afterPercent = progressPercent(before.balanceCents + amountCents, loaf.targetCents);
   const baked = before.percent < 100 && afterPercent >= 100;
   if (baked && !before.baked) loaf.firstBakedAt = at;
@@ -221,6 +223,7 @@ export async function withdraw(
   adapter: DataAdapter,
   loafId: LoafId,
   amountCents: number,
+  options: { source?: TransactionSource } = {},
 ): Promise<WithdrawalResult | MoneyFailure> {
   const data = await adapter.load();
   const loaf = data.loaves.find((l) => l.loafId === loafId);
@@ -232,7 +235,7 @@ export async function withdraw(
   if (amountCents > available) {
     return fail('insufficient', withdrawalTooBigMessage(formatCents(available)), { availableCents: available });
   }
-  const tx = newTransaction(data, loafId, 'withdrawal', amountCents, await nowIso(adapter));
+  const tx = newTransaction(data, loafId, 'withdrawal', amountCents, await nowIso(adapter), options.source ?? 'manual');
   await adapter.save(data);
   return { ok: true, transaction: tx, status: statusFor(data, loaf), message: REBUILD_MESSAGE };
 }
