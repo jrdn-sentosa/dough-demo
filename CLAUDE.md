@@ -111,6 +111,11 @@ The emergency fund loaf is always the first loaf. In the demo, ChooseLoaf shows 
 ### Emergency fund loaf
 
 - **Target:** defaults to 1 month of essential costs from the placement quiz, rounded up to the nearest $50. The student can raise it to 3 or 6 months.
+- **Ranges to numbers:** the placement quiz collects ranges, but targets and stages need dollar figures.
+  - Target: use the midpoint of the chosen monthly essentials range, rounded up to the nearest $50.
+  - Open-ended top range: use its lower bound and ask the student to type an exact number.
+  - Always let the student edit the target on the "Your new loaf" screen.
+  - Existing savings: use the lower bound of the chosen range, so the loaf never shows more progress than the student really has.
 - **Existing savings:** if the student already has money set aside, ask whether to count it. If yes, the loaf starts at the matching stage. If it already meets the target, suggest a bigger target instead of finishing instantly.
 - **Video lessons (3, each under 2 minutes):**
   1. What an emergency fund is for
@@ -122,6 +127,7 @@ The emergency fund loaf is always the first loaf. In the demo, ChooseLoaf shows 
 ## Lessons and quizzes
 
 - Lessons are videos with captions (WebVTT) and a short text summary below. Track "watched" when the student reaches 90% of the video or taps "Mark as watched."
+- **Missing video:** no fake video files. If a lesson's video file is missing, show a "Video coming soon" poster with the lesson summary and a "Mark as watched" button. Real videos are added later by filename in `public/videos/<loaf>/`.
 - Each loaf quiz question has 3–4 choices, one correct answer, an explanation, and a link back to the lesson and timestamp that covers it.
 - Quiz format in `content/quizzes/<loaf>.json`:
 
@@ -184,7 +190,7 @@ The emergency fund loaf is always the first loaf. In the demo, ChooseLoaf shows 
 
 - Turned on with `?demo=1` in the URL or `VITE_DEMO_MODE=true`.
 - Shows a small "Demo" pill in the top corner.
-- **Continue as demo user** on the login screen signs into a seeded account: Maya, Home baker level, lessons watched, quiz done, emergency fund loaf at 60% ($240 of $400).
+- **Continue as demo user** on the login screen signs into a seeded account: Maya, Home baker level, lessons watched, quiz done, emergency fund loaf at 60% ($240 of $400), with about 6 weeks of past deposits so her history looks real. Earned income: yes. Credit card debt: no, so ChooseLoaf recommends the Roth IRA.
 - **Start fresh demo** runs the full first-time flow from the placement quiz.
 - **Skip a week** adds one simulated deposit of the user's habit amount and moves the demo clock forward 7 days.
 - **Reset demo** restores the seed data.
@@ -258,6 +264,7 @@ Content for the Index funds, Bonds, and Roth IRA loaves (cards only), multiple a
 ## How to work in this repo
 
 - Read this file before starting. If a request conflicts with it, point out the conflict before writing code.
+- The build plan is in `docs/plan.md`. Update it at the end of every milestone (mark done, note changes).
 - For changes touching more than 3 files, propose a short plan first.
 - Keep `src/domain/` pure and covered by tests. Run `npm run test` and `npm run build` before saying a task is done.
 - Lesson, quiz, and loaf content lives in `content/`, never hardcoded in components.
