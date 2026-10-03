@@ -156,7 +156,7 @@ Each loaf is a topic, a goal, a bread type, a set of video lessons, a quiz, and 
 | Roth IRA | Sourdough | Long, slow growth over decades | Coming soon |
 | Debt payoff | Flatbread | Simple and flat: clear what you owe | Coming soon |
 
-The emergency fund loaf is the first loaf for students with under 3 months covered. Students who already have 3+ months (or 1 to 3 months with card debt) start with it on the shelf. In the demo, ChooseLoaf shows the other four as "Coming soon" cards, with at most one tagged "Recommended."
+The emergency fund loaf is the first loaf for students with under 3 months covered. Students who already have 3+ months (or 1 to 3 months with card debt) start with it on the shelf. In the demo, ChooseLoaf shows the other four as "Coming soon" cards, plus "Grow your cushion to 3 months" (a real, working choice) when the fund that just baked had a target under 3 months. At most one option is tagged "Recommended," and every option stays choosable.
 
 ### Emergency fund loaf
 
@@ -234,10 +234,13 @@ The emergency fund loaf is the first loaf for students with under 3 months cover
 ## Loaf done and choosing the next loaf
 
 - Celebration screen, then the loaf goes to the bread shelf with its completion month. A loaf counted as baked at the start (existing savings already cover the goal) shows "Already built" instead of a date, with no completion month recorded.
-- ChooseLoaf recommends one next loaf using placement answers:
-  - Carries credit card debt: recommend Debt payoff, with a note that paying off high-interest debt usually comes before investing.
-  - Has earned income and no retirement account: recommend Roth IRA. (A Roth IRA requires earned income, so never recommend it without.) "Not sure" about accounts counts as no retirement account. The Roth IRA loaf will start with a "Check whether you already have one" step.
-  - Otherwise: recommend Index funds.
+- **The shelf keeps every bake.** Each loaf stores a list of bakes (target and date, or "Already built" with no date). A grown fund shows two shelf entries, "1 month" and "3 months". Months are worked out from the target and the student's essentials (`monthsForTarget`), not stored. Finishing a rebuild at a target already on the shelf adds nothing; reaching a higher target than any earlier bake adds an entry.
+- ChooseLoaf recommends one next option, in this order, using placement answers and the target that just baked:
+  1. Carries credit card debt: recommend Debt payoff, with a note that paying off high-interest debt usually comes before investing.
+  2. The emergency fund target that baked was under 3 months: recommend "Grow your cushion to 3 months" (below).
+  3. Has earned income and no retirement account: recommend Roth IRA. (A Roth IRA requires earned income, so never recommend it without.) "Not sure" about accounts counts as no retirement account. The Roth IRA loaf will start with a "Check whether you already have one" step.
+  4. Otherwise: recommend Index funds.
+- **Grow your cushion to 3 months:** raises the target on the same emergency fund loaf with `setTarget(..., { grow: true })`. It is allowed only when the fund is baked and the new target is bigger. The old target is stored as `growFromCents`. While growing, stage and progress count the new part only: `(balance - growFromCents) / (target - growFromCents)`, so the growth starts as a dough ball and the loaf never shrinks. Home also shows the whole fund total separately, e.g. "$400 of $1,200". Any withdrawal ends growing, and progress goes back to `balance / target` (rebuild mode). Reaching the new target returns `baked: true` and `grown: true` (not `rebuilt`), and adds the second shelf entry. Plain `setTarget` without `grow` only edits the goal.
 - **Multiple loaves (future, not in demo):** after the emergency fund loaf is done, allow up to 2 active loaves. Each deposit is assigned to one loaf when logged.
 
 ## Money and data rules
@@ -249,7 +252,8 @@ The emergency fund loaf is the first loaf for students with under 3 months cover
 - **Amounts** are positive integer cents. Zero, negatives, and non-whole cents are rejected. Deposits and withdrawals over $10,000 in one entry are rejected with a friendly "check for a typo" message. `starting` allows up to $100,000: above $10,000 it returns `needsConfirmation` (nothing is written) so the UI can ask "Is that right?" and call again with `confirmed: true`.
 - **Withdrawals** can't exceed the loaf's balance. The result carries `availableCents` and a friendly message, not an error.
 - **Reaching the target:** a deposit that takes progress from under 100% to 100% or more returns `baked: true`. Extra money above the target stays in that loaf's balance (progress is clamped at 100%). The next loaf has its own rows and starts at zero. Lowering a target to or below the balance (`setTarget`) bakes the loaf the same way and returns `baked: true`. If the balance is only savings the student already had, it counts as baked at start instead (no completion date).
-- **Rebuild mode:** withdrawing from a baked emergency fund (including one baked at start) brings the loaf back to Home as `rebuilding`, at the stage matching its balance, with "You used your fund for what it's for. Let's rebuild." The shelf keeps the record of the first bake (`firstBakedAt` is never cleared). When a rebuild reaches the target again, the result has `baked: true` and `rebuilt: true`.
+- **Rebuild mode:** withdrawing from a baked emergency fund (including one baked at start) brings the loaf back to Home as `rebuilding`, at the stage matching its balance, with "You used your fund for what it's for. Let's rebuild." Bakes are never removed, so the shelf keeps every earlier bake. When a rebuild reaches the target again, the result has `baked: true` and `rebuilt: true`. A fund that is growing (see "Grow your cushion") is not `rebuilding`.
+- **Bakes and growing on the loaf record:** `bakes` (list of `{ targetCents, at }`, `at` null for "Already built") and `growFromCents` (null unless growing) are stored on the loaf, not derived, and old saved data is converted on load. Withdrawals clear `growFromCents`. Raising the target of a loaf that is only "Already built" (without `grow`) undoes that bake, because the student is still choosing a goal.
 - **Demo clock** (`src/money/clock.ts`): `now()`, `advance(days)`, `reset()`. It is saved as part of the data so it survives a reload. Every transaction's date comes from it. Only this file reads the real time.
 - **Local storage:** one versioned key, `dough:v1`. If saved data is missing, unreadable, or the wrong version, start fresh instead of crashing. Every read and write is wrapped in try/catch because some browsers block storage in private mode. If writes are blocked, the app keeps working from memory.
 - **Tests** use an in-memory adapter that implements the same `DataAdapter` interface, so they never touch real browser storage.
@@ -262,7 +266,7 @@ The emergency fund loaf is the first loaf for students with under 3 months cover
 
 - Turned on with `?demo=1` in the URL or `VITE_DEMO_MODE=true`.
 - Shows a small "Demo" pill in the top corner.
-- **Continue as demo user** on the login screen signs into a seeded account: Maya. Placement: checking and regular savings, no emergency savings at start, no retirement account. She did not test out. Lessons watched, quiz done, emergency fund loaf at 60% ($240 of $400), with about 6 weeks of past deposits so her history looks real. Earned income: yes. Credit card debt: no, so ChooseLoaf recommends the Roth IRA.
+- **Continue as demo user** on the login screen signs into a seeded account: Maya. Placement: checking and regular savings, no emergency savings at start, no retirement account. She did not test out. Lessons watched, quiz done, emergency fund loaf at 60% ($240 of $400), with about 6 weeks of past deposits so her history looks real. Earned income: yes. Credit card debt: no. Her target is under 3 months, so when her fund bakes ChooseLoaf recommends "Grow your cushion to 3 months" first; the Roth IRA is the next-best option (it would be the recommendation after the grown fund bakes).
 - **Start fresh demo** runs the full first-time flow from the placement quiz.
 - **Skip a week** adds one simulated deposit of the user's habit amount and moves the demo clock forward 7 days.
 - **Reset demo** restores the seed data.

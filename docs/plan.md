@@ -36,7 +36,7 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
    - `stages.ts`.
    - Habit suggestion (weekly or percent).
    - Quiz grading, including the test-out rule (4 of 5 or more skips videos, otherwise missed questions recommend their lessons).
-   - ChooseLoaf recommendation rules: debt → Debt payoff; earned income and no retirement account → Roth IRA; otherwise Index funds.
+   - ChooseLoaf recommendation rules: debt → Debt payoff; earned income and no retirement account → Roth IRA; otherwise Index funds. (Updated after the content review: card debt → Debt payoff; fund target under 3 months → Grow your cushion to 3 months; then Roth IRA; then Index funds. `recommendNext` takes `targetMonths` and returns `growTargetMonths`; `monthsForTarget` and `growthPercent` added.)
    - A small frontmatter parser.
    - Notes: `--passWithNoTests` removed. Habits suggest both weekly (target ÷ 12 weeks, up to $5, min $5) and 10% per paycheck. `monthsCovered` uses the target-sizing essentials figure. A baked-at-start fund shows "Already built" on the shelf with no completion month. The investment note applies to "investment account" only, not retirement accounts. Quiz gating uses `requiredPercentFor` (0 for emergency fund and Debt payoff, 80 for investing loaves).
 3. **Money layer and local adapter**
@@ -44,6 +44,7 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
    - `DataAdapter` interface in `src/data/` plus a `localStorage` implementation that only stores and returns raw rows.
    - Email-only fake sign-in, labeled local-only in the code and UI, replaced in milestone 10.
    - Notes (done): `DataAdapter` is async (`load`/`save`, never throw) so the Supabase adapter fits later. Adapters: `localAdapter` (`dough:v1`, takes a `StorageLike` so tests use a fake), `memoryAdapter`. `src/money/` has `clock`, `amounts`, `ledger`, `messages`, `format`. Money functions return `{ ok: true, ... } | { ok: false, code, message }` and never throw. `deposit` returns `baked` and `rebuilt`; `withdraw` returns the rebuild message; `addStarting` returns `needsConfirmation` over $10,000 (cap $100,000). Rebuild mode is derived from `firstBakedAt`/`bakedAtStart` plus balance, not stored. The local sign-in UI is milestone 5; only `src/data/session.ts` exists so far.
+   - Content-review follow-up (done): loaves store `bakes` (target and date, or "Already built") and `growFromCents` instead of `firstBakedAt` and `bakedAtStart`; `LoafStatus` still exposes both as derived fields and adds `growing`, `growFromCents`, `bakes`. `setTarget(adapter, loaf, cents, { grow: true })` is the explicit "Grow your cushion" action (errors `grow-not-ready`, `grow-not-bigger`); plain `setTarget` only edits the goal. Results gain `grown`. While growing, `percent` and `stage` count the new part only. Old saved data is converted on load. Shelf labels like "1 month" come from `monthsForTarget` with the student's essentials, which are stored from milestone 5 on.
    - Milestone 9 seed: Maya's 6 weeks of past deposits need explicit dates, so add a seed-only function inside `src/money/` that takes dates. Normal deposit and withdraw never accept a date.
 4. **Draft content and loader** (done)
    - `placement.json` (5 situation questions; the essentials question explains what to count, see CLAUDE.md).
@@ -60,6 +61,8 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
    - PlacementResult, titled "Here's where you'll start": first loaf, goal in dollars and months, head start.
    - NewLoaf: editable target (1, 3, or 6 months), count-existing-savings choice with optional exact amount, estimate note for "Not sure".
    - Branch for students whose emergency fund starts baked: optional "Understand what you've built" review, then ChooseLoaf.
+   - Placement Q3 (accounts, multi-select): "None of these" and "Not sure" each clear the other choices when picked. Picking a real account clears them too.
+   - Store the student's essentials figure on the profile (cents). The shelf and ChooseLoaf need it to turn a bake's target into months.
 6. **Lessons and loaf quiz**
    - VideoPlayer: `playsinline`, captions, "watched" at 90% or via "Mark as watched".
    - "Video coming soon" poster when the video file is missing.
@@ -76,9 +79,10 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
    - Withdrawal with the supportive message and shrinking loaf.
    - Stage-unlocked tips.
 8. **Loaf done and shelf**
-   - LoafComplete celebration. When `baked: true` comes with `rebuilt: true` (a rebuild, not the first bake), use different copy: "You rebuilt your fund". The shelf keeps the first bake's record.
+   - LoafComplete celebration. When `baked: true` comes with `rebuilt: true` (a rebuild, not the first bake), use different copy: "You rebuilt your fund". The shelf keeps every bake: a grown fund shows "1 month" and "3 months". When `grown: true` (a fund reaching its grown target), use "Your cushion is at 3 months" copy.
    - Shelf with completion months and outlines.
-   - ChooseLoaf with Coming-soon cards (including Debt payoff) and the debt note.
+   - ChooseLoaf with Coming-soon cards (including Debt payoff), the debt note, and the "Grow your cushion to 3 months" option (content in `emergency-fund.json` `growOption`; it calls `setTarget` with `grow: true`).
+   - Home while growing: dough-ball start, progress on the new part, and the full fund total shown separately ("$400 of $1,200").
 9. **Demo mode, Settings, and PWA**
    - Demo pill, Maya seed, Start fresh, Skip a week, and Reset.
    - Settings with the disclaimer.
@@ -107,7 +111,7 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
 - **No levels, no knowledge questions in placement.** Placement covers situation only: essentials, savings, accounts, card debt, earned income. It sets the starting point and `monthsCovered` (internal, never shown). Knowledge is checked inside each loaf via the test-out quiz. The 80% check before investing loaves applies to everyone.
 - **Maya's placement.** Checking and regular savings, no emergency savings at start, earned income yes, no card debt, did not test out.
 - **Placeholder videos.** No fake video files. A missing video shows a "Video coming soon" poster, the lesson summary, and "Mark as watched". Real videos are added later by filename.
-- **Maya's seed.** Home baker, lessons watched, quiz done, emergency fund loaf at $240 of $400, about 6 weeks of past deposits, earned income yes, credit card debt no (so ChooseLoaf recommends Roth IRA).
+- **Maya's seed.** Home baker, lessons watched, quiz done, emergency fund loaf at $240 of $400, about 6 weeks of past deposits, earned income yes, credit card debt no. Her target is under 3 months, so ChooseLoaf recommends growing the cushion first, then Roth IRA.
 - **Adapter and balances.** The data adapter only stores and returns raw transaction rows. `src/money/` derives every balance.
 - **Dependencies.** `react-router` and `react-markdown` are approved. Frontmatter uses an in-house parser.
 - **Content scope.** Full content only for the emergency fund loaf, all marked as draft. Other loaves are "Coming soon" cards.

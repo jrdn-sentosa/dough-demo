@@ -4,7 +4,7 @@ Generated from `content/` and `public/videos/`. Do not edit by hand: change the 
 
 ## Placement: Let's get to know your money _(draft)_
 
-Five quick questions about your situation. There are no right answers and nothing is graded. Ranges are fine, and you can change anything later.
+Five quick questions about your situation. There are no right answers and nothing is graded. Ranges are fine, and you can change your goal any time.
 
 ### 1. About how much do you need each month to cover your essentials?
 
@@ -74,6 +74,8 @@ Build a cushion for urgent costs you couldn't plan for, so a surprise stays a ba
 
 Target: 1 month(s) by default. Choices: 1, 3, 6 months.
 
+Option after it bakes: **Grow your cushion to 3 months**. Your cushion is built. Raise the goal to three months of essentials to cover longer gaps, like losing a job or a bigger medical bill. Your first bake stays on the shelf.
+
 ## Lessons
 
 ### Lesson 1: What an emergency fund is for _(draft)_
@@ -95,7 +97,7 @@ Things you can see coming, like textbooks, rent, or a spring break trip, belong 
 
 ## Why it matters
 
-Without a cushion, a surprise often goes on a credit card. Then interest can make it cost more, and it can follow you for months. With a cushion, a bad surprise stays a bad day instead of turning into a bad year.
+Without a cushion, a surprise often goes on a credit card. If you can't pay it off right away, interest makes it cost more, and it can follow you for months. With a cushion, a bad surprise stays a bad day instead of turning into a bad year.
 
 ## If you use it
 
@@ -115,7 +117,7 @@ Rent, food, phone, transportation, and anything else you can't skip. If your hou
 
 ## Your goals, step by step
 
-1. **One month of essentials.** This is the starting goal. It's small enough to reach in a semester, and it covers many common surprises.
+1. **One month of essentials.** This is the starting goal. It's a realistic place to start, and it covers many common surprises.
 2. **Three months.** A stronger cushion for longer gaps, like losing a job or a bigger medical bill.
 3. **Six months.** Worth considering if your income changes a lot from month to month.
 
@@ -129,7 +131,7 @@ Next up: where to keep it.
 
 ### Lesson 3: Where to keep it: high-yield savings _(draft)_
 
-Video: `/videos/emergency-fund/ef-where-to-keep.mp4` (105 seconds). Captions: `/videos/emergency-fund/ef-where-to-keep.vtt`.
+Video: `/videos/emergency-fund/ef-where-to-keep.mp4` (115 seconds). Captions: `/videos/emergency-fund/ef-where-to-keep.vtt`.
 Optional for students who have: high-yield-savings.
 
 Where you keep your fund matters almost as much as how much you save.
@@ -153,6 +155,11 @@ Look for an account insured by the **FDIC** (if it's at a bank) or the **NCUA** 
 - No minimum balance that's hard to meet
 - Easy access when you need your money
 
+## Timing and apps
+
+- Moving money from an online savings account to checking can take a day or two, so check how long yours takes before you need it.
+- If you save through an app, check that it says your money is held at an FDIC-insured bank. Not every app is a bank.
+
 ## Why not invest it?
 
 Investments can drop in value right when you need cash. Your emergency fund is for safety, so it stays in savings.
@@ -163,52 +170,51 @@ In this demo, no real account is opened and no real money moves.
 
 ### Question 1: What is an emergency fund for?
 
-- A. A spring break trip
-- B. A surprise car repair **(correct)**
-- C. New textbooks
+- A. Your car insurance payment that's due next month
+- B. A car repair you need to get to work **(correct)**
+- C. Concert tickets that are on sale this week
 
-Explanation: It's for urgent costs you couldn't plan for. A trip and textbooks are things you can see coming, so they belong in your regular budget.
+Explanation: It's for urgent costs you couldn't plan for. A bill you know is coming belongs in your budget, and a sale is a want, not an emergency.
 
-Links to: lesson `ef-what-its-for` at 8s.
+Links to: lesson `ef-what-its-for` at 20s.
 
-### Question 2: Which of these counts as an essential when you work out your monthly number?
+### Question 2: Your housing and meal plan are paid through financial aid. What should you count as monthly essentials?
 
-- A. Rent **(correct)**
-- B. Streaming subscriptions
-- C. Eating out with friends
-- D. Shopping for fun
+- A. Rent and meals anyway, to be safe
+- B. Only what you still pay each month, like phone and transportation **(correct)**
+- C. Nothing, since you're covered
 
-Explanation: Essentials are what you'd need to get by for a month, like rent, food, phone, and transportation. Extras like streaming, eating out, and shopping are left out.
+Explanation: Count what you still pay yourself. Prepaid costs don't need to come out of your fund.
 
 Links to: lesson `ef-how-much` at 10s.
 
 ### Question 3: What's a good first goal for an emergency fund?
 
 - A. One month of essentials **(correct)**
-- B. A full year of essentials
+- B. Six months, since smaller amounts don't really help
 - C. Whatever's left at the end of the month
 
-Explanation: One month of essentials is small enough to reach in a semester and covers many common surprises. You can build toward three or six months later.
+Explanation: One month is a realistic place to start and covers many common surprises. Every bit helps, and you can build toward three or six months later.
 
 Links to: lesson `ef-how-much` at 42s.
 
 ### Question 4: Where is a good place to keep your emergency fund?
 
-- A. In the same account you spend from every day
-- B. In a high-yield savings account, separate from checking **(correct)**
-- C. In a stock you think will go up
+- A. In checking, so it's easy to reach
+- B. In a separate high-yield savings account **(correct)**
+- C. In an index fund, since it can grow more
 
-Explanation: A separate savings account keeps it from being spent by accident, and a high-yield one pays much more than a regular savings account. Investments can drop in value right when you need cash.
+Explanation: A separate savings account keeps it from being spent by accident. Investments can drop in value right when you need cash.
 
 Links to: lesson `ef-where-to-keep` at 10s.
 
-### Question 5: What should you look for when choosing where to keep your fund?
+### Question 5: What matters most when choosing where to keep it?
 
 - A. It's insured by the FDIC (banks) or NCUA (credit unions) **(correct)**
-- B. It's the account with the flashiest ads
-- C. It charges a monthly fee
+- B. It has the highest rate you can find, even if it isn't insured
+- C. It gives you a bonus for opening the account
 
-Explanation: FDIC or NCUA insurance protects your money, up to the legal limit, even if the institution runs into trouble. Ads don't tell you that, and fees only take away from your savings.
+Explanation: Insurance protects your money, up to the legal limit, even if the institution runs into trouble. A higher rate or a bonus doesn't matter if the money isn't safe.
 
 Links to: lesson `ef-where-to-keep` at 42s.
 
@@ -220,7 +226,7 @@ You don't need a big amount to make progress. A small deposit every week adds up
 
 ### Make it automatic (unlocks at proof)
 
-Saving works best when you don't have to remember it. Ask your bank to move a set amount into savings on payday or every week. Then your fund grows even on busy weeks.
+Saving works best when you don't have to remember it. Set up an automatic transfer in your bank's app, on payday or every week. Then your fund grows even on busy weeks.
 
 ### When it's the right time to use it (unlocks at bake)
 
@@ -228,7 +234,7 @@ Ask yourself: is this urgent, and could I have planned for it? If it's urgent an
 
 ### Choosing your next loaf (unlocks at baked)
 
-Your cushion is built, so you're ready for what's next. Your next loaf can be paying down high-interest debt or starting to invest. We'll suggest one based on what you told us, and you pick.
+Your cushion is built. Next, you can grow it to three months, pay down high-interest debt, or start learning to invest. We'll suggest one based on what you told us, and you pick.
 
 ## Coming soon
 
