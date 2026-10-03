@@ -67,8 +67,8 @@ design/
 ```
 Login
   → Placement quiz (about 2 minutes)
-  → Placement result: level + "Your new loaf" (emergency fund)
-  → Video lessons for this loaf
+  → Placement result: "Here's where you'll start" (first loaf, goal, head start)
+  → Video lessons for this loaf (or "Already know this? Take the quiz first")
   → Loaf quiz
   → Saving setup: pick a habit, encourage moving money into savings
   → Home: loaf rises as money is added over time
@@ -80,20 +80,65 @@ First-time users go through every step in order. Returning users land on Home.
 
 ## Placement quiz
 
-Purpose: set the student's level, size their first goal, and decide which loaf to recommend next. Frame it as "Let's get to know your money," not a test. One question per screen with a progress bar.
+Purpose: work out where the student starts: which loaf first, how big the goal is, how much of it they already have, and which setup steps apply. **Placement is about the student's situation, not their knowledge, and assigns no level or label anywhere.** Knowledge is checked inside each loaf (see Lessons and quizzes). Frame placement as "Let's get to know your money," not a test. One question per screen with a progress bar.
 
-- **5 knowledge questions** (multiple choice): what an emergency fund is for, interest on savings, what an index fund is, stocks vs bonds risk, what a Roth IRA is.
-- **4 situation questions** (ranges or yes/no): monthly essential costs, money already set aside for emergencies, earned income from a job (yes/no), carrying credit card debt month to month (yes/no).
+**5 questions:**
 
-Levels from the knowledge score:
+1. **Monthly essentials** (bands below). Explains what to count: "Rent, food, phone, transportation, and anything else you'd need to get by for a month. If your housing or meals are prepaid, count only what you still pay each month."
+2. **Money set aside for emergencies** (bands below).
+3. **Which accounts do you have?** (multi-select): checking, regular savings, high-yield savings, retirement account (Roth IRA, 401(k), 403(b)), investment account or investing app, none, not sure.
+4. **Do you carry a credit card balance month to month?** Yes, no, no credit card.
+5. **Do you earn income from a job?** Yes, no.
 
-| Score | Level | Effect |
-|---|---|---|
-| 0–2 | Apprentice | All lessons shown normally |
-| 3–4 | Home baker | Lessons tagged "Refresher" but still shown |
-| 5 | Head baker | May skip the emergency fund videos and go straight to the loaf quiz |
+### Range bands
 
-Scoring and recommendations live in `src/domain/placement.ts` with unit tests.
+Bands are defined once in `src/domain/` constants. Content refers to them by id.
+
+| Monthly essentials | Used for target |
+|---|---|
+| Under $250 | midpoint |
+| $250–$499 | midpoint |
+| $500–$749 | midpoint |
+| $750–$999 | midpoint |
+| $1,000–$1,499 | midpoint |
+| $1,500 and up | open-ended: lower bound, `needsExactInput: true` |
+| Not sure | starter target of $500, `isEstimate: true` (the result screen says it's an estimate they can change) |
+
+Target = midpoint rounded up to the nearest $50.
+
+| Existing emergency savings | Credited at |
+|---|---|
+| None | $0 |
+| $1–$99 | $1 |
+| $100–$249 | $100 |
+| $250–$499 | $250 |
+| $500–$999 | $500 |
+| $1,000 and up | $1,000 |
+
+When the student chooses to count existing savings, offer an optional exact amount, prefilled with the band's lower bound. If they enter one, use it instead.
+
+### Starting point
+
+`monthsCovered` = existing savings ÷ monthly essentials. It is internal only, never shown as a label, and stored on the profile.
+
+| Situation | Start |
+|---|---|
+| Under 1 month | Emergency fund loaf, target 1 month |
+| 1 to under 3 months, no card debt | Emergency fund loaf, target 3 months, existing savings counted so it starts partly risen |
+| 1 to under 3 months, card debt | Emergency fund counts as baked and goes on the shelf. Recommend Debt payoff next |
+| 3+ months | Emergency fund counts as baked and goes on the shelf. ChooseLoaf: card debt → Debt payoff; earned income and no retirement account → Roth IRA; otherwise Index funds |
+
+### Account rules
+
+- **No savings account of any kind** (no regular or high-yield savings): Saving setup includes a step about opening a high-yield savings account.
+- **Has high-yield savings:** skip that step, and lesson `ef-where-to-keep` is optional, tagged "You're already doing this."
+- **Has investments but under 3 months covered:** still starts with the emergency fund loaf, with a note that a cushion means never having to sell investments at a loss in an emergency.
+
+### Placement result screen
+
+Titled "Here's where you'll start." Shows the first loaf, the goal in dollars and months, and how far along existing savings put them.
+
+Placement scoring and starting-point rules live in `src/domain/placement.ts` (and siblings) with unit tests.
 
 ## Loaves
 
@@ -105,17 +150,18 @@ Each loaf is a topic, a goal, a bread type, a set of video lessons, a quiz, and 
 | Index funds | Braided loaf | Many strands woven into one: diversification | Coming soon |
 | Bonds | Rye loaf | Dense and steady, rises slowly | Coming soon |
 | Roth IRA | Sourdough | Long, slow growth over decades | Coming soon |
+| Debt payoff | Flatbread | Simple and flat: clear what you owe | Coming soon |
 
-The emergency fund loaf is always the first loaf. In the demo, ChooseLoaf shows the other three as "Coming soon" cards, with at most one tagged "Recommended."
+The emergency fund loaf is the first loaf for students with under 3 months covered. Students who already have 3+ months (or 1 to 3 months with card debt) start with it on the shelf. In the demo, ChooseLoaf shows the other four as "Coming soon" cards, with at most one tagged "Recommended."
 
 ### Emergency fund loaf
 
-- **Target:** defaults to 1 month of essential costs from the placement quiz, rounded up to the nearest $50. The student can raise it to 3 or 6 months.
-- **Ranges to numbers:** the placement quiz collects ranges, but targets and stages need dollar figures.
-  - Target: use the midpoint of the chosen monthly essentials range, rounded up to the nearest $50.
-  - Open-ended top range: use its lower bound and ask the student to type an exact number.
+- **Target:** 1 month of essential costs by default (3 months when they start with 1 to under 3 months covered), rounded up to the nearest $50. The student can choose 1, 3, or 6 months.
+- **Ranges to numbers:** the placement quiz collects ranges, but targets and stages need dollar figures. See "Range bands" under Placement quiz.
+  - Open-ended top range: lower bound, and ask the student to type an exact number.
+  - "Not sure": $500 starter target, shown as an estimate they can change.
   - Always let the student edit the target on the "Your new loaf" screen.
-  - Existing savings: use the lower bound of the chosen range, so the loaf never shows more progress than the student really has.
+  - Existing savings: lower bound of the chosen range, so the loaf never shows more progress than the student really has. An optional exact amount overrides it.
 - **Existing savings:** if the student already has money set aside, ask whether to count it. If yes, the loaf starts at the matching stage. If it already meets the target, suggest a bigger target instead of finishing instantly.
 - **Video lessons (3, each under 2 minutes):**
   1. What an emergency fund is for
@@ -144,11 +190,15 @@ The emergency fund loaf is always the first loaf. In the demo, ChooseLoaf shows 
 ```
 
 - **Emergency fund quiz:** completing it unlocks Saving setup. It does not require a passing score, because the real goal is getting the student to save. Show the score, explain every wrong answer, and allow retries.
-- **Investment loaves (future):** require 80% to start, since understanding risk protects new investors.
+- **Investment loaves (future):** require 80% to start, since understanding risk protects new investors. This check applies to everyone, including students who test out of the videos.
+- **Test out (knowledge is checked inside each loaf):** before a loaf's videos, offer "Already know this? Take the quiz first."
+  - 4 or more of 5 correct: the videos become optional, with copy like "You know this. Let's make it happen." Go to Saving setup.
+  - Fewer: each missed question recommends its lesson (quiz questions already map to lessons). After the lessons, the student takes the quiz again, with explanations.
+  - The normal path (no test-out) is unchanged: videos, then quiz.
 
 ## Saving and rising
 
-- **Saving setup:** the student picks a habit, either a fixed weekly amount or a percent of each paycheck for irregular income, and sees the suggested account type (high-yield savings). In the demo there is no real account.
+- **Saving setup:** the student picks a habit and sees both suggestions: **weekly** = target ÷ 12 weeks (about one semester), rounded up to the nearest $5, minimum $5; **per paycheck** = 10% of each paycheck. Placement doesn't ask income type, so the student chooses. They also see the suggested account type (high-yield savings). In the demo there is no real account. Students with no savings account of any kind get an extra step about opening a high-yield savings account; students who already have one skip it.
 - **Adding money:** "I moved money to savings" logs a simulated deposit.
 - **Progress** = money added to this loaf ÷ this loaf's target.
 
@@ -171,10 +221,10 @@ The emergency fund loaf is always the first loaf. In the demo, ChooseLoaf shows 
 
 ## Loaf done and choosing the next loaf
 
-- Celebration screen, then the loaf goes to the bread shelf with its completion month.
+- Celebration screen, then the loaf goes to the bread shelf with its completion month. A loaf counted as baked at the start (existing savings already cover the goal) shows "Already built" instead of a date, with no completion month recorded.
 - ChooseLoaf recommends one next loaf using placement answers:
-  - Carries credit card debt: show a note that paying off high-interest debt usually comes before investing. Recommend nothing else.
-  - Has earned income: recommend Roth IRA. (A Roth IRA requires earned income, so never recommend it without.)
+  - Carries credit card debt: recommend Debt payoff, with a note that paying off high-interest debt usually comes before investing.
+  - Has earned income and no retirement account: recommend Roth IRA. (A Roth IRA requires earned income, so never recommend it without.) "Not sure" about accounts counts as no retirement account. The Roth IRA loaf will start with a "Check whether you already have one" step.
   - Otherwise: recommend Index funds.
 - **Multiple loaves (future, not in demo):** after the emergency fund loaf is done, allow up to 2 active loaves. Each deposit is assigned to one loaf when logged.
 
@@ -182,7 +232,7 @@ The emergency fund loaf is always the first loaf. In the demo, ChooseLoaf shows 
 
 - Store all money as **integer cents**. Format only at display time.
 - Dates are ISO strings in UTC; display in the user's local time.
-- Supabase tables: `profiles` (level, essentials range, earned income, credit card debt), `placement_results`, `loaves`, `transactions`, `lesson_progress`, `quiz_attempts`.
+- Supabase tables: `profiles` (essentials range, existing savings range, `accounts`, `cardDebt`, `earnedIncome`, `monthsCovered`), `placement_results`, `loaves`, `transactions`, `lesson_progress`, `quiz_attempts`.
 - Row Level Security is on for every table. Users can only read and write their own rows.
 - Env vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` in `.env.local`.
 
@@ -190,7 +240,7 @@ The emergency fund loaf is always the first loaf. In the demo, ChooseLoaf shows 
 
 - Turned on with `?demo=1` in the URL or `VITE_DEMO_MODE=true`.
 - Shows a small "Demo" pill in the top corner.
-- **Continue as demo user** on the login screen signs into a seeded account: Maya, Home baker level, lessons watched, quiz done, emergency fund loaf at 60% ($240 of $400), with about 6 weeks of past deposits so her history looks real. Earned income: yes. Credit card debt: no, so ChooseLoaf recommends the Roth IRA.
+- **Continue as demo user** on the login screen signs into a seeded account: Maya. Placement: checking and regular savings, no emergency savings at start, no retirement account. She did not test out. Lessons watched, quiz done, emergency fund loaf at 60% ($240 of $400), with about 6 weeks of past deposits so her history looks real. Earned income: yes. Credit card debt: no, so ChooseLoaf recommends the Roth IRA.
 - **Start fresh demo** runs the full first-time flow from the placement quiz.
 - **Skip a week** adds one simulated deposit of the user's habit amount and moves the demo clock forward 7 days.
 - **Reset demo** restores the seed data.
@@ -259,7 +309,7 @@ Warm, encouraging, plain. Explain the why behind every nudge. No guilt, no shame
 
 ## Out of scope for the demo
 
-Content for the Index funds, Bonds, and Roth IRA loaves (cards only), multiple active loaves, crews or any social features, real banking or investing, local business rewards, school single sign-on, push notifications, Apple sign-in (needs a paid Apple developer account), and native app store builds.
+Content for the Index funds, Bonds, Roth IRA, and Debt payoff loaves (cards only), multiple active loaves, crews or any social features, real banking or investing, local business rewards, school single sign-on, push notifications, Apple sign-in (needs a paid Apple developer account), and native app store builds.
 
 ## How to work in this repo
 
