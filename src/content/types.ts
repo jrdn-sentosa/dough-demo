@@ -42,9 +42,17 @@ interface LoafBase {
   summary: string;
 }
 
+/** "Grow your cushion": a ChooseLoaf option that raises the target on the same loaf. */
+export interface GrowOption {
+  title: string;
+  summary: string;
+  targetMonths: number;
+}
+
 export interface BuiltLoaf extends LoafBase {
   status: 'built';
   targetMonths: { default: number; choices: number[] };
+  growOption: GrowOption;
   /** Lesson ids in the order they're taught. */
   lessons: string[];
   quiz: string;

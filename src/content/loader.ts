@@ -94,6 +94,7 @@ export function parseLoaf(raw: unknown, file: string): LoafDefinition {
     return { ...base, status, note: optStr(o, 'note', file) };
   }
   const months = obj(o.targetMonths, `${file} targetMonths`);
+  const grow = obj(o.growOption, `${file} growOption`);
   const tips = arr(o, 'tips', file).map((t, i): Tip => {
     const w = `${file} tip ${i + 1}`;
     const to = obj(t, w);
@@ -112,6 +113,11 @@ export function parseLoaf(raw: unknown, file: string): LoafDefinition {
         if (typeof c !== 'number') throw new ContentError(file, 'targetMonths choices must be numbers');
         return c;
       }),
+    },
+    growOption: {
+      title: str(grow, 'title', `${file} growOption`),
+      summary: str(grow, 'summary', `${file} growOption`),
+      targetMonths: num(grow, 'targetMonths', `${file} growOption`),
     },
     lessons: arr(o, 'lessons', file).map((l) => {
       if (typeof l !== 'string') throw new ContentError(file, 'lessons must be lesson ids');

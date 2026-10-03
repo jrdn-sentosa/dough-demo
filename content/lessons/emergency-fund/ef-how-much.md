@@ -15,7 +15,7 @@ Rent, food, phone, transportation, and anything else you can't skip. If your hou
 
 ## Your goals, step by step
 
-1. **One month of essentials.** This is the starting goal. It's small enough to reach in a semester, and it covers many common surprises.
+1. **One month of essentials.** This is the starting goal. It's a realistic place to start, and it covers many common surprises.
 2. **Three months.** A stronger cushion for longer gaps, like losing a job or a bigger medical bill.
 3. **Six months.** Worth considering if your income changes a lot from month to month.
 

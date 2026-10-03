@@ -7,6 +7,11 @@
   "breadWhy": "The everyday staple you always keep on hand.",
   "summary": "Build a cushion for urgent costs you couldn't plan for, so a surprise stays a bad day instead of a bad year.",
   "targetMonths": { "default": 1, "choices": [1, 3, 6] },
+  "growOption": {
+    "title": "Grow your cushion to 3 months",
+    "summary": "Your cushion is built. Raise the goal to three months of essentials to cover longer gaps, like losing a job or a bigger medical bill. Your first bake stays on the shelf.",
+    "targetMonths": 3
+  },
   "lessons": ["ef-what-its-for", "ef-how-much", "ef-where-to-keep"],
   "quiz": "emergency-fund",
   "tips": [
@@ -18,7 +23,7 @@
     {
       "stage": "proof",
       "title": "Make it automatic",
-      "body": "Saving works best when you don't have to remember it. Ask your bank to move a set amount into savings on payday or every week. Then your fund grows even on busy weeks."
+      "body": "Saving works best when you don't have to remember it. Set up an automatic transfer in your bank's app, on payday or every week. Then your fund grows even on busy weeks."
     },
     {
       "stage": "bake",
@@ -28,7 +33,7 @@
     {
       "stage": "baked",
       "title": "Choosing your next loaf",
-      "body": "Your cushion is built, so you're ready for what's next. Your next loaf can be paying down high-interest debt or starting to invest. We'll suggest one based on what you told us, and you pick."
+      "body": "Your cushion is built. Next, you can grow it to three months, pay down high-interest debt, or start learning to invest. We'll suggest one based on what you told us, and you pick."
     }
   ]
 }

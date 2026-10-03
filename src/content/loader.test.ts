@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ESSENTIALS_BANDS, SAVINGS_BANDS } from '../domain/bands';
+import { GROW_TARGET_MONTHS } from '../domain/recommendations';
 import {
   ACCOUNT_TYPES,
   getComingSoonLoaves,
@@ -102,6 +103,13 @@ describe('loaf content', () => {
       "When it's the right time to use it",
       'Choosing your next loaf',
     ]);
+  });
+
+  it('has a "Grow your cushion" option that matches the recommendation logic', () => {
+    const loaf = getLoaf('emergency-fund');
+    if (loaf.status !== 'built') throw new Error('expected built');
+    expect(loaf.growOption.title).toBe('Grow your cushion to 3 months');
+    expect(loaf.growOption.targetMonths).toBe(GROW_TARGET_MONTHS);
   });
 
   it('offers 1, 3 and 6 months, defaulting to 1', () => {
@@ -212,6 +220,15 @@ describe('financial content rules', () => {
     const captions = captionFiles['/public/videos/emergency-fund/ef-where-to-keep.vtt'];
     expect(captions).toContain('FDIC');
     expect(captions).toContain('NCUA');
+  });
+
+  it('warns about transfer time and about apps that are not banks', () => {
+    const summary = getLesson('emergency-fund', 'ef-where-to-keep').summary;
+    expect(summary).toContain('can take a day or two');
+    expect(summary).toContain('Not every app is a bank.');
+    const captions = captionFiles['/public/videos/emergency-fund/ef-where-to-keep.vtt'];
+    expect(captions).toContain('can take a day or two');
+    expect(captions).toContain('Not every app is a bank.');
   });
 
   it('keeps each lesson summary to about a 2-minute read', () => {

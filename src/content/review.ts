@@ -43,7 +43,12 @@ export function renderContentReview(): string {
     '',
   );
 
-  out.push('## Lessons', '');
+  out.push(
+    `Option after it bakes: **${loaf.growOption.title}**. ${loaf.growOption.summary}`,
+    '',
+    '## Lessons',
+    '',
+  );
   getLessons('emergency-fund').forEach((lesson, i) => {
     out.push(`### Lesson ${i + 1}: ${lesson.title}${draftTag(lesson.draft)}`, '');
     out.push(

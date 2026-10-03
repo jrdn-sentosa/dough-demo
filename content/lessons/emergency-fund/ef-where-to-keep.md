@@ -4,7 +4,7 @@ title: Where to keep it: high-yield savings
 draft: true
 video: ef-where-to-keep.mp4
 captions: ef-where-to-keep.vtt
-durationSeconds: 105
+durationSeconds: 115
 optionalFor: high-yield-savings
 ---
 Where you keep your fund matters almost as much as how much you save.
@@ -27,6 +27,11 @@ Look for an account insured by the **FDIC** (if it's at a bank) or the **NCUA** 
 - Low or no fees
 - No minimum balance that's hard to meet
 - Easy access when you need your money
+
+## Timing and apps
+
+- Moving money from an online savings account to checking can take a day or two, so check how long yours takes before you need it.
+- If you save through an app, check that it says your money is held at an FDIC-insured bank. Not every app is a bank.
 
 ## Why not invest it?
 

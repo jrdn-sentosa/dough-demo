@@ -22,7 +22,7 @@ Things you can see coming, like textbooks, rent, or a spring break trip, belong 
 
 ## Why it matters
 
-Without a cushion, a surprise often goes on a credit card. Then interest can make it cost more, and it can follow you for months. With a cushion, a bad surprise stays a bad day instead of turning into a bad year.
+Without a cushion, a surprise often goes on a credit card. If you can't pay it off right away, interest makes it cost more, and it can follow you for months. With a cushion, a bad surprise stays a bad day instead of turning into a bad year.
 
 ## If you use it
 
