@@ -1,0 +1,25 @@
+:root {
+  --ground: #ffffff;
+  --crumb: #fff6e6;
+  --butter: #f6c453;
+  --toast-edge: #b9773a;
+  --crust: #8a4b1f;
+  --deep-crust: #5e3315;
+  --rye: #2b1b12;
+  --sage: #5e7a4f;
+  --text-muted: #6b5446;
+  --field-border: #9c8467;
+  --divider: #eadbc4;
+
+  --font-display: 'Fraunces Variable', Georgia, serif;
+  --font-body: 'DM Sans Variable', system-ui, sans-serif;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --stage-ms: 350ms;
+}

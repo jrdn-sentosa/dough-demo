@@ -1,0 +1,73 @@
+.loaf-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 62px;
+  height: 62px;
+  padding: 10px 24px 0;
+  background: var(--crust);
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  border: 0;
+  border-bottom: 5px solid var(--deep-crust);
+  border-radius: 70px 70px 16px 16px / 38px 38px 16px 16px;
+  text-decoration: none;
+}
+
+.loaf-button:active:not(:disabled) {
+  transform: translateY(3px);
+  border-bottom-width: 2px;
+}
+
+.loaf-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.loaf-button__scores {
+  position: absolute;
+  top: 9px;
+  left: 50%;
+  display: flex;
+  gap: 10px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.loaf-button__scores i {
+  display: block;
+  width: 4px;
+  height: 11px;
+  border-radius: 2px;
+  background: var(--crumb);
+  transform: rotate(28deg);
+}
+
+.slice-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 56px;
+  padding: 12px 20px;
+  background: var(--crumb);
+  color: var(--rye);
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  border: 3px solid var(--toast-edge);
+  border-radius: 46px 46px 14px 14px / 32px 32px 14px 14px;
+  text-decoration: none;
+}
+
+.slice-button:active:not(:disabled) {
+  background: var(--divider);
+}
+
+.slice-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
