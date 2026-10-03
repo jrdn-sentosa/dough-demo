@@ -18,6 +18,7 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
 | 8 | Loaf done and shelf | To do |
 | 9 | Demo mode, Settings, and PWA | To do |
 | 10 | Supabase | To do |
+| 11 | Plaid Sandbox bank linking (stretch) | To do |
 
 ## Milestones
 
@@ -88,6 +89,16 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
     - Supabase adapter behind the same `DataAdapter` interface, plus email and Google auth.
     - Remove the fake local sign-in.
     - Add `.env.example` values and update CLAUDE.md.
+    - The `transactions` table includes the `source` column (`manual`, `plaid`, `seed`).
+11. **Plaid Sandbox bank linking (stretch, after Supabase)**
+    - Sandbox only. Never development or production keys.
+    - Plaid secret and access tokens live only in Supabase server functions, never in the browser or git. Ask before adding the Plaid Link dependency.
+    - Read only: the student picks one savings account as their emergency fund. Balance data only. Never move money.
+    - Linking creates the loaf's `starting` transaction from the current balance. Later balance changes become `deposit` or `withdrawal` rows through `src/money/` (`source: 'plaid'`), so loaf logic doesn't change.
+    - Check balances when the app opens, not on a timer.
+    - Manual "I moved money" logging stays. Linking is optional.
+    - UI states: "New deposits can take a day to appear" and "Reconnect your bank."
+    - Sub-plan first (it touches many files). Update CLAUDE.md as decisions firm up.
 
 ## Decisions
 
@@ -100,4 +111,6 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
 - **Dependencies.** `react-router` and `react-markdown` are approved. Frontmatter uses an in-house parser.
 - **Content scope.** Full content only for the emergency fund loaf, all marked as draft. Other loaves are "Coming soon" cards.
 - **Habit nudge.** In-app only, no notifications.
+- **Plaid (stretch).** The "no real bank connections" rule now allows Plaid in Sandbox mode only, in milestone 11. It is read-only and creates ordinary transaction rows. Until then, no Plaid code, packages, or keys.
+- **Transaction source.** Every transaction has a `source` (`manual`, `plaid`, `seed`), default `manual`. Added in milestone 3's follow-up. Old saved rows without it load as `manual`. Milestone 9's Maya seed uses `seed`.
 - **Local auth.** Email-only fake sign-in, clearly local-only, replaced in milestone 10.

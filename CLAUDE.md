@@ -6,7 +6,7 @@ This repository is a **tech demo only**. It runs as a progressive web app (PWA) 
 
 ## Non-negotiable rules
 
-- **No real money.** Never integrate bank, payment, brokerage, or account-linking APIs (Plaid, Stripe, etc.). All deposits and withdrawals are simulated.
+- **No real bank connections.** Plaid is allowed only in Sandbox mode, in the Plaid milestone. Never use Plaid development or production keys. Never integrate payment, brokerage, or other account-linking APIs (Stripe, etc.). Nothing ever moves real money: all deposits and withdrawals are simulated, and Plaid is read-only (see "Plaid Sandbox bank linking").
 - **No real financial details.** Never ask for or store bank account numbers, card numbers, SSNs, or income documents. Placement answers use ranges, not exact figures, where possible.
 - **All simulated money lives in `src/money/`.** No other folder creates, edits, or calculates balances directly. This keeps the fake layer replaceable.
 - **No secrets in git.** Keys go in `.env.local`, which is in `.gitignore`. Only `.env.example` (with empty values) is committed.
@@ -24,6 +24,7 @@ This repository is a **tech demo only**. It runs as a progressive web app (PWA) 
 - `react-router` for routing (so the phone's back button and deep links like `?demo=1` work)
 - `react-markdown` for lesson summaries. Frontmatter is parsed by a small in-house function, not gray-matter.
 - Vitest for unit tests
+- Stretch milestone only: Plaid Sandbox through Supabase server functions. The Plaid Link library is not approved yet. Ask before adding it.
 
 Ask before adding any dependency not listed here.
 
@@ -242,7 +243,8 @@ The emergency fund loaf is the first loaf for students with under 3 months cover
 - **Demo clock** (`src/money/clock.ts`): `now()`, `advance(days)`, `reset()`. It is saved as part of the data so it survives a reload. Every transaction's date comes from it. Only this file reads the real time.
 - **Local storage:** one versioned key, `dough:v1`. If saved data is missing, unreadable, or the wrong version, start fresh instead of crashing. Every read and write is wrapped in try/catch because some browsers block storage in private mode. If writes are blocked, the app keeps working from memory.
 - **Tests** use an in-memory adapter that implements the same `DataAdapter` interface, so they never touch real browser storage.
-- Supabase tables: `profiles` (essentials range, existing savings range, `accounts`, `cardDebt`, `earnedIncome`, `monthsCovered`), `placement_results`, `loaves`, `transactions` (with a `type` of `starting`, `deposit`, or `withdrawal`), `lesson_progress`, `quiz_attempts`.
+- Supabase tables: `profiles` (essentials range, existing savings range, `accounts`, `cardDebt`, `earnedIncome`, `monthsCovered`), `placement_results`, `loaves`, `transactions` (with a `type` of `starting`, `deposit`, or `withdrawal`, and a `source` of `manual`, `plaid`, or `seed`), `lesson_progress`, `quiz_attempts`.
+- **Transaction source:** every row records where it came from: `manual` (the student typed it, the default), `plaid` (read from a linked sandbox account), or `seed` (demo seed data such as Maya's history). Source never changes how balances, stages, or baking work. Rows saved before `source` existed load as `manual`.
 - Row Level Security is on for every table. Users can only read and write their own rows.
 - Env vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` in `.env.local`.
 
@@ -317,9 +319,22 @@ Warm, encouraging, plain. Explain the why behind every nudge. No guilt, no shame
 - Icon-only buttons get `aria-label`. Decorative SVGs get `aria-hidden="true"`.
 - Progress bars expose `role="progressbar"` with `aria-valuenow`.
 
+## Plaid Sandbox bank linking (stretch milestone, after Supabase)
+
+Optional. Not started. Nothing in this section is built until the milestone begins.
+
+- **Sandbox only.** Never use Plaid development or production keys.
+- **Secrets stay on the server.** The Plaid client id, secret, and access tokens live only in Supabase server functions (Edge Functions secrets). Never in the browser, never in git, never in `VITE_` variables.
+- **Read only.** The student picks one savings account as their emergency fund. Use balance data only. Never move money, never request payment or transfer products.
+- **Linking creates the starting transaction** from the account's current balance (`source: 'plaid'`). Later balance changes become `deposit` or `withdrawal` rows (`source: 'plaid'`) written through `src/money/`, so the loaf logic doesn't change. The same amount rules, baked flag, and rebuild mode apply.
+- **Check balances when the app opens**, not on a timer.
+- **Manual logging stays.** "I moved money" is always available. Linking is optional.
+- **UI states:** "New deposits can take a day to appear" and "Reconnect your bank."
+- Still never store bank account numbers. Keep only what the server functions need to read the balance.
+
 ## Out of scope for the demo
 
-Content for the Index funds, Bonds, Roth IRA, and Debt payoff loaves (cards only), multiple active loaves, crews or any social features, real banking or investing, local business rewards, school single sign-on, push notifications, Apple sign-in (needs a paid Apple developer account), and native app store builds.
+Content for the Index funds, Bonds, Roth IRA, and Debt payoff loaves (cards only), multiple active loaves, crews or any social features, real banking or investing (the Plaid Sandbox stretch milestone is the only exception, and it is read-only test data), local business rewards, school single sign-on, push notifications, Apple sign-in (needs a paid Apple developer account), and native app store builds.
 
 ## How to work in this repo
 
