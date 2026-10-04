@@ -216,7 +216,7 @@ describe('shelf labels', () => {
   const copy = getLoaf(EF);
   if (copy.status !== 'built') throw new Error('built loaf expected');
   const shelf = copy.flow.shelf;
-  const bake = (targetCents: number, at: string | null): Bake => ({ targetCents, at });
+  const bake = (targetCents: number, at: string | null): Bake => ({ targetCents, at, bread: 'sandwich' });
 
   it('works months out from the target and the essentials', () => {
     expect(bakeSize(bake(MONTH, null), MONTH, shelf)).toBe('1 month');

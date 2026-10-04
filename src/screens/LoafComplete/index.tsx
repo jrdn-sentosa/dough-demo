@@ -79,7 +79,7 @@ export function LoafComplete() {
           />
         ))}
         <div className="celebrate__loaf">
-          <BakedLoaf loafId={FLOW_LOAF} mastered={mastered} width={300} />
+          <BakedLoaf bread={record.bakes[record.bakes.length - 1]?.bread ?? record.bread} mastered={mastered} width={300} />
         </div>
       </div>
       <h1 className="celebrate__title">{title}</h1>

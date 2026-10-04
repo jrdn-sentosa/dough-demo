@@ -37,12 +37,12 @@ describe('the shelf keeps every bake', () => {
 
   it('records the target and date of the first bake', async () => {
     const r = await ok(deposit(adapter, EF, dollars(100)));
-    expect(r.status.bakes).toEqual([{ targetCents: dollars(100), at: r.transaction.at }]);
+    expect(r.status.bakes).toEqual([{ targetCents: dollars(100), at: r.transaction.at, bread: 'sandwich' }]);
   });
 
   it('records an "Already built" bake with no date', async () => {
     const r = await ok(addStarting(adapter, EF, dollars(100)));
-    expect(r.status.bakes).toEqual([{ targetCents: dollars(100), at: null }]);
+    expect(r.status.bakes).toEqual([{ targetCents: dollars(100), at: null, bread: 'sandwich' }]);
   });
 
   it('starts with no bakes', async () => {
@@ -65,8 +65,8 @@ describe('the shelf keeps every bake', () => {
     const second = await ok(deposit(adapter, EF, dollars(200)));
     expect(second).toMatchObject({ baked: true, grown: true, rebuilt: false });
     expect(second.status.bakes).toEqual([
-      { targetCents: dollars(100), at: first.transaction.at },
-      { targetCents: dollars(300), at: second.transaction.at },
+      { targetCents: dollars(100), at: first.transaction.at, bread: 'sandwich' },
+      { targetCents: dollars(300), at: second.transaction.at, bread: 'sandwich' },
     ]);
     expect(second.status.firstBakedAt).toBe(first.transaction.at);
   });
@@ -76,8 +76,8 @@ describe('the shelf keeps every bake', () => {
     await ok(setTarget(adapter, EF, dollars(300), { grow: true }));
     const r = await ok(deposit(adapter, EF, dollars(200)));
     expect(r.status.bakes).toEqual([
-      { targetCents: dollars(100), at: null },
-      { targetCents: dollars(300), at: r.transaction.at },
+      { targetCents: dollars(100), at: null, bread: 'sandwich' },
+      { targetCents: dollars(300), at: r.transaction.at, bread: 'sandwich' },
     ]);
     expect(r.status.bakedAtStart).toBe(true);
   });
@@ -216,6 +216,6 @@ describe('growing needs a baked fund', () => {
     await ok(addStarting(adapter, EF, dollars(400)));
     const r = await ok(setTarget(adapter, EF, dollars(1200), { grow: true }));
     expect(r.status).toMatchObject({ growing: true, growFromCents: dollars(400), percent: 0 });
-    expect(r.status.bakes).toEqual([{ targetCents: dollars(400), at: null }]);
+    expect(r.status.bakes).toEqual([{ targetCents: dollars(400), at: null, bread: 'sandwich' }]);
   });
 });

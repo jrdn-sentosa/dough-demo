@@ -1,4 +1,5 @@
 import type { DataAdapter } from '../data/adapter';
+import type { BreadId } from '../domain/breads';
 import type { LoafId } from '../domain/types';
 import { MAX_ENTRY_CENTS, MAX_STARTING_CENTS, checkAmount } from './amounts';
 import { formatCents } from './format';
@@ -17,7 +18,7 @@ export async function createFirstLoaf(
   loafId: LoafId,
   targetCents: number,
   startingCents: number | null,
-  options: { confirmed?: boolean } = {},
+  options: { confirmed?: boolean; bread?: BreadId } = {},
 ): Promise<{ ok: true; status: LoafStatus } | MoneyFailure> {
   const badTarget = checkAmount(targetCents, Number.MAX_SAFE_INTEGER);
   if (badTarget) return badTarget;
@@ -33,7 +34,7 @@ export async function createFirstLoaf(
       };
     }
   }
-  const started = await startLoaf(adapter, loafId, targetCents);
+  const started = await startLoaf(adapter, loafId, targetCents, { bread: options.bread });
   if (!started.ok) return started;
   if (startingCents !== null) {
     const added = await addStarting(adapter, loafId, startingCents, { confirmed: true });

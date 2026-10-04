@@ -1,5 +1,6 @@
+import { DEFAULT_BREAD, availableBreads, weeksFor } from '../domain/breads';
 import type { BreadId, UnlockableBread } from '../domain/breads';
-import { breadsReached, currentStreak, streakDays } from '../domain/streaks';
+import { breadsReached, currentStreak, streakDays, weeksLeft as weeksLeftFor } from '../domain/streaks';
 import { nowFromData } from '../money/clock';
 import type { DataAdapter } from './adapter';
 import type { AppData } from './types';
@@ -14,6 +15,25 @@ export function streakFromData(data: AppData): number {
 /** Every bread the student has unlocked, in the order they were earned. */
 export function unlockedBreads(data: AppData): UnlockableBread[] {
   return data.streaks.unlocked.map((u) => u.bread);
+}
+
+/**
+ * What the bread picker needs: the breads that can be picked (the default plus everything unlocked), whether
+ * there is a real choice (any bread beyond the default), and the whole weeks of saving left for a locked one.
+ */
+export function breadChoices(data: AppData): {
+  available: BreadId[];
+  hasChoice: boolean;
+  weeksLeft: (bread: BreadId) => number;
+} {
+  const available = availableBreads(unlockedBreads(data));
+  const streak = streakFromData(data);
+  const weeksLeft = (bread: BreadId): number => {
+    if (available.includes(bread) || bread === DEFAULT_BREAD) return 0;
+    const unlockable = bread as UnlockableBread;
+    return data.habit ? weeksLeftFor(data.habit, streak, unlockable) : weeksFor(unlockable);
+  };
+  return { available, hasChoice: available.length > 1, weeksLeft };
 }
 
 /** The first unlock the student hasn't dismissed on Home yet, or null. */

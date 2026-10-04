@@ -33,8 +33,9 @@ function withBakes(loaf: LoafRecord): LoafRecord {
   const { firstBakedAt, bakedAtStart, ...rest } = legacy;
   let bakes: Bake[];
   if (Array.isArray(rest.bakes)) bakes = rest.bakes;
-  else if (typeof firstBakedAt === 'string') bakes = [{ targetCents: rest.targetCents, at: firstBakedAt }];
-  else if (bakedAtStart === true) bakes = [{ targetCents: rest.targetCents, at: null }];
+  else if (typeof firstBakedAt === 'string') {
+    bakes = [{ targetCents: rest.targetCents, at: firstBakedAt, bread: DEFAULT_BREAD }];
+  } else if (bakedAtStart === true) bakes = [{ targetCents: rest.targetCents, at: null, bread: DEFAULT_BREAD }];
   else bakes = [];
   // Loaves and bakes saved before breads existed are sandwich loaves.
   return {

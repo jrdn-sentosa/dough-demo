@@ -4,9 +4,13 @@ import { useData } from '../../app/DataProvider';
 import { DraftNote } from '../../components/DraftNote';
 import { LoafButton } from '../../components/LoafButton';
 import { SliceButton } from '../../components/SliceButton';
-import { getPlacement } from '../../content/loader';
+import { BreadPicker } from '../../components/BreadPicker';
+import { getBreads, getPlacement } from '../../content/loader';
 import { fillTemplate } from '../../content/template';
 import { savePlacement } from '../../data/profile';
+import { breadChoices } from '../../data/streaks';
+import { DEFAULT_BREAD } from '../../domain/breads';
+import type { BreadId } from '../../domain/breads';
 import { DEFAULT_GOAL_CENTS } from '../../domain/bands';
 import { startingPoint } from '../../domain/placement';
 import type { PlacementAnswers } from '../../domain/placement';
@@ -29,6 +33,7 @@ const monthsText = (n: number) => `${n} month${n === 1 ? '' : 's'}`;
 export function NewLoaf() {
   const content = getPlacement();
   const t = content.newLoaf;
+  const breads = getBreads();
   const { adapter, data, refresh } = useData();
   const navigate = useNavigate();
 
@@ -51,8 +56,10 @@ export function NewLoaf() {
   const [savingsText, setSavingsText] = useState(centsToInput(base.savingsExactCents ?? first.existingSavingsCents));
   const [confirming, setConfirming] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [bread, setBread] = useState<BreadId>(DEFAULT_BREAD);
 
   if (!profile) return null;
+  const choices = data ? breadChoices(data) : null;
   const baked = first.emergencyFundBaked;
   const starterGoal = formatCents(DEFAULT_GOAL_CENTS);
 
@@ -80,7 +87,7 @@ export function NewLoaf() {
     if (!baked && count && typedSavings !== null && typedSavings !== bandLowerCents) keep.savingsExactCents = typedSavings;
     if (JSON.stringify(keep) !== JSON.stringify(base)) await savePlacement(adapter, keep);
 
-    const result = await createFirstLoaf(adapter, 'emergency-fund', targetCents, startingCents, { confirmed });
+    const result = await createFirstLoaf(adapter, 'emergency-fund', targetCents, startingCents, { confirmed, bread });
     if (!result.ok) {
       if (result.needsConfirmation) setConfirming(result.message);
       else setError(result.message);
@@ -157,6 +164,14 @@ export function NewLoaf() {
             </>
           )}
         </div>
+      )}
+
+      {choices?.hasChoice && (
+        <section aria-labelledby="new-loaf-bread">
+          <h2 id="new-loaf-bread" className="choice-group__legend">{breads.picker.title}</h2>
+          <p className="choice-group__help">{breads.picker.intro}</p>
+          <BreadPicker copy={breads} available={choices.available} value={bread} onChange={setBread} weeksLeft={choices.weeksLeft} />
+        </section>
       )}
 
       {coversTarget && <p className="notice" role="status">{t.biggerTarget}</p>}

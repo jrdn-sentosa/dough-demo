@@ -29,7 +29,7 @@ describe('vercel.json', () => {
       '/favicon.ico',
       '/manifest.webmanifest',
       '/sw.js',
-      '/design/loaves/emergency-fund/mix.svg',
+      '/design/loaves/sandwich/mix.svg',
     ]) {
       expect(rewritten(path), path).toBe(false);
     }

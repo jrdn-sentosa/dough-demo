@@ -20,7 +20,7 @@ afterEach(() => {
   resetVideoProbe();
 });
 
-const loaf = { loafId: 'emergency-fund' as const, targetCents: 65_000, startedAt: '2026-01-01T00:00:00.000Z', bakes: [], growFromCents: null };
+const loaf = { loafId: 'emergency-fund' as const, targetCents: 65_000, startedAt: '2026-01-01T00:00:00.000Z', bread: 'sandwich' as const, bakes: [], growFromCents: null };
 const lessons = getLessons('emergency-fund');
 const quiz = getQuiz('emergency-fund');
 
