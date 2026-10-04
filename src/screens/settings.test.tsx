@@ -70,6 +70,45 @@ describe('Settings', () => {
   });
 });
 
+describe('Exit demo', () => {
+  const demoData: AppData = { ...accountData, user: { email: 'demo@dough.local' } };
+
+  function mountApp(adapter: DataAdapter) {
+    const router = createMemoryRouter(routes, { initialEntries: ['/settings'] });
+    render(
+      <DataProvider adapter={adapter}>
+        <RouterProvider router={router} />
+      </DataProvider>,
+    );
+    return router;
+  }
+
+  it('is shown to the demo user, and account users get Sign out instead', async () => {
+    mountSettings(demoData);
+    expect(await screen.findByRole('button', { name: 'Exit demo' })).toBeTruthy();
+    cleanup();
+    mountSettings(accountData, { account });
+    await screen.findByRole('button', { name: 'Sign out' });
+    expect(screen.queryByRole('button', { name: 'Exit demo' })).toBeNull();
+  });
+
+  it('goes back to the login screen and keeps the demo data for next time', async () => {
+    const user = userEvent.setup();
+    const adapter = createMemoryAdapter(demoData);
+    const router = mountApp(adapter);
+    await user.click(await screen.findByRole('button', { name: 'Exit demo' }));
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/login'));
+    const kept = await adapter.load();
+    expect(kept.user).toBeNull();
+    expect(kept.profile).toEqual(demoData.profile);
+
+    await user.click(await screen.findByRole('button', { name: 'Continue as demo user' }));
+    await waitFor(async () => expect((await adapter.load()).user).toEqual({ email: 'demo@dough.local' }));
+    expect((await adapter.load()).profile).toEqual(demoData.profile);
+  });
+});
+
 describe('connection banner', () => {
   function adapterReporting(): { adapter: DataAdapter; report: (s: AdapterStatus) => void } {
     const inner = createMemoryAdapter(accountData);

@@ -159,7 +159,7 @@ Titled "Here's where you'll start." Shows the first loaf, the goal in dollars an
 
 ### Retaking placement and changing the goal (Settings)
 
-Settings (`/settings`, linked from Home) exists in a bare form since milestone 12: the signed-in email and **Sign out** (real accounts only, since the demo user has no account), **Retake the quiz** (`/placement?retake=1&return=/settings`) and the disclaimer. Changing the goal and the habit, the demo tools and Reset demo come with milestone 11.
+Settings (`/settings`, linked from Home) exists in a bare form since milestone 12: the signed-in email and **Sign out** (real accounts) or **Exit demo** (the demo user, who has no account; it uses `signOutLocal` and keeps the local demo data, so "Continue as demo user" picks up where they left off), **Retake the quiz** (`/placement?retake=1&return=/settings`) and the disclaimer. Changing the goal and the habit, the demo tools and Reset demo come with milestone 11.
 
 - **Retake the quiz** reruns placement with current answers prefilled. New answers update the profile, account steps, and recommendations. It never deletes or changes transactions.
 - If the new answers suggest a different goal, ask "Update your goal to $X?" instead of changing it silently. If the current target is the $1,000 starter goal and the student now gives essentials, suggest 1 month of essentials. If the target was months-based (1, 3, or 6 months), re-price the same number of months. A custom amount is left alone. Nothing is suggested unless the essentials or savings answer changed.

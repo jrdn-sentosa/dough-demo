@@ -28,16 +28,17 @@ function GoogleG() {
 /**
  * Sign in. Real accounts use Supabase: a 6-digit code emailed to the student, or Google. The email form and the
  * Google button are not rendered at all unless Supabase is configured, rather than showing buttons that do nothing.
+ * The Google button also needs `VITE_GOOGLE_SIGNIN=true`, set once Google is enabled in Supabase.
  * "Continue as demo user" is always there and stays on this device (no account, no connection needed).
  * Once someone is signed in, the route guard moves them on.
  */
 export function Login() {
   const { configured } = useAuth();
-  return <LoginView auth={configured ? (getSupabase()?.auth ?? null) : null} />;
+  return <LoginView auth={configured ? (getSupabase()?.auth ?? null) : null} google={import.meta.env.VITE_GOOGLE_SIGNIN === 'true'} />;
 }
 
-/** `auth` is null when real accounts are not available. Exported so tests can pass a fake. */
-export function LoginView({ auth }: { auth: AuthClient | null }) {
+/** `auth` is null when real accounts are not available; `google` turns on the Google button. Exported so tests can pass a fake. */
+export function LoginView({ auth, google = false }: { auth: AuthClient | null; google?: boolean }) {
   const { adapter, refresh } = useData();
   const [step, setStep] = useState<'email' | 'code'>('email');
   const [email, setEmail] = useState('');
@@ -193,7 +194,7 @@ export function LoginView({ auth }: { auth: AuthClient | null }) {
       )}
 
       <div className="login__alt">
-        {auth && step === 'email' && (
+        {auth && google && step === 'email' && (
           <button type="button" className="google-button" onClick={() => void onGoogle()}>
             <GoogleG />
             <span>Continue with Google</span>

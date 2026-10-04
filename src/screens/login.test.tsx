@@ -20,11 +20,11 @@ function fakeAuth(overrides: Record<string, unknown> = {}) {
   return auth as unknown as AuthClient & typeof auth;
 }
 
-function mount(auth: AuthClient | null) {
+function mount(auth: AuthClient | null, google = true) {
   const adapter = createMemoryAdapter();
   render(
     <DataProvider adapter={adapter}>
-      <LoginView auth={auth} />
+      <LoginView auth={auth} google={google} />
     </DataProvider>,
   );
   return { adapter };
@@ -125,6 +125,20 @@ describe('login with Supabase', () => {
     await user.click(await screen.findByRole('button', { name: 'Continue as demo user' }));
     await waitFor(async () => expect((await adapter.load()).user).toEqual({ email: 'demo@dough.local' }));
     expect(auth.signInWithOtp).not.toHaveBeenCalled();
+  });
+});
+
+describe('Google button flag', () => {
+  it('is hidden when Supabase is configured but the Google flag is off', async () => {
+    mount(fakeAuth(), false);
+    await screen.findByLabelText('Email');
+    expect(screen.queryByRole('button', { name: /google/i })).toBeNull();
+  });
+
+  it('is hidden without Supabase even when the flag is on', async () => {
+    mount(null, true);
+    await screen.findByRole('button', { name: 'Continue as demo user' });
+    expect(screen.queryByRole('button', { name: /google/i })).toBeNull();
   });
 });
 

@@ -103,13 +103,15 @@ Supabase's built-in email sender is for trying things out: it **only delivers to
 6. In Supabase, **Authentication → Sign In / Providers → Google**: turn it on and paste the Client ID and secret. That secret lives only in the Supabase dashboard.
 7. Do **not** add your Vercel addresses to Google. Only Supabase's callback address goes there. The Vercel addresses go in Supabase's **Redirect URLs** (step 4).
 
+8. Show the button: it stays hidden until you turn it on. Once Google is enabled in Supabase (step 6), set `VITE_GOOGLE_SIGNIN=true` in `.env.local` (restart `npm run dev`) and in Vercel's environment variables for Production and Preview (step 7), then redeploy. Leave it empty or unset to keep the button hidden. It also needs Supabase to be configured.
+
 The Google button uses Google's four-color "G" and a white button with a thin grey border, as in Google's sign-in branding guidelines. If you later publish the app, give it a quick look against <https://developers.google.com/identity/branding-guidelines>.
 
 ## 7. Vercel environment variables
 
 In the Vercel dashboard, open the `dough-demo` project → **Settings → Environment Variables**:
 
-1. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` for **Production** and **Preview** (and Development if you use `vercel dev`). For Preview choose **All Preview Branches**.
+1. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` (and `VITE_GOOGLE_SIGNIN=true` once step 6 is done) for **Production** and **Preview** (and Development if you use `vercel dev`). For Preview choose **All Preview Branches**.
 2. If `VITE_SUPABASE_ANON_KEY` exists, delete it.
 3. **Redeploy.** Vite bakes these values in when it builds, so a deployment made before you added them still shows only the demo option. Use **Deployments → ⋯ → Redeploy** on the branch you want to test, or push a new commit.
 
@@ -161,7 +163,7 @@ If any of these behave differently, stop and tell me before anyone else signs in
 - **Demo user**: unchanged. Data stays in this browser. Signing in to a real account does not copy it over.
 - **Offline**: if a signed-in student loses their connection, their loaf stays readable (the app keeps a read-only copy in this browser, removed on sign out) and a banner says changes can't be saved right now. There is no offline syncing: anything done while offline is not kept.
 - **Two devices at the same time**: "last save wins" for loaf and `user_state` rows (habit, seen tips, streak unlocks, and so on). Transactions are insert-only with random ids, so deposits and withdrawals are never lost. This is fine for the demo.
-- **Sign out**: Settings → **Sign out** (real accounts only).
+- **Sign out**: Settings → **Sign out** for real accounts, or **Exit demo** for the demo user. Exiting the demo keeps the demo loaf on this device, so "Continue as demo user" picks it up again.
 
 ## Restoring a paused project before a demo
 

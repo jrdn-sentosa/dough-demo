@@ -5,6 +5,7 @@ import type { Account } from '../../app/AuthProvider';
 import { useData } from '../../app/DataProvider';
 import { SliceButton } from '../../components/SliceButton';
 import { signOutAccount } from '../../data/auth';
+import { signOutLocal } from '../../data/session';
 import { clearCache } from '../../data/supabaseAdapter';
 import { getSupabase } from '../../data/supabaseClient';
 import { DISCLAIMER_LINES } from '../Login';
@@ -12,7 +13,8 @@ import { DISCLAIMER_LINES } from '../Login';
 export const RETAKE_PATH = `/placement?retake=1&return=${encodeURIComponent('/settings')}`;
 
 /**
- * A bare Settings screen: who is signed in, sign out (real accounts only, since the demo user has no account),
+ * A bare Settings screen: who is signed in, sign out for real accounts, "Exit demo" for the demo user (it keeps the local
+ * demo data, so "Continue as demo user" picks up where they left off),
  * retaking the placement quiz, and the disclaimer. Goal and habit changes, demo tools and Reset demo come with milestone 11.
  */
 export function Settings() {
@@ -27,7 +29,7 @@ export function Settings() {
 
 /** Exported so tests can pass an account and a fake sign-out. */
 export function SettingsView({ account, onSignOut }: { account: Account | null; onSignOut: (account: Account) => Promise<void> }) {
-  const { data } = useData();
+  const { adapter, data, refresh } = useData();
   const [busy, setBusy] = useState(false);
   if (!data) return null;
 
@@ -37,6 +39,11 @@ export function SettingsView({ account, onSignOut }: { account: Account | null; 
     await onSignOut(account);
     // The sign-in listener sees the session end and the route guard moves on to the login screen.
     setBusy(false);
+  }
+
+  async function exitDemo() {
+    await signOutLocal(adapter);
+    await refresh();
   }
 
   return (
@@ -59,6 +66,16 @@ export function SettingsView({ account, onSignOut }: { account: Account | null; 
           <SliceButton onClick={() => void signOut()} disabled={busy}>
             Sign out
           </SliceButton>
+        </section>
+      )}
+
+      {!account && data.user && (
+        <section className="settings__section" aria-labelledby="settings-demo">
+          <h2 id="settings-demo" className="settings__heading">
+            Demo
+          </h2>
+          <p className="settings__text">You're using the demo on this device. Your demo loaf is kept for when you come back.</p>
+          <SliceButton onClick={() => void exitDemo()}>Exit demo</SliceButton>
         </section>
       )}
 
