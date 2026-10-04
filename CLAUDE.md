@@ -7,6 +7,7 @@ This repository is a **tech demo only**. It runs as a progressive web app (PWA) 
 ## Non-negotiable rules
 
 - **No real bank connections.** Plaid is allowed only in Sandbox mode, in the Plaid milestone. Never use Plaid development or production keys. Never integrate payment, brokerage, or other account-linking APIs (Stripe, etc.). Nothing ever moves real money: all deposits and withdrawals are simulated, and Plaid is read-only (see "Plaid Sandbox bank linking").
+- **No real payments.** Plus is simulated until a later milestone adds a payment provider in test mode only. Until then, no payment code, packages, or keys (see "Dough! Plus").
 - **No real financial details.** Never ask for or store bank account numbers, card numbers, SSNs, or income documents. Placement answers use ranges, not exact figures, where possible.
 - **All simulated money lives in `src/money/`.** No other folder creates, edits, or calculates balances directly. This keeps the fake layer replaceable.
 - **No secrets in git.** Keys go in `.env.local`, which is in `.gitignore`. Only `.env.example` (with empty values) is committed.
@@ -43,7 +44,7 @@ src/
   app/          routing, providers, app shell, phone frame for desktop
   screens/      Login, PlacementQuiz, PlacementResult, NewLoaf, Lesson,
                 LoafQuiz, SavingSetup, Home, LoafComplete, ChooseLoaf,
-                Shelf, Settings
+                Shelf, RiskQuiz, RiskResult, Settings
   components/   LoafButton, SliceButton, LoafIllustration, ProgressBar,
                 ChoiceGroup (radio or checkbox inputs styled as slice buttons,
                 used by placement and the quiz), VideoPlayer, QuizQuestion, LessonRow,
@@ -58,6 +59,7 @@ src/
   styles/       tokens.css, global.css
 content/
   placement.json            placement quiz questions and scoring
+  risk.json                 risk quiz questions and result copy (educational)
   loaves/<loaf>.json        loaf definition: title, bread, lessons, quiz, tips
   lessons/<loaf>/<id>.md    lesson page text and video metadata
   quizzes/<loaf>.json       loaf quiz questions
@@ -78,8 +80,8 @@ Login
   → Loaf quiz
   → Saving setup: pick a habit, encourage moving money into savings
   → Home: loaf rises as money is added over time
-  → Target reached: loaf done, added to the bread shelf
-  → Choose a new loaf
+  → Target reached: celebration, then the loaf goes on the bread shelf
+  → Choose your next loaf: keep saving (grow the cushion) or start investing (risk quiz)
 ```
 
 First-time users go through every step in order. Returning users land on Home.
@@ -176,7 +178,9 @@ Each loaf is a topic, a goal, a bread type, a set of video lessons, a quiz, and 
 | Roth IRA | Sourdough | Long, slow growth over decades | Coming soon |
 | Debt payoff | Flatbread | Simple and flat: clear what you owe | Coming soon |
 
-The emergency fund loaf is the first loaf for students with under 3 months covered. Students who already have 3+ months (or 1 to 3 months with card debt) start with it on the shelf. In the demo, ChooseLoaf shows the other four as "Coming soon" cards, plus "Grow your cushion to 3 months" (a real, working choice) when the fund that just baked had a target under 3 months. At most one option is tagged "Recommended," and every option stays choosable.
+The emergency fund loaf is the first loaf for students with under 3 months covered. Students who already have 3+ months (or 1 to 3 months with card debt) start with it on the shelf. In the demo, ChooseLoaf offers two paths, "Keep saving" and "Start investing" (see "Save or invest"), and lists the other four loaves as "Coming soon" rows that are not buttons. At most one path is tagged "Recommended," and both paths stay choosable.
+
+Each topic keeps its bread above as the default. From milestone 9, a student can also pick any bread they have unlocked with a saving streak for the next loaf (see "Streaks and bread unlocks").
 
 ### Emergency fund loaf
 
@@ -267,16 +271,56 @@ The emergency fund loaf is the first loaf for students with under 3 months cover
 
 - Celebration screen, then the loaf goes to the bread shelf with its completion month. A loaf counted as baked at the start (existing savings already cover the goal) shows "Already built" instead of a date, with no completion month recorded.
 - **The shelf keeps every bake.** Each loaf stores a list of bakes (target and date, or "Already built" with no date). A grown fund shows two shelf entries, "1 month" and "3 months". Months are worked out from the target and the student's essentials (`monthsForTarget`), not stored. Finishing a rebuild at a target already on the shelf adds nothing; reaching a higher target than any earlier bake adds an entry.
-- ChooseLoaf recommends one next option, in this order, using placement answers and the target that just baked:
-  1. Carries credit card debt: recommend Debt payoff, with a note that paying off high-interest debt usually comes before investing.
-  2. The emergency fund target that baked was under 3 months, or was the $1,000 starter goal: recommend "Grow your cushion to 3 months" (below). It only depends on the target, so unknown answers don't block it.
-  3. Card debt unknown: show "Answer a few quick questions for a personalized pick" (opens placement) instead of a recommendation. Never skip the debt check.
-  4. Has a retirement account, or no earned income: recommend Index funds.
-  5. Has earned income and no retirement account: recommend Roth IRA. (A Roth IRA requires earned income, so never recommend it without.) "Not sure" about accounts counts as no retirement account. The Roth IRA loaf will start with a "Check whether you already have one" step.
-  6. Earned income or accounts unknown on that path: show the personalization prompt. Never recommend Roth IRA with unknown earned income.
-  All options stay choosable, including when the prompt is shown.
+- **ChooseLoaf is a save-or-invest choice** (see "Save or invest"). `recommendNext` decides which path gets the "Recommended" pill, using placement answers and the target that just baked. Both paths stay choosable, including when the personalization prompt is shown.
 - **Grow your cushion to 3 months:** raises the target on the same emergency fund loaf with `setTarget(..., { grow: true })`. If essentials are unknown, first ask "To size your 3-month goal, about how much do you need each month?", then set the target to 3 times the answer (`growGoal`). It is allowed only when the fund is baked and the new target is bigger. The old target is stored as `growFromCents`. While growing, stage and progress count the new part only: `(balance - growFromCents) / (target - growFromCents)`, so the growth starts as a dough ball and the loaf never shrinks. Home also shows the whole fund total separately, e.g. "$400 of $1,200". Any withdrawal ends growing, and progress goes back to `balance / target` (rebuild mode). Reaching the new target returns `baked: true` and `grown: true` (not `rebuilt`), and adds the second shelf entry. Plain `setTarget` without `grow` only edits the goal.
 - **Multiple loaves (future, not in demo):** after the emergency fund loaf is done, allow up to 2 active loaves. Each deposit is assigned to one loaf when logged.
+
+### Save or invest
+
+After the emergency fund bakes, "Choose your next loaf" offers two paths. The investing loaves stay "Coming soon" in the demo, so the invest path ends in a result, not a new loaf.
+
+- **Keep saving:** raises the goal on the same emergency fund loaf with the grow flow described above. It works today. If the fund that baked covered under 3 months (or was the starter goal), the option is "Grow your cushion to 3 months". If it covered 3 months or more but under 6, the option is "Grow to 6 months", and it is never the recommended one. At 6 months or more, Keep saving is not offered.
+- **Start investing:** if the student carries card debt (`cardDebt` is `yes`), first show "Paying off high-interest debt usually comes before investing," with "Continue anyway" and a Debt payoff row marked "Coming soon" (not a button). Then the risk quiz. If card debt is unknown, the debt check is never skipped: the personalization prompt (opens placement) comes first.
+- `recommendNext` returns which path gets the "Recommended" pill (`path`: `save`, `invest`, or null), plus the same fields as before (`debtNote`, `growTargetMonths`, `growNeedsEssentials`, `needsPersonalization`). In order: (1) the fund that baked covered under 3 months, or was the starter goal: `save` (unknown answers don't block it); (2) card debt unknown: no pill, `needsPersonalization`; (3) card debt yes: no pill, the debt note is on the invest path; (4) otherwise `invest`. The "Answer a few quick questions for a personalized pick" prompt (with a "Personalize" loaf button that opens placement) replaces the recommended card when it applies.
+
+### Risk quiz
+
+Four questions, one per screen with a progress bar, framed as "Let's see what fits," never as a test. **There are no right answers.** Skippable like placement: "Skip for now" on every screen, confirmation, answers already given are kept and the rest default to the most cautious choice.
+
+1. When might you need this money? Within a year / 1 to 3 years / 3 to 5 years / more than 5 years.
+2. If your investment dropped sharply in one month, what would you do? Sell everything / sell some / wait it out / add more.
+3. What matters more to you? Not losing money / a balance / growth, even with big ups and downs.
+4. Have you invested before? No / a little / yes.
+
+The result is a pure function in `src/domain/risk.ts` with unit tests:
+
+- **Under 3 years** (answer 1 is within a year or 1 to 3 years): suggest keeping it in savings and explain why (money needed soon shouldn't ride market swings). Offer "Grow your cushion".
+- **Otherwise** a steadier approach (more bonds, Bonds loaf) or a growth-focused one (Index funds loaf), explained in plain language. Questions 2 and 3 set the comfort level; a 3-to-5-year horizon leans steadier. Question 4 only changes the wording (for example "start small while you learn").
+- **Where:** a Roth IRA only when earned income is yes **and** the horizon is more than 5 years (explained as an account that holds the investments, meant for long-term money). For a 3-to-5-year horizon, or when earned income is no, a regular investment account. Unknown earned income never produces a Roth IRA suggestion.
+- **Educational, never instructions.** "Here's what a steadier approach looks like and why." No percentages, allocations, fund names, or brand names. Not financial advice, same label as everywhere else.
+- The result shows which loaf fits (Coming soon) and is saved to the profile (`profile.risk`: status, answers, result). Retaking placement never clears it.
+- The 4-out-of-5 knowledge check still applies before any investing loaf starts, once that content exists.
+
+## Dough! Plus (simulated, milestone 10, planned, not built)
+
+- **Always free:** the emergency fund loaf and everything about it (saving, withdrawing, rebuilding, growing to 3 or 6 months), the placement quiz, the risk quiz and its result, and streak breads.
+- **Plus:** the investing loaves (lessons, quizzes, loaves), a set of exclusive breads that streaks can't unlock, and bank linking once Plaid exists.
+- **Where it appears:** after the emergency fund bakes, Plus options on "Choose your next loaf" show an "Included with Plus" label. Tapping one opens the Plus screen. Plus never interrupts saving or withdrawing. Until the Plus milestone, the investing loaves are plain "Coming soon" rows with no label.
+- **Plus screen:** what's included and what stays free, "Start free trial" and "Maybe later" with equal visibility, and the price shown as a placeholder from content. No countdowns or pressure copy.
+- **Demo:** no payments. "Start free trial" sets a premium flag in saved data. A demo tool behind `?demo=1` turns it off.
+- **One gate.** Every premium check goes through one pure function (`src/domain/entitlements.ts`), so real billing can replace the flag later. No other code reads the flag.
+- **Later, not now:** charging real money needs Vercel's paid plan and clear renewal and cancellation terms. A payment provider in test mode would be its own milestone.
+
+## Streaks and bread unlocks (milestone 9, planned, not built)
+
+- **Streak** = consecutive habit periods with a deposit. A period is the habit's period (week, or the paycheck period); for "it varies" it is a month (30 days). A period with no deposit yet only ends the streak once that period is over. Counted from deposits only: a withdrawal never breaks a streak.
+- **Unlocks are permanent.** The current streak can reset, with no-guilt copy ("New streak starts now"). Never "lost," "broke," or "failed."
+- **Ladder** (streak length in periods): baguette 2, bagel 4, focaccia 6, pretzel 8, brioche 12, croissant 16.
+- Each topic keeps its bread as the default (see "Loaves"). Any unlocked bread can be chosen for the next loaf. A bread is a look, never a different loaf rule: goals, stages, and baking work the same.
+- **Art:** all breads share the Mix and Shape dough ball. Each bread needs its own Proof, Bake, and Baked SVGs.
+- Home shows the current streak and the next unlock.
+- Streaks are personal. No sharing, no leaderboards, no comparing with friends.
+- Unlocks and best streak are stored (the current streak is worked out from the habit and deposit rows).
 
 ## Money and data rules
 
@@ -292,9 +336,9 @@ The emergency fund loaf is the first loaf for students with under 3 months cover
 - **Demo clock** (`src/money/clock.ts`): `now()`, `advance(days)`, `reset()`. It is saved as part of the data so it survives a reload. Every transaction's date comes from it. Only this file reads the real time.
 - **Local storage:** one versioned key, `dough:v1`. If saved data is missing, unreadable, or the wrong version, start fresh instead of crashing. Every read and write is wrapped in try/catch because some browsers block storage in private mode. If writes are blocked, the app keeps working from memory.
 - **Tests** use an in-memory adapter that implements the same `DataAdapter` interface, so they never touch real browser storage.
-- Supabase tables: `profiles` (`placementStatus`, essentials range and figure, existing savings range, `accounts`, `cardDebt`, `earnedIncome`, `monthsCovered`; any of these can be null when unknown), `placement_results`, `loaves`, `transactions` (with a `type` of `starting`, `deposit`, or `withdrawal`, and a `source` of `manual`, `plaid`, or `seed`), `lesson_progress`, `quiz_attempts`.
+- Supabase tables: `profiles` (`placementStatus`, essentials range and figure, existing savings range, `accounts`, `cardDebt`, `earnedIncome`, `monthsCovered`, and the risk quiz `risk` status, answers and result; any of these can be null when unknown), `placement_results`, `loaves`, `transactions` (with a `type` of `starting`, `deposit`, or `withdrawal`, and a `source` of `manual`, `plaid`, or `seed`), `lesson_progress`, `quiz_attempts`.
 - **Transaction source:** every row records where it came from: `manual` (the student typed it, the default), `plaid` (read from a linked sandbox account), or `seed` (demo seed data such as Maya's history). Source never changes how balances, stages, or baking work. Rows saved before `source` existed load as `manual`.
-- Saving habit, opened tips and the high-yield reminder (`habit`, `tipsSeen`, `hysaCard` on `AppData`) are plans and flags, not money. They live in `src/data/` (`habit.ts`, `profile.ts`) and need a table or columns in milestone 10. Old saved data without them loads with no habit, no seen tips and no reminder.
+- Saving habit, opened tips and the high-yield reminder (`habit`, `tipsSeen`, `hysaCard` on `AppData`) are plans and flags, not money. They live in `src/data/` (`habit.ts`, `profile.ts`) and need a table or columns in milestone 12. Old saved data without them loads with no habit, no seen tips and no reminder.
 - Row Level Security is on for every table. Users can only read and write their own rows.
 - Env vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` in `.env.local`.
 
@@ -302,7 +346,7 @@ The emergency fund loaf is the first loaf for students with under 3 months cover
 
 - Turned on with `?demo=1` in the URL or `VITE_DEMO_MODE=true`. This turns on the demo tools only (the Demo pill, Skip a week, Reset demo).
 - Shows a small "Demo" pill in the top corner.
-- **Continue as demo user** is always on the login screen, with or without `?demo=1`, because the whole app is a demo. It is a slice button. Until Maya's seed exists (milestone 9) it signs in a plain demo user (`signInDemo` in `src/data/session.ts`) who starts the placement quiz. Once the seed exists it signs into a seeded account: Maya. Placement: checking and regular savings, no emergency savings at start, no retirement account. She did not test out. Lessons watched, quiz done, emergency fund loaf at 60% ($240 of $400), with about 6 weeks of past deposits so her history looks real. Earned income: yes. Credit card debt: no. Her target is under 3 months, so when her fund bakes ChooseLoaf recommends "Grow your cushion to 3 months" first; the Roth IRA is the next-best option (it would be the recommendation after the grown fund bakes).
+- **Continue as demo user** is always on the login screen, with or without `?demo=1`, because the whole app is a demo. It is a slice button. Until Maya's seed exists (milestone 11) it signs in a plain demo user (`signInDemo` in `src/data/session.ts`) who starts the placement quiz. Once the seed exists it signs into a seeded account: Maya. Placement: checking and regular savings, no emergency savings at start, no retirement account. She did not test out. Lessons watched, quiz done, emergency fund loaf at 60% ($240 of $400), with about 6 weeks of past deposits so her history looks real. Earned income: yes. Credit card debt: no. Her target is under 3 months, so when her fund bakes ChooseLoaf puts the "Recommended" pill on Keep saving ("Grow your cushion to 3 months"); once the grown fund bakes, Start investing is the recommendation, and her risk result would point to a Roth IRA because she has earned income. Her 6 weeks of weekly deposits should also give her a 6-week streak once milestone 9 exists.
 - **Start fresh demo** runs the full first-time flow from the placement quiz.
 - **Skip a week** adds one simulated deposit of the user's habit amount and moves the demo clock forward 7 days.
 - **Reset demo** restores the seed data.
@@ -342,11 +386,11 @@ Don't use red as a main color. It reads as loss or debt. For wrong quiz answers,
 - **Loaf button** (main action, one per screen): background `--crust`, white text 18px bold, height 62px, `border-radius: 70px 70px 16px 16px / 38px 38px 16px 16px`, `border-bottom: 5px solid var(--deep-crust)`, three small slanted cream score marks near the top. Pressed: move down 3px and shrink the bottom border to 2px.
 - **Slice button** (secondary, quiz answer choices): background `--crumb`, 3px `--toast-edge` border, `border-radius: 46px 46px 14px 14px / 32px 32px 14px 14px`.
 - Third-party sign-in buttons must follow Google's branding rules (Apple sign-in is out of scope). Use Google's official assets. The Google button is not shown at all until the Supabase milestone wires it up: never show a button that does nothing.
-- **Login screen** follows `docs/mockups/login.html` exactly (sizes, colors, button shapes): "Continue with email" loaf button, tagline "Stack that bread.", "Continue as demo user" slice button (`.slice-button--tall`), and the disclaimer at the bottom. Email sign-in is local-only until milestone 10.
+- **Login screen** follows `docs/mockups/login.html` exactly (sizes, colors, button shapes): "Continue with email" loaf button, tagline "Stack that bread.", "Continue as demo user" slice button (`.slice-button--tall`), and the disclaimer at the bottom. Email sign-in is local-only until milestone 12.
 
 ### Illustrations
 
-Use the SVGs in `design/loaves/`. Each bread type gets its own five stages. Animate stage changes gently (scale and crossfade, under 400ms). Respect `prefers-reduced-motion`.
+Use the SVGs in `design/loaves/`. Each bread type gets its own five stages (from milestone 9, the dough-ball Mix and Shape are shared by every bread, and each bread has its own Proof, Bake, and Baked). A baked loaf whose lessons are mastered gets a golden finish and sparkles on the celebration, shelf, and Home. Animate stage changes gently (scale and crossfade, under 400ms). Respect `prefers-reduced-motion`.
 
 ### Voice
 
@@ -386,7 +430,7 @@ Optional. Not started. Nothing in this section is built until the milestone begi
 
 ## Out of scope for the demo
 
-Content for the Index funds, Bonds, Roth IRA, and Debt payoff loaves (cards only), multiple active loaves, crews or any social features, real banking or investing (the Plaid Sandbox stretch milestone is the only exception, and it is read-only test data), local business rewards, school single sign-on, push notifications, Apple sign-in (needs a paid Apple developer account), and native app store builds.
+Content for the Index funds, Bonds, Roth IRA, and Debt payoff loaves (cards only), real payments or billing, multiple active loaves, crews or any social features, real banking or investing (the Plaid Sandbox stretch milestone is the only exception, and it is read-only test data), local business rewards, school single sign-on, push notifications, Apple sign-in (needs a paid Apple developer account), and native app store builds.
 
 ## Deploying
 

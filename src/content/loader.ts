@@ -1,10 +1,15 @@
 import { parseFrontmatter } from '../domain/frontmatter';
 import { PAY_FREQUENCIES } from '../domain/habits';
+import { RISK_QUESTION_IDS } from '../domain/risk';
 import { STAGES } from '../domain/stages';
 import type { AccountType, LoafId, Stage } from '../domain/types';
 import { ContentError, arr, bool, num, obj, oneOf, optStr, str } from './guards';
 import type {
+  CelebrationContent,
+  ChooseContent,
   FlowContent,
+  RiskContent,
+  ShelfContent,
   HomeContent,
   SavingSetupContent,
   Lesson,
@@ -54,6 +59,10 @@ const lessonFiles = import.meta.glob<string>('../../content/lessons/*/*.md', {
   query: '?raw',
   import: 'default',
 });
+const riskFiles = import.meta.glob<unknown>('../../content/risk.json', {
+  eager: true,
+  import: 'default',
+});
 const quizFiles = import.meta.glob<unknown>('../../content/quizzes/*.json', {
   eager: true,
   import: 'default',
@@ -93,7 +102,12 @@ function parsePlacement(raw: unknown): PlacementContent {
       confirmKeep: str(skip, 'confirmKeep', `${where} skip`),
     },
     resultSkipped: str(o, 'resultSkipped', where),
-    retake: { updateGoal: str(retake, 'updateGoal', `${where} retake`) },
+    retake: {
+      updateGoal: str(retake, 'updateGoal', `${where} retake`),
+      eyebrow: str(retake, 'eyebrow', `${where} retake`),
+      intro: str(retake, 'intro', `${where} retake`),
+      done: str(retake, 'done', `${where} retake`),
+    },
     personalizePrompt: str(o, 'personalizePrompt', where),
     result: {
       title: str(result, 'title', rw),
@@ -176,7 +190,7 @@ function parseHome(raw: unknown, w: string): HomeContent {
   return {
     ...strings(
       o,
-      ['eyebrow', 'mastered', 'progressLabel', 'amountOf', 'keptIn', 'disclaimer', 'wholeFund', 'stageLineFormat', 'percentOfGoal', 'percentOfNewGoal', 'rebuilding', 'add', 'use', 'stageUp', 'stageUpTip', 'stageDown', 'readTip', 'dismissNotice', 'hysaCardDismiss'] as const,
+      ['eyebrow', 'mastered', 'progressLabel', 'amountOf', 'keptIn', 'disclaimer', 'wholeFund', 'stageLineFormat', 'percentOfGoal', 'percentOfNewGoal', 'rebuilding', 'add', 'use', 'stageUp', 'stageUpTip', 'stageDown', 'readTip', 'dismissNotice', 'shelfLink', 'chooseNext', 'hysaCardDismiss'] as const,
       w,
     ),
     stageLine: record(o.stageLine, STAGES, `${w} stageLine`),
@@ -188,7 +202,36 @@ function parseHome(raw: unknown, w: string): HomeContent {
     addSheet: record(o.addSheet, ['title', 'amountLabel', 'confirm', 'cancel', 'invalid'] as const, `${w} addSheet`),
     useSheet: record(o.useSheet, ['title', 'intro', 'available', 'amountLabel', 'confirm', 'cancel', 'invalid'] as const, `${w} useSheet`),
     tips: record(o.tips, ['title', 'read', 'new', 'unlockedAt', 'unlocksAt', 'unlocksAtBaked'] as const, `${w} tips`),
-    completePlaceholder: record(o.completePlaceholder, ['title', 'body', 'home'] as const, `${w} completePlaceholder`),
+  };
+}
+
+function parseCelebration(raw: unknown, w: string): CelebrationContent {
+  const o = obj(raw, w);
+  const pair = (key: string) => record(o[key], ['title', 'body'] as const, `${w} ${key}`);
+  return {
+    first: pair('first'),
+    rebuilt: pair('rebuilt'),
+    grown: pair('grown'),
+    grownNoMonths: pair('grownNoMonths'),
+    ...strings(o, ['mastered', 'tagline', 'chooseNext', 'shelf'] as const, w),
+  };
+}
+
+function parseShelf(raw: unknown, w: string): ShelfContent {
+  return record(
+    raw,
+    ['title', 'intro', 'totalLabel', 'bakedHeading', 'comingSoonHeading', 'comingSoon', 'alreadyBuilt', 'monthOne', 'monthMany', 'bakedSub', 'back'] as const,
+    w,
+  );
+}
+
+function parseChoose(raw: unknown, w: string): ChooseContent {
+  const o = obj(raw, w);
+  return {
+    ...strings(o, ['title', 'intro', 'recommended', 'saveButton', 'saveButtonFurther', 'personalize', 'debtUnknown', 'moreHeading', 'comingSoon', 'notNow'] as const, w),
+    invest: record(o.invest, ['title', 'summary', 'button'] as const, `${w} invest`),
+    debt: record(o.debt, ['note', 'body', 'continueAnyway', 'back'] as const, `${w} debt`),
+    essentials: record(o.essentials, ['label', 'confirm', 'cancel', 'invalid'] as const, `${w} essentials`),
   };
 }
 
@@ -213,6 +256,9 @@ function parseFlow(raw: unknown, file: string): FlowContent {
     ),
     savingSetup: parseSavingSetup(o.savingSetup, `${w} savingSetup`),
     home: parseHome(o.home, `${w} home`),
+    celebration: parseCelebration(o.celebration, `${w} celebration`),
+    shelf: parseShelf(o.shelf, `${w} shelf`),
+    choose: parseChoose(o.choose, `${w} choose`),
   };
 }
 
@@ -233,6 +279,7 @@ export function parseLoaf(raw: unknown, file: string): LoafDefinition {
   }
   const months = obj(o.targetMonths, `${file} targetMonths`);
   const grow = obj(o.growOption, `${file} growOption`);
+  const further = obj(o.growFurtherOption, `${file} growFurtherOption`);
   const tips = arr(o, 'tips', file).map((t, i): Tip => {
     const w = `${file} tip ${i + 1}`;
     const to = obj(t, w);
@@ -258,6 +305,12 @@ export function parseLoaf(raw: unknown, file: string): LoafDefinition {
       targetMonths: num(grow, 'targetMonths', `${file} growOption`),
       askEssentials: str(grow, 'askEssentials', `${file} growOption`),
     },
+    growFurtherOption: {
+      title: str(further, 'title', `${file} growFurtherOption`),
+      summary: str(further, 'summary', `${file} growFurtherOption`),
+      targetMonths: num(further, 'targetMonths', `${file} growFurtherOption`),
+      askEssentials: str(further, 'askEssentials', `${file} growFurtherOption`),
+    },
     lessons: arr(o, 'lessons', file).map((l) => {
       if (typeof l !== 'string') throw new ContentError(file, 'lessons must be lesson ids');
       return l;
@@ -265,6 +318,47 @@ export function parseLoaf(raw: unknown, file: string): LoafDefinition {
     quiz: str(o, 'quiz', file),
     flow: parseFlow(o.flow, file),
     tips,
+  };
+}
+
+export function parseRisk(raw: unknown, where = 'content/risk.json'): RiskContent {
+  const o = obj(raw, where);
+  const rw = `${where} result`;
+  const result = obj(o.result, rw);
+  const pair = (value: unknown, label: string) => record(value, ['title', 'body'] as const, `${rw} ${label}`);
+  const approach = obj(result.approach, `${rw} approach`);
+  const whereOptions = obj(result.where, `${rw} where`);
+  const questions = arr(o, 'questions', where).map((q, i): RiskContent['questions'][number] => {
+    const w = `${where} question ${i + 1}`;
+    const qo = obj(q, w);
+    return {
+      id: oneOf(qo, 'id', RISK_QUESTION_IDS, w),
+      prompt: str(qo, 'prompt', w),
+      help: optStr(qo, 'help', w),
+      options: arr(qo, 'options', w).map((opt, j) => {
+        const oo = obj(opt, `${w} option ${j + 1}`);
+        return { id: str(oo, 'id', w), label: str(oo, 'label', w) };
+      }),
+    };
+  });
+  if (questions.map((q) => q.id).join() !== RISK_QUESTION_IDS.join()) {
+    throw new ContentError(where, `questions must be, in order: ${RISK_QUESTION_IDS.join(', ')}`);
+  }
+  return {
+    draft: bool(o, 'draft', where),
+    ...strings(o, ['title', 'intro', 'progressLabel', 'questionOf', 'next', 'back', 'seeResult'] as const, where),
+    skip: record(o.skip, ['label', 'confirm', 'confirmSkip', 'confirmKeep'] as const, `${where} skip`),
+    questions,
+    result: {
+      ...strings(result, ['title', 'educational', 'loafLine', 'comingSoon', 'startSmall', 'knowledgeCheck', 'skippedNote', 'back', 'chooseAgain'] as const, rw),
+      keepSavings: record(result.keepSavings, ['title', 'body', 'grow'] as const, `${rw} keepSavings`),
+      approach: { steady: pair(approach.steady, 'approach steady'), growth: pair(approach.growth, 'approach growth') },
+      where: {
+        'roth-ira': pair(whereOptions['roth-ira'], 'where roth-ira'),
+        'investment-account': pair(whereOptions['investment-account'], 'where investment-account'),
+        unknown: pair(whereOptions.unknown, 'where unknown'),
+      },
+    },
   };
 }
 
@@ -326,6 +420,7 @@ export function parseQuiz(raw: unknown, file: string): QuizContent {
 
 interface Content {
   placement: PlacementContent;
+  risk: RiskContent;
   loaves: LoafDefinition[];
   lessons: Lesson[];
   quizzes: QuizContent[];
@@ -338,17 +433,25 @@ function content(): Content {
   const [placementRaw] = Object.values(placementFiles);
   if (placementRaw === undefined) throw new ContentError('content/', 'placement.json is missing');
 
+  const [riskRaw] = Object.values(riskFiles);
+  if (riskRaw === undefined) throw new ContentError('content/', 'risk.json is missing');
+
   const loaves = Object.entries(loafFiles).map(([file, raw]) => parseLoaf(raw, file));
   const ids = loaves.map((l) => l.id);
   if (new Set(ids).size !== ids.length) throw new ContentError('content/loaves', 'duplicate loaf id');
 
   cache = {
     placement: parsePlacement(placementRaw),
+    risk: parseRisk(riskRaw),
     loaves,
     lessons: Object.entries(lessonFiles).map(([file, src]) => parseLesson(src, file)),
     quizzes: Object.entries(quizFiles).map(([file, raw]) => parseQuiz(raw, file)),
   };
   return cache;
+}
+
+export function getRisk(): RiskContent {
+  return content().risk;
 }
 
 export function getPlacement(): PlacementContent {

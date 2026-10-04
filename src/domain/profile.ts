@@ -1,6 +1,7 @@
 import { essentialsFigure } from './targets';
 import { startingPoint } from './placement';
 import type { PlacementAnswers } from './placement';
+import type { RiskRecord } from './risk';
 import type { AccountType, CardDebt } from './types';
 
 /**
@@ -25,6 +26,8 @@ export interface Profile {
   earnedIncome: boolean | null;
   /** Internal only. Null when essentials are unknown. */
   monthsCovered: number | null;
+  /** The risk quiz (Start investing). Null until it is taken or skipped. Retaking placement never clears it. */
+  risk: RiskRecord | null;
 }
 
 export function placementStatus(answers: PlacementAnswers): PlacementStatus {
@@ -52,6 +55,7 @@ export function profileFromAnswers(answers: PlacementAnswers): Profile {
     cardDebt: answers.cardDebt ?? null,
     earnedIncome: answers.earnedIncome ?? null,
     monthsCovered: startingPoint(answers).monthsCovered,
+    risk: null,
   };
 }
 

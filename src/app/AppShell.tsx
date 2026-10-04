@@ -5,8 +5,8 @@ import { guardRedirect } from './guard';
 
 export function AppShell() {
   const { data } = useData();
-  const { pathname } = useLocation();
-  const redirect = data ? guardRedirect(pathname, data) : null;
+  const { pathname, search } = useLocation();
+  const redirect = data ? guardRedirect(pathname, data, search) : null;
 
   return (
     <div className="app-backdrop">

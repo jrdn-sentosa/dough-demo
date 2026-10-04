@@ -50,7 +50,8 @@ describe('guardRedirect', () => {
     expect(guardRedirect('/placement', returning)).toBe('/');
     expect(guardRedirect('/new-loaf', returning)).toBe('/');
     expect(guardRedirect('/', returning)).toBeNull();
-    expect(guardRedirect('/choose-loaf', returning)).toBeNull();
+    // Nothing is baked yet, so there is nothing to celebrate, shelve or choose after.
+    expect(guardRedirect('/choose-loaf', returning)).toBe('/');
   });
 
   it('keeps a new loaf on its lessons until the quiz is done', () => {
@@ -87,6 +88,63 @@ describe('guardRedirect', () => {
     expect(guardRedirect('/', baked)).toBeNull();
   });
 
+  describe('after a bake', () => {
+    const tx = (type: 'starting' | 'deposit' | 'withdrawal', amountCents: number, n: number) => ({
+      id: `tx-${n}`,
+      loafId: 'emergency-fund' as const,
+      type,
+      source: 'manual' as const,
+      amountCents,
+      at: '2026-02-01T00:00:00.000Z',
+    });
+    const bake = { targetCents: 65000, at: '2026-02-01T00:00:00.000Z' };
+    /** Baked and sitting at its target. */
+    const baked: AppData = { ...quizzed, habit, loaves: [{ ...loaf, bakes: [bake] }], transactions: [tx('deposit', 65000, 1)] };
+    const withRisk = (d: AppData): AppData => ({
+      ...d,
+      profile: { ...profile, risk: { status: 'complete', answers: {}, result: { keepSavings: false, approach: 'steady', loaf: 'bonds', where: null, startSmall: true } } },
+    });
+
+    it('opens the celebration, shelf and choices for a loaf that is baked and at its target', () => {
+      for (const path of ['/loaf-complete', '/shelf', '/choose-loaf', '/risk-quiz']) expect(guardRedirect(path, baked)).toBeNull();
+    });
+
+    it('keeps all of them away from a loaf that has not baked', () => {
+      for (const path of ['/loaf-complete', '/shelf', '/choose-loaf', '/risk-quiz', '/risk-result']) {
+        expect(guardRedirect(path, { ...quizzed, habit })).toBe('/');
+      }
+    });
+
+    it('needs a loaf at all', () => {
+      for (const path of ['/loaf-complete', '/shelf', '/choose-loaf', '/risk-quiz', '/risk-result']) {
+        expect(guardRedirect(path, noLoaf)).toBe('/placement/result');
+      }
+    });
+
+    it('keeps the shelf open while rebuilding or growing, but not the choices', () => {
+      const rebuilding: AppData = { ...baked, transactions: [...baked.transactions, tx('withdrawal', 30000, 2)] };
+      expect(guardRedirect('/shelf', rebuilding)).toBeNull();
+      expect(guardRedirect('/loaf-complete', rebuilding)).toBeNull();
+      expect(guardRedirect('/choose-loaf', rebuilding)).toBe('/');
+      expect(guardRedirect('/risk-quiz', rebuilding)).toBe('/');
+      const growing: AppData = { ...baked, loaves: [{ ...loaf, targetCents: 195000, growFromCents: 65000, bakes: [bake] }] };
+      expect(guardRedirect('/shelf', growing)).toBeNull();
+      expect(guardRedirect('/choose-loaf', growing)).toBe('/');
+    });
+
+    it('shows the risk result only once the quiz has been taken or skipped', () => {
+      expect(guardRedirect('/risk-result', baked)).toBe('/choose-loaf');
+      expect(guardRedirect('/risk-result', withRisk(baked))).toBeNull();
+    });
+
+    it('lets a student with a loaf reopen placement to retake it, and only then', () => {
+      expect(guardRedirect('/placement', baked)).toBe('/');
+      expect(guardRedirect('/placement', baked, '?retake=1&return=/choose-loaf')).toBeNull();
+      expect(guardRedirect('/placement', baked, '?retake=0')).toBe('/');
+      expect(guardRedirect('/placement', noLoaf, '')).toBeNull();
+    });
+  });
+
   it('keeps lessons and the quiz behind a loaf', () => {
     for (const path of ['/lessons', '/lessons/ef-how-much', '/quiz', '/saving-setup', '/loaf-complete']) {
       expect(guardRedirect(path, noLoaf)).toBe('/placement/result');
@@ -94,7 +152,11 @@ describe('guardRedirect', () => {
   });
 
   it('sends a student whose fund started baked on to choose the next loaf', () => {
-    const baked: AppData = { ...noLoaf, loaves: [{ ...loaf, bakes: [{ targetCents: 65000, at: null }] }] };
+    const baked: AppData = {
+      ...noLoaf,
+      loaves: [{ ...loaf, bakes: [{ targetCents: 65000, at: null }] }],
+      transactions: [{ id: 'tx-1', loafId: 'emergency-fund', type: 'starting', source: 'manual', amountCents: 70000, at: '2026-01-01T00:00:00.000Z' }],
+    };
     expect(guardRedirect('/new-loaf', baked)).toBe('/choose-loaf');
     expect(guardRedirect('/choose-loaf', baked)).toBeNull();
   });

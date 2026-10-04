@@ -1,4 +1,5 @@
 import type { PayFrequency } from '../domain/habits';
+import type { RiskQuestionId } from '../domain/risk';
 import type { AccountType, LoafId, Stage } from '../domain/types';
 
 export interface PlacementOption {
@@ -30,7 +31,7 @@ export interface PlacementContent {
   /** Result screen after skipping. `{goal}` is the starter goal. */
   resultSkipped: string;
   /** Settings, "Retake the quiz". `{amount}` is the suggested goal. */
-  retake: { updateGoal: string };
+  retake: { updateGoal: string; eyebrow: string; intro: string; done: string };
   /** ChooseLoaf when an unknown answer blocks a recommendation. Opens placement. */
   personalizePrompt: string;
   /**
@@ -154,6 +155,9 @@ export interface FlowContent {
   };
   savingSetup: SavingSetupContent;
   home: HomeContent;
+  celebration: CelebrationContent;
+  shelf: ShelfContent;
+  choose: ChooseContent;
 }
 
 /** Saving setup and Home copy. Money, percents and stage names are tokens filled in by the screens. */
@@ -223,16 +227,63 @@ export interface HomeContent {
   stageDown: string;
   readTip: string;
   dismissNotice: string;
+  shelfLink: string;
+  chooseNext: string;
   tips: { title: string; read: string; new: string; unlockedAt: string; unlocksAt: string; unlocksAtBaked: string };
   hysaCardDismiss: string;
-  /** Until the celebration screen is built (milestone 8). */
-  completePlaceholder: { title: string; body: string; home: string };
+}
+
+/** Celebration screen. {amount} and {months} are filled in. */
+export interface CelebrationContent {
+  first: { title: string; body: string };
+  rebuilt: { title: string; body: string };
+  grown: { title: string; body: string };
+  /** The grown copy when the student's essentials are unknown, so there is no months figure. */
+  grownNoMonths: { title: string; body: string };
+  mastered: string;
+  tagline: string;
+  chooseNext: string;
+  shelf: string;
+}
+
+/** Bread shelf. {n} is a month count; {size} and {date} fill the baked label. */
+export interface ShelfContent {
+  title: string;
+  intro: string;
+  totalLabel: string;
+  bakedHeading: string;
+  comingSoonHeading: string;
+  comingSoon: string;
+  alreadyBuilt: string;
+  monthOne: string;
+  monthMany: string;
+  bakedSub: string;
+  back: string;
+}
+
+/** "Choose your next loaf": Keep saving or Start investing. */
+export interface ChooseContent {
+  title: string;
+  intro: string;
+  recommended: string;
+  saveButton: string;
+  saveButtonFurther: string;
+  invest: { title: string; summary: string; button: string };
+  personalize: string;
+  debtUnknown: string;
+  debt: { note: string; body: string; continueAnyway: string; back: string };
+  essentials: { label: string; confirm: string; cancel: string; invalid: string };
+  moreHeading: string;
+  comingSoon: string;
+  notNow: string;
 }
 
 export interface BuiltLoaf extends LoafBase {
   status: 'built';
   targetMonths: { default: number; choices: number[] };
   growOption: GrowOption;
+  /** Offered for a fund that already covers 3 months or more: grow to 6 months. Never recommended. */
+  growFurtherOption: GrowOption;
   /** Lesson ids in the order they're taught. */
   lessons: string[];
   quiz: string;
@@ -283,4 +334,41 @@ export interface QuizContent {
   draft: boolean;
   loaf: LoafId;
   questions: QuizQuestionContent[];
+}
+
+export interface RiskQuestionContent {
+  id: RiskQuestionId;
+  prompt: string;
+  help: string | null;
+  options: { id: string; label: string }[];
+}
+
+/** The risk quiz and its result. Educational wording only: no percentages, allocations or fund names. */
+export interface RiskContent {
+  draft: boolean;
+  title: string;
+  intro: string;
+  progressLabel: string;
+  /** {n} and {total}. */
+  questionOf: string;
+  next: string;
+  back: string;
+  seeResult: string;
+  skip: { label: string; confirm: string; confirmSkip: string; confirmKeep: string };
+  questions: RiskQuestionContent[];
+  result: {
+    title: string;
+    educational: string;
+    keepSavings: { title: string; body: string; grow: string };
+    approach: Record<'steady' | 'growth', { title: string; body: string }>;
+    /** {loaf} and {bread}. */
+    loafLine: string;
+    comingSoon: string;
+    where: Record<'roth-ira' | 'investment-account' | 'unknown', { title: string; body: string }>;
+    startSmall: string;
+    knowledgeCheck: string;
+    skippedNote: string;
+    back: string;
+    chooseAgain: string;
+  };
 }

@@ -64,8 +64,8 @@ export interface GrowGoal {
   targetCents: number | null;
 }
 
-/** The target for "Grow your cushion to 3 months". */
-export function growGoal(essentialsCents: number | null): GrowGoal {
+/** The target for "Grow your cushion to 3 months" (or "Grow to 6 months"). */
+export function growGoal(essentialsCents: number | null, months: 3 | 6 = 3): GrowGoal {
   if (essentialsCents === null || essentialsCents <= 0) return { needsEssentials: true, targetCents: null };
-  return { needsEssentials: false, targetCents: targetForMonths(essentialsCents, 3) };
+  return { needsEssentials: false, targetCents: targetForMonths(essentialsCents, months) };
 }

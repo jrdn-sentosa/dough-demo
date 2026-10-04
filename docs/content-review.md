@@ -109,6 +109,8 @@ Option after it bakes: **Grow your cushion to 3 months**. Your cushion is built.
 
 If essentials are unknown, it first asks: To size your 3-month goal, about how much do you need each month?
 
+Option for a fund that already covers 3 months or more (never recommended): **Grow to 6 months**. Your cushion already covers a few months. Raise the goal to six months of essentials for extra room, like a longer gap between jobs. Your earlier bakes stay on the shelf.
+
 ## Lessons
 
 ### Lesson 1: What an emergency fund is for _(draft)_
@@ -310,7 +312,7 @@ Links to: lesson `ef-where-to-keep` at 42s.
 - testOutLessons: Lessons to review
 - testOutToLessons: Go to my lessons
 
-## Saving setup and Home screens
+## Saving setup, Home, celebration, shelf, and choosing the next loaf
 
 ### Saving setup
 
@@ -365,6 +367,8 @@ Links to: lesson `ef-where-to-keep` at 42s.
 - stageDown: Your loaf is back to {stage}.
 - readTip: Read it now
 - dismissNotice: Dismiss message
+- shelfLink: Bread shelf
+- chooseNext: Choose my next loaf
 - hysaCardDismiss: Dismiss this reminder
 - stageLine.mix: Mixing
 - stageLine.shape: Shaping
@@ -404,9 +408,120 @@ Links to: lesson `ef-where-to-keep` at 42s.
 - tips.unlockedAt: Unlocked at {stage}
 - tips.unlocksAt: Unlocks at {stage}
 - tips.unlocksAtBaked: Unlocks when your loaf is baked
-- completePlaceholder.title: Your loaf is baked!
-- completePlaceholder.body: The celebration is coming in the next step of the build.
-- completePlaceholder.home: Back to my loaf
+
+### Celebration
+
+- first.title: Your loaf is baked!
+- first.body: You saved {amount} for emergencies. That's a real cushion.
+- rebuilt.title: You rebuilt your fund.
+- rebuilt.body: It's back to {amount}, ready for the next surprise.
+- grown.title: Your cushion is at {months} months.
+- grown.body: That's {amount} set aside. Seriously impressive.
+- grownNoMonths.title: Your cushion just grew.
+- grownNoMonths.body: That's {amount} set aside. Seriously impressive.
+- mastered: Baked with mastered lessons
+- tagline: Stack that bread.
+- chooseNext: Choose my next loaf
+- shelf: See my bread shelf
+
+### Bread shelf
+
+- title: Your bread shelf
+- intro: Every loaf you've baked, and what's coming next.
+- totalLabel: Emergency fund total
+- bakedHeading: Baked
+- comingSoonHeading: Coming soon
+- comingSoon: Coming soon
+- alreadyBuilt: Already built
+- monthOne: 1 month
+- monthMany: {n} months
+- bakedSub: {size} · {date}
+- back: Back to my loaf
+
+### Choose your next loaf
+
+- title: Choose your next loaf
+- intro: Your cushion is built. Here's what we'd suggest next, and you pick.
+- recommended: Recommended
+- saveButton: Grow my cushion
+- saveButtonFurther: Grow to 6 months
+- personalize: Personalize
+- debtUnknown: One quick question first: do you carry a credit card balance from month to month? Answer a few quick questions and we'll go from there.
+- moreHeading: More loaves
+- comingSoon: Coming soon
+- notNow: Not now, back to my loaf
+- invest.title: Start investing
+- invest.summary: Answer a few questions about your timing and comfort, and we'll explain what might fit. Nothing is invested and no money moves.
+- invest.button: Start investing
+- debt.note: Paying off high-interest debt usually comes before investing.
+- debt.body: Interest on a credit card balance often costs more than investments tend to earn, so clearing it first is usually the stronger move. It's your call.
+- debt.continueAnyway: Continue anyway
+- debt.back: Back
+- essentials.label: About how much do you need each month?
+- essentials.confirm: Set my goal
+- essentials.cancel: Cancel
+- essentials.invalid: Enter a dollar amount, like 800.
+
+## Risk quiz: Let's see what fits _(draft)_
+
+Four quick questions. There are no right answers, and this isn't a test. It just helps us explain what might fit you.
+
+**Skip for now** on every screen. Confirmation: No problem. For anything you skip, we'll use the most cautious answer. You can take this again anytime in Settings. Buttons: "Skip" and "Keep answering".
+
+### 1. When might you need this money?
+
+Help text: Money you'll need soon is treated differently from money that can wait.
+
+- Within a year (`within-year`)
+- In 1 to 3 years (`one-to-three`)
+- In 3 to 5 years (`three-to-five`)
+- In more than 5 years (`over-five`)
+
+### 2. If your investment dropped sharply in value in one month, what would you do?
+
+Help text: There's no right answer. It helps us explain what feels comfortable for you.
+
+- Sell everything (`sell-all`)
+- Sell some (`sell-some`)
+- Wait it out (`wait`)
+- Add more (`add-more`)
+
+### 3. What matters more to you?
+
+- Not losing money (`not-losing`)
+- A balance of the two (`balance`)
+- Growth, even with big ups and downs (`growth`)
+
+### 4. Have you invested before?
+
+- No (`none`)
+- A little (`little`)
+- Yes (`yes`)
+
+### Risk quiz result
+
+- title: Here's what fits
+- educational: This is educational, not financial advice. It explains what each approach looks like and why, so you can decide for yourself. No real money moves.
+- loafLine: The loaf that fits: {loaf} ({bread}).
+- comingSoon: Coming soon
+- startSmall: You're newer to this, so start small while you learn. Learning first is part of the plan.
+- knowledgeCheck: Before any investing loaf starts, you'll take a short knowledge check and need 4 out of 5. Understanding the risk helps protect new investors.
+- skippedNote: You skipped some questions, so we used the most cautious answers. Take it again anytime.
+- back: Back to my loaf
+- chooseAgain: Back to my choices
+- keepSavings.title: Keep this money in savings for now
+- keepSavings.body: Money you'll need in the next few years shouldn't ride the ups and downs of the market. Investments can drop right when you need cash, and there may not be time to wait for them to recover. A high-yield savings account keeps it safe while it still grows a little.
+- keepSavings.grow: A bigger cushion is a good use of money you may need soon.
+- approach.steady.title: A steadier approach
+- approach.steady.body: Here's what a steadier approach looks like and why. It leans on bonds, which are loans to governments and companies that pay you back with interest. Bonds usually move up and down less than stocks, so the ride is calmer. The trade-off is that they tend to grow more slowly. It fits when you value a smoother path or may need the money in a few years.
+- approach.growth.title: A growth-focused approach
+- approach.growth.body: Here's what a growth-focused approach looks like and why. It leans on index funds: one fund that holds many companies at once, so you aren't betting on any single one. Over long stretches stocks have tended to grow more than bonds, but the road is bumpy and values can drop for a while. It fits when you have time to wait out the dips.
+- where.roth-ira.title: Where to hold it: a Roth IRA
+- where.roth-ira.body: A Roth IRA isn't an investment itself. It's an account that holds your investments, with special tax benefits for long-term money. You need income from a job to put money in, and it's meant for money you won't need for many years.
+- where.investment-account.title: Where to hold it: a regular investment account
+- where.investment-account.body: A regular investment account holds your investments without special rules about when you can take money out. That flexibility suits money you might need in a few years, or if you don't earn income from a job yet.
+- where.unknown.title: Where to hold it
+- where.unknown.body: Which account fits depends on whether you earn income from a job. A Roth IRA needs it, and a regular investment account doesn't. You can answer that anytime by retaking the first questions in Settings.
 
 ## Tips while the loaf rises
 

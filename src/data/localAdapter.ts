@@ -51,7 +51,7 @@ function hasChoiceIds(attempt: { answers?: unknown }): boolean {
 function withDefaults(data: AppData): AppData {
   return {
     ...data,
-    profile: data.profile ?? null,
+    profile: data.profile ? { ...data.profile, risk: data.profile.risk ?? null } : null,
     loaves: data.loaves.map(withBakes),
     lessonProgress: Array.isArray(data.lessonProgress) ? data.lessonProgress : [],
     quizAttempts: Array.isArray(data.quizAttempts) ? data.quizAttempts.filter(hasChoiceIds) : [],

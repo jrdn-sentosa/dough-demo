@@ -26,6 +26,25 @@ export function answersFromSelections(sel: Selections): PlacementAnswers {
 }
 
 /**
+ * The reverse of `answersFromSelections`, for prefilling a retake with the current answers.
+ * Unknown answers stay unselected.
+ */
+export function selectionsFromAnswers(answers: PlacementAnswers): Selections {
+  const sel: Selections = {};
+  if (answers.essentials !== undefined) sel.essentials = answers.essentials;
+  if (answers.savings !== undefined) sel['existing-savings'] = answers.savings;
+  if (answers.accounts !== undefined && answers.accounts.length > 0) sel.accounts = [...answers.accounts];
+  if (answers.cardDebt !== undefined) sel['card-debt'] = answers.cardDebt;
+  if (answers.earnedIncome !== undefined) sel['earned-income'] = answers.earnedIncome ? 'yes' : 'no';
+  return sel;
+}
+
+/** A path the retake may return to: inside the app only, never another site. */
+export function safeReturnPath(path: string | null | undefined): string {
+  return path && /^\/(?!\/)/.test(path) ? path : '/';
+}
+
+/**
  * The target recorded on the loaf when the fund counts as baked at the start.
  * It is the biggest of 1 or 3 months that the savings cover, so a student with
  * 3+ months isn't asked to "grow" a goal they've already passed.

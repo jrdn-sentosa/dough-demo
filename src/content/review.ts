@@ -1,6 +1,6 @@
 import { DEFAULT_GOAL_CENTS } from '../domain/bands';
 import { formatCents } from '../money/format';
-import { getLessons, getLoaf, getLoaves, getPlacement, getQuiz } from './loader';
+import { getLessons, getLoaf, getLoaves, getPlacement, getQuiz, getRisk } from './loader';
 import { fillTemplate } from './template';
 
 const LETTERS = 'ABCD';
@@ -97,6 +97,8 @@ export function renderContentReview(): string {
     '',
     `If essentials are unknown, it first asks: ${loaf.growOption.askEssentials}`,
     '',
+    `Option for a fund that already covers 3 months or more (never recommended): **${loaf.growFurtherOption.title}**. ${loaf.growFurtherOption.summary}`,
+    '',
     '## Lessons',
     '',
   );
@@ -134,15 +136,31 @@ export function renderContentReview(): string {
     out.push('');
   }
 
-  out.push('## Saving setup and Home screens', '');
+  out.push('## Saving setup, Home, celebration, shelf, and choosing the next loaf', '');
   for (const [heading, copy] of [
     ['Saving setup', loaf.flow.savingSetup],
     ['Home', loaf.flow.home],
+    ['Celebration', loaf.flow.celebration],
+    ['Bread shelf', loaf.flow.shelf],
+    ['Choose your next loaf', loaf.flow.choose],
   ] as const) {
     out.push(`### ${heading}`, '');
     for (const [key, text] of flattenCopy(copy)) out.push(`- ${key}: ${text}`);
     out.push('');
   }
+
+  const risk = getRisk();
+  out.push(`## Risk quiz: ${risk.title}${draftTag(risk.draft)}`, '', risk.intro, '');
+  out.push(`**${risk.skip.label}** on every screen. Confirmation: ${risk.skip.confirm} Buttons: "${risk.skip.confirmSkip}" and "${risk.skip.confirmKeep}".`, '');
+  risk.questions.forEach((q, i) => {
+    out.push(`### ${i + 1}. ${q.prompt}`, '');
+    if (q.help) out.push(`Help text: ${q.help}`, '');
+    for (const o of q.options) out.push(`- ${o.label} (\`${o.id}\`)`);
+    out.push('');
+  });
+  out.push('### Risk quiz result', '');
+  for (const [key, text] of flattenCopy(risk.result)) out.push(`- ${key}: ${text}`);
+  out.push('');
 
   out.push('## Tips while the loaf rises', '');
   for (const tip of loaf.tips) {

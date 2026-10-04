@@ -13,6 +13,9 @@ import { Lessons } from '../screens/Lessons';
 import { LoafQuiz } from '../screens/LoafQuiz';
 import { SavingSetup } from '../screens/SavingSetup';
 import { LoafComplete } from '../screens/LoafComplete';
+import { RiskQuiz } from '../screens/RiskQuiz';
+import { RiskResult } from '../screens/RiskResult';
+import { Shelf } from '../screens/Shelf';
 
 /** Exported so tests can mount the same routes in a memory router. */
 export const routes: RouteObject[] = [
@@ -31,6 +34,9 @@ export const routes: RouteObject[] = [
       { path: '/quiz', element: <LoafQuiz /> },
       { path: '/saving-setup', element: <SavingSetup /> },
       { path: '/loaf-complete', element: <LoafComplete /> },
+      { path: '/shelf', element: <Shelf /> },
+      { path: '/risk-quiz', element: <RiskQuiz /> },
+      { path: '/risk-result', element: <RiskResult /> },
     ],
   },
 ];
