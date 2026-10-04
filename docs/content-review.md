@@ -708,6 +708,29 @@ Unlocks are measured in weeks of saving. Ladder: baguette 2, bagel 4, focaccia 6
 - working: Clearing…
 - failed: Some of it couldn't be cleared on this device. Close the app and try again.
 
+## Early preview notice _(draft)_
+
+- Login label: Early preview
+
+### Welcome notice and Settings, "About this preview"
+
+- title: Welcome to the Dough! preview
+- settingsTitle: About this preview
+- body: This is an early version of Dough!. Some features are still being built, things may change, and we may need to reset data while we improve it. Your feedback helps shape what comes next.
+- notHereTitle: Not here yet:
+- notHere: Lesson videos / Investing loaves / Bank linking
+
+### Welcome notice buttons
+
+- gotIt: Got it
+- sendFeedback: Send feedback
+- feedbackSubject: Dough! preview feedback
+
+### Settings, Privacy
+
+- title: Privacy
+- body: What we store: your email, your quiz answers, the amounts you enter, your progress, and any feedback you send. It's stored with our database provider and never sold. To delete your account and data, email originaldoughmoney@gmail.com and we'll remove it.
+
 ## Dough points and the daily quiz _(draft)_
 
 Points: fund-day 1, video 1, mastery 5, bake 10, quiz 1, quiz-bonus 1. The numbers come from the app, not from this copy.

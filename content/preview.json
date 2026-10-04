@@ -1,0 +1,20 @@
+{
+  "draft": true,
+  "label": "Early preview",
+  "about": {
+    "title": "Welcome to the Dough! preview",
+    "settingsTitle": "About this preview",
+    "body": "This is an early version of Dough!. Some features are still being built, things may change, and we may need to reset data while we improve it. Your feedback helps shape what comes next.",
+    "notHereTitle": "Not here yet:",
+    "notHere": ["Lesson videos", "Investing loaves", "Bank linking"]
+  },
+  "notice": {
+    "gotIt": "Got it",
+    "sendFeedback": "Send feedback",
+    "feedbackSubject": "Dough! preview feedback"
+  },
+  "privacy": {
+    "title": "Privacy",
+    "body": "What we store: your email, your quiz answers, the amounts you enter, your progress, and any feedback you send. It's stored with our database provider and never sold. To delete your account and data, email originaldoughmoney@gmail.com and we'll remove it."
+  }
+}

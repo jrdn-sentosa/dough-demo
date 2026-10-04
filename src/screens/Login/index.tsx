@@ -9,6 +9,7 @@ import type { AuthClient } from '../../data/auth';
 import { isDemoMode } from '../../app/demoFlag';
 import { DemoActions } from '../../components/DemoActions';
 import { signInAsMaya } from '../../money/demo';
+import { getPreview } from '../../content/loader';
 import { getSupabase } from '../../data/supabaseClient';
 
 export const DISCLAIMER_LINES = ['Educational demo. Not financial advice.', 'No real money moves.'] as const;
@@ -116,6 +117,7 @@ export function LoginView({ auth, google = false }: { auth: AuthClient | null; g
         </svg>
         <h1 className="login__wordmark">Dough!</h1>
         <p className="login__tagline">Stack that bread.</p>
+        <span className="preview-label">{getPreview().label}</span>
       </div>
 
       {auth && step === 'email' && (

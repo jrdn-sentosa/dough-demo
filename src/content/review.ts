@@ -3,7 +3,7 @@ import { formatCents } from '../money/format';
 import { AVOID_RECENT_DAYS, DAILY_QUESTIONS } from '../domain/dailyQuiz';
 import { MASTERY_PERCENT } from '../domain/mastery';
 import { POINT_KINDS, POINT_VALUES } from '../domain/points';
-import { getBreads, getLessons, getLoaf, getLoaves, getPlacement, getPoints, getQuiz, getRisk, getSettings, getShare } from './loader';
+import { getBreads, getLessons, getLoaf, getLoaves, getPlacement, getPoints, getPreview, getQuiz, getRisk, getSettings, getShare } from './loader';
 import { fillTemplate } from './template';
 
 const LETTERS = 'ABCD';
@@ -192,6 +192,19 @@ export function renderContentReview(): string {
     ['Retake the risk quiz', settings.risk],
     ['Send feedback', settings.feedback],
     ['Clear app data (only with ?demo=1)', settings.clearData],
+  ] as const) {
+    out.push(`### ${heading}`, '');
+    for (const [key, text] of flattenCopy(copy)) out.push(`- ${key}: ${text}`);
+    out.push('');
+  }
+
+  const preview = getPreview();
+  out.push(`## Early preview notice${draftTag(preview.draft)}`, '');
+  out.push(`- Login label: ${preview.label}`, '');
+  for (const [heading, copy] of [
+    ['Welcome notice and Settings, "About this preview"', preview.about],
+    ['Welcome notice buttons', preview.notice],
+    ['Settings, Privacy', preview.privacy],
   ] as const) {
     out.push(`### ${heading}`, '');
     for (const [key, text] of flattenCopy(copy)) out.push(`- ${key}: ${text}`);

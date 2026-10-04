@@ -69,6 +69,7 @@ content/
   settings.json             Settings copy: change your goal, change your habit, send feedback
   points.json               Dough points, points history and daily quiz copy
   share.json                Share button, sheet and share card lines (never money)
+  preview.json              Early-preview notice, login label, Settings "About this preview" and "Privacy" (draft)
   loaves/<loaf>.json        loaf definition: title, bread, lessons, quiz, tips
   lessons/<loaf>/<id>.md    lesson page text and video metadata
   quizzes/<loaf>.json       loaf quiz questions
@@ -347,6 +348,18 @@ The result is a pure function in `src/domain/risk.ts` with unit tests:
 - **UI:** the points total on Home links to `/points` (the history: what earned each point, and when, newest first). Copy is in `content/points.json`. No guilt: a day without a point is never mentioned, and a test checks the copy for loss words.
 - **Feedback (Settings):** a text box (max 1,000 characters) and an optional category (bug, idea, other). Accounts insert a row into `feedback` (RLS: insert of own rows only, never select; the length is also checked in the database). It carries the app version (`__APP_VERSION__` from `vite.config.ts`: the `package.json` version plus the short commit on Vercel) and the path of the screen the student came from, never a query string or any financial data. The demo user, who has no account, gets a `mailto:` link to the address in `content/settings.json`.
 - **Referrals (milestone 15, after Sharing):** 10 points to the referrer when the friend finishes placement and makes a first deposit, awarded by a Supabase database function (`security definer`) so one account never writes another's rows. Not built yet.
+
+## Early-preview notice
+
+Added before the app is shared with early testers. All copy is in `content/preview.json` (marked draft) and listed in `docs/content-review.md`.
+
+- **Welcome notice (`PreviewNotice`, `src/app/PreviewNotice.tsx`):** "Welcome to the Dough! preview", the preview text, a "Not here yet:" list (lesson videos, investing loaves, bank linking; the list is `about.notHere` in content, so it is easy to update), "Got it" (loaf button) and "Send feedback" (secondary). It shows the first time the app opens on a device, before or after sign-in, whichever comes first.
+- **Remembered on the device, not in the data:** the flag is `dough.previewNoticeSeen` in `localStorage` (`src/app/previewNoticeStore.ts`), so it shows once whether the student signs in, uses the demo user, or switches accounts. It is not in `AppData` and not in Supabase. Blocked storage means it can show again, never a crash. "Clear app data" removes it with the other `dough.` keys.
+- **Never stacks on another moment.** It waits for the "New version available" banner and for anything showing on Home (a bread unlock, a stage-change or withdrawal message, the high-yield reminder, an amount sheet, the daily quiz popup), reported through `MomentShowing` in `src/app/AppOpen.tsx`. The daily quiz popup in turn waits while the welcome is unseen, and still has its open's chance afterwards.
+- **"Send feedback":** closes the notice (it counts as seen) and opens Settings at the feedback form (`/settings#settings-feedback`) for the demo user and accounts. Before sign-in there is no Settings screen, so it is a `mailto:` link to the feedback address.
+- **Login:** a small "Early preview" label under the tagline, near the wordmark.
+- **Settings:** an "About this preview" section (the same text and list, via `PreviewAbout`) and a "Privacy" section, both after Send feedback. Privacy says what is stored, that it is never sold, and that deleting an account means emailing the feedback address. An in-app delete button and a lawyer-reviewed privacy policy and terms are on the Before release list in `docs/plan.md`.
+- **Tests** (`src/screens/previewNotice.test.tsx`) cover showing once, the device memory, not stacking, the feedback paths, the login label and both Settings sections. `src/testSetup.ts` marks the notice as seen before every other test, so it never covers the screen under test.
 
 ## Sharing (milestone 14)
 

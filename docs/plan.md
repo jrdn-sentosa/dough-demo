@@ -22,6 +22,7 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
 | 13 | Dough points, daily quiz, and feedback | Done (on branch `milestone-13-points-daily-quiz-feedback`, pending preview check; migration not yet applied) |
 | 14 | Sharing | Done (on branch `milestone-14-sharing`, pending preview check) |
 | 14a | Daily quiz update (3 questions, popup, no Home card) | Done (on branch `daily-quiz-three-questions`; migration not yet applied) |
+| 14b | Early-preview notice (welcome, login label, Settings sections) | Done (on branch `early-preview-notice`; no migration) |
 | 15 | Referrals | To do (postponed until after Sharing) |
 | 16 | Plaid Sandbox bank linking (stretch) | To do |
 | 17 | Dough! Plus (simulated) | To do (plan only, moved after Plaid) |
@@ -208,6 +209,9 @@ Not blocking the demo, but each needs doing before real students use it.
 - [ ] Set up the project's own SMTP sender for email codes (see `docs/setup.md`).
 - [ ] Accessibility and contrast pass (on the installed app too).
 - [ ] Separate Supabase project for development and previews, so branch previews and migration tests never touch the production database.
+- [ ] **Delete account button.** Today deleting an account means emailing the address in Settings, "Privacy". Add an in-app button that removes the student's rows and their sign-in.
+- [ ] **Full privacy policy and terms, reviewed by a lawyer.** The short "Privacy" text in Settings is only a stand-in for the early preview.
+- [ ] Review the early-preview copy (`content/preview.json`), then remove its `draft` flag. Drop the welcome notice and the "Early preview" label when the preview ends.
 
 ## Decisions
 
@@ -228,6 +232,7 @@ Not blocking the demo, but each needs doing before real students use it.
 - **Risk quiz.** Four questions with no right answers, skippable like placement. The result is a pure function with tests. Educational wording only: no percentages, allocations, or fund names. Saved on the profile as `profile.risk`.
 - **Points are trust-based (milestone 13).** Until Plaid verifies balances (milestone 16), every balance is self-reported, and a self-reported `starting` row or a tiny deposit can earn fund-day points. So points must not be redeemable for anything of real value before then. They have no cash, prize, or discount value in the app.
 - **Dough! Plus (milestone 17, plan only).** Simulated: no payments, a premium flag in saved data, every check through one pure function. Always free: the emergency fund loaf and everything about it, placement, the risk quiz and result, and streak breads. Plus: investing loaves, exclusive breads, and bank linking once Plaid exists. No pressure copy. Real charging needs Vercel's paid plan and clear renewal and cancellation terms.
+- **Early-preview notice.** A one-time welcome, remembered per device in `localStorage` (`dough.previewNoticeSeen`), not in `AppData`, so it shows once whether the student signs in, uses the demo, or switches accounts. It waits for any Home moment and the update banner, and the daily quiz popup waits for it. Copy and the "Not here yet" list are in `content/preview.json` (draft). Before sign-in, its "Send feedback" opens an email, since Settings needs a user.
 - **Streaks and bread unlocks (milestone 9).** Streak = consecutive habit periods with a deposit. Unlocks are permanent, the current streak can reset with no-guilt copy, and withdrawals never break a streak. Ladder in weeks of saving: baguette 2, bagel 4, focaccia 6, pretzel 8, brioche 12, croissant 16. Each topic keeps its bread as the default and any unlocked bread can be chosen for the next loaf.
 - **Maya's seed and unlock messages (milestone 11).** The seed marks the breads her 6-week streak already earned as `seen`, so opening the demo shows no unlock messages. A test checks the next unlock still shows.
 - **Demo tools only touch local demo data.** Reset demo and Start fresh demo are hidden for real accounts and refused by the money layer.
