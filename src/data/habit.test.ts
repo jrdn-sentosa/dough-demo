@@ -4,7 +4,9 @@ import { markTipSeen, saveDefaultHabit, saveHabit, setHysaCard } from './habit';
 import { STORAGE_KEY, createLocalAdapter } from './localAdapter';
 import { createMemoryAdapter } from './memoryAdapter';
 import { addHighYieldAccount, savePlacement } from './profile';
+import { streakFromData, syncStreaks } from './streaks';
 import { emptyData } from './types';
+import type { Habit } from '../domain/habits';
 import { accountRules } from '../domain/placement';
 import { answersFromProfile } from '../domain/profile';
 import { advance, nowIso } from '../money/clock';
@@ -48,6 +50,76 @@ describe('saving habit', () => {
   it('never writes a transaction', async () => {
     await saveHabit(adapter, { kind: 'weekly', amountCents: 3_000 });
     expect((await adapter.load()).transactions).toEqual([]);
+  });
+});
+
+describe('editing the habit and the streak', () => {
+  /** Two weekly deposits in two consecutive weeks: a 2-week streak. */
+  async function twoWeekStreak() {
+    await saveHabit(adapter, { kind: 'weekly', amountCents: 3_000 });
+    for (let i = 0; i < 2; i++) {
+      await deposit(adapter, EF, 1_000);
+      await advance(adapter, 7);
+    }
+    expect(streakFromData(await adapter.load())).toBe(2);
+  }
+
+  it('keeps the streak and the start date when only the amount changes', async () => {
+    await twoWeekStreak();
+    const before = (await adapter.load()).habit as Habit;
+    await advance(adapter, 2);
+    const after = await saveHabit(adapter, { kind: 'weekly', amountCents: 9_000 });
+    expect(after.amountCents).toBe(9_000);
+    expect(after.startedAt).toBe(before.startedAt);
+    expect(streakFromData(await adapter.load())).toBe(2);
+  });
+
+  it('keeps the streak when a paycheck amount changes and the pay frequency does not', async () => {
+    await saveHabit(adapter, { kind: 'paycheck', amountCents: 2_000, paycheckCents: 20_000, frequency: 'biweekly' });
+    const before = (await adapter.load()).habit as Habit;
+    for (let i = 0; i < 2; i++) {
+      await deposit(adapter, EF, 1_000);
+      await advance(adapter, 14);
+    }
+    const after = await saveHabit(adapter, { kind: 'paycheck', amountCents: 4_000, paycheckCents: 40_000, frequency: 'biweekly' });
+    expect(after.startedAt).toBe(before.startedAt);
+    expect(streakFromData(await adapter.load())).toBe(2);
+  });
+
+  it('restarts the streak when the pay frequency changes the period length', async () => {
+    await twoWeekStreak();
+    const before = (await adapter.load()).habit as Habit;
+    const after = await saveHabit(adapter, { kind: 'paycheck', amountCents: 2_000, paycheckCents: 20_000, frequency: 'biweekly' });
+    expect(after.startedAt).not.toBe(before.startedAt);
+    expect(streakFromData(await adapter.load())).toBe(0);
+  });
+
+  it('restarts for every change of period length: 14 to 15 and 15 to 30 days too', async () => {
+    await saveHabit(adapter, { kind: 'paycheck', amountCents: 2_000, paycheckCents: 20_000, frequency: 'biweekly' });
+    const biweekly = (await adapter.load()).habit as Habit;
+    await advance(adapter, 1);
+    const twice = await saveHabit(adapter, { kind: 'paycheck', amountCents: 2_000, paycheckCents: 20_000, frequency: 'twice-monthly' });
+    expect(twice.startedAt).not.toBe(biweekly.startedAt);
+    await advance(adapter, 1);
+    const monthly = await saveHabit(adapter, { kind: 'paycheck', amountCents: 2_000, paycheckCents: 20_000, frequency: 'monthly' });
+    expect(monthly.startedAt).not.toBe(twice.startedAt);
+  });
+
+  it('keeps the start date between ways of saving that share a period length', async () => {
+    await twoWeekStreak();
+    const before = (await adapter.load()).habit as Habit;
+    const after = await saveHabit(adapter, { kind: 'paycheck', amountCents: 2_000, paycheckCents: 20_000, frequency: 'weekly' });
+    expect(after.startedAt).toBe(before.startedAt);
+  });
+
+  it('keeps the unlocks and best streak when the streak restarts', async () => {
+    await twoWeekStreak();
+    await syncStreaks(adapter);
+    await saveHabit(adapter, { kind: 'paycheck', amountCents: 2_000, paycheckCents: 20_000, frequency: 'monthly' });
+    const data = await adapter.load();
+    expect(streakFromData(data)).toBe(0);
+    expect(data.streaks.unlocked.map((u) => u.bread)).toEqual(['baguette']);
+    expect(data.streaks.bestDays).toBe(14);
   });
 });
 
