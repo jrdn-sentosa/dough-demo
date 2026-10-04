@@ -176,7 +176,8 @@ function newTransaction(
   at: string,
   source: TransactionSource,
 ): Transaction {
-  const tx: Transaction = { id: `tx-${data.transactions.length + 1}`, loafId, type, source, amountCents, at };
+  // Random ids, so rows created on two devices (or from the same starting data) never collide. Older `tx-3` style ids stay valid.
+  const tx: Transaction = { id: crypto.randomUUID(), loafId, type, source, amountCents, at };
   data.transactions.push(tx);
   return tx;
 }
