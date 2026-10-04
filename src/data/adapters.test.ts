@@ -98,7 +98,7 @@ describe('local adapter safety', () => {
 
     it('turns firstBakedAt into one dated bake', async () => {
       const { loaves } = await load([{ ...old, firstBakedAt: '2026-02-01T00:00:00.000Z', bakedAtStart: false }]);
-      expect(loaves[0].bakes).toEqual([{ targetCents: 40_000, at: '2026-02-01T00:00:00.000Z' }]);
+      expect(loaves[0].bakes).toEqual([{ targetCents: 40_000, at: '2026-02-01T00:00:00.000Z', bread: 'sandwich' }]);
       expect(loaves[0].growFromCents).toBeNull();
       expect(loaves[0]).not.toHaveProperty('firstBakedAt');
       expect(loaves[0]).not.toHaveProperty('bakedAtStart');
@@ -106,7 +106,7 @@ describe('local adapter safety', () => {
 
     it('turns bakedAtStart into one "Already built" bake', async () => {
       const { loaves } = await load([{ ...old, firstBakedAt: null, bakedAtStart: true }]);
-      expect(loaves[0].bakes).toEqual([{ targetCents: 40_000, at: null }]);
+      expect(loaves[0].bakes).toEqual([{ targetCents: 40_000, at: null, bread: 'sandwich' }]);
     });
 
     it('gives an unbaked loaf no bakes', async () => {
@@ -115,7 +115,7 @@ describe('local adapter safety', () => {
     });
 
     it('keeps bakes and growFromCents that are already saved', async () => {
-      const bakes = [{ targetCents: 40_000, at: null }];
+      const bakes = [{ targetCents: 40_000, at: null, bread: 'sandwich' }];
       const { loaves } = await load([{ ...old, bakes, growFromCents: 40_000 }]);
       expect(loaves[0]).toMatchObject({ bakes, growFromCents: 40_000 });
     });

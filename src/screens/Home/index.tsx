@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
+import { isDemoMode } from '../../app/demoFlag';
 import { useData } from '../../app/DataProvider';
 import { AmountSheet } from '../../components/AmountSheet';
+import { StreakCard } from '../../components/StreakCard';
+import { UnlockMoment } from '../../components/UnlockMoment';
 import { DraftNote } from '../../components/DraftNote';
 import { HabitCard } from '../../components/HabitCard';
 import { HysaPoints } from '../../components/HysaPoints';
@@ -10,10 +13,12 @@ import { LoafIllustration } from '../../components/LoafIllustration';
 import { SliceButton } from '../../components/SliceButton';
 import { StageBar } from '../../components/StageBar';
 import { TipRow } from '../../components/TipRow';
-import { getLoaf } from '../../content/loader';
+import { getBreads, getLoaf } from '../../content/loader';
 import { fillTemplate } from '../../content/template';
 import { markTipSeen, setHysaCard } from '../../data/habit';
 import { addHighYieldAccount } from '../../data/profile';
+import { markUnlockSeen, streakFromData, syncStreaks, unlockedBreads, unseenUnlock } from '../../data/streaks';
+import type { UnlockableBread } from '../../domain/breads';
 import { habitPeriod } from '../../domain/habits';
 import { isMastered } from '../../domain/mastery';
 import { accountRules } from '../../domain/placement';
@@ -21,6 +26,7 @@ import { stageChange, tipId, tipStatus } from '../../domain/tips';
 import type { TipContext } from '../../domain/tips';
 import { MAX_ENTRY_CENTS, checkAmount } from '../../money/amounts';
 import { nowFromData } from '../../money/clock';
+import { skipWeek, skipWeekWithoutSaving } from '../../money/demo';
 import { formatCents } from '../../money/format';
 import { deposit, statusFor, withdraw } from '../../money/ledger';
 import type { LoafStatus } from '../../money/ledger';
@@ -28,6 +34,7 @@ import { centsToInput, parseDollarsToCents } from '../../money/parse';
 import { FLOW_LOAF } from '../useLessonFlow';
 import { stageNotice } from './notice';
 import type { StageNotice } from './notice';
+import { streakView } from './streakView';
 
 type Sheet = 'add' | 'use' | null;
 
@@ -61,8 +68,24 @@ export function Home() {
   const [message, setMessage] = useState<string | null>(null);
   const [openTip, setOpenTip] = useState<number | null>(null);
 
+  // Unlocks are recorded from the deposits, so opening Home catches any a deposit made elsewhere earned.
+  // It only writes (and reloads) when something changed, so this settles after one pass.
+  useEffect(() => {
+    if (!data) return;
+    let cancelled = false;
+    void syncStreaks(adapter).then(async ({ changed }) => {
+      if (changed && !cancelled) await refresh();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [adapter, data, refresh]);
+
   const record = data?.loaves.find((l) => l.loafId === FLOW_LOAF);
   if (!data || !record) return null;
+
+  const breads = getBreads();
+  const unseen = unseenUnlock(data);
 
   const status = statusFor(data, record);
   const ctx = contextOf(status);
@@ -119,6 +142,7 @@ export function Home() {
       setSheetError(result.message);
       return;
     }
+    await syncStreaks(adapter);
     await refresh();
     closeSheet();
     setMessage(null);
@@ -153,6 +177,32 @@ export function Home() {
     await refresh();
   }
 
+  async function dismissUnlock(bread: UnlockableBread) {
+    await markUnlockSeen(adapter, bread);
+    await refresh();
+  }
+
+  async function skipAWeek() {
+    const result = await skipWeek(adapter, FLOW_LOAF);
+    await refresh();
+    if (!result.ok) {
+      setMessage(result.message);
+      return;
+    }
+    setMessage(null);
+    setNotice(null);
+    if (result.deposit.baked) {
+      navigate('/loaf-complete', { state: { rebuilt: result.deposit.rebuilt, grown: result.deposit.grown } });
+    }
+  }
+
+  async function skipAWeekWithoutSaving() {
+    await skipWeekWithoutSaving(adapter);
+    await refresh();
+    setMessage(null);
+    setNotice(null);
+  }
+
   async function haveHysa() {
     await addHighYieldAccount(adapter);
     await refresh();
@@ -185,7 +235,7 @@ export function Home() {
             {copy.mastered}
           </span>
         )}
-        <LoafIllustration loafId={FLOW_LOAF} stage={status.stage} mastered={mastered} />
+        <LoafIllustration bread={status.bread} stage={status.stage} mastered={mastered} />
         <div className="loaf-card__amount">
           <span className="loaf-card__big">{formatCents(shownBalance)}</span>
           <span className="loaf-card__of">{fillTemplate(copy.amountOf, { target: formatCents(shownTarget) })}</span>
@@ -224,7 +274,15 @@ export function Home() {
         </div>
       )}
 
+      {unseen && <UnlockMoment bread={unseen} copy={breads} onDismiss={() => void dismissUnlock(unseen)} />}
+
       {habit && period && <HabitCard habit={habit} period={period} copy={copy.habitCard} />}
+      {habit && (
+        <StreakCard
+          view={streakView({ habit, streak: streakFromData(data), unlocked: unlockedBreads(data), bestDays: data.streaks.bestDays, copy: breads })}
+          copy={breads}
+        />
+      )}
 
       <div className="home__actions">
         {readyForNext ? (
@@ -281,6 +339,20 @@ export function Home() {
           );
         })}
       </section>
+
+      {habit && isDemoMode() && (
+        <section className="demo-tools" aria-label={breads.demo.heading}>
+          <h2 className="demo-tools__title">{breads.demo.heading}</h2>
+          <div className="demo-tools__row">
+            <button type="button" className="demo-tools__button" onClick={() => void skipAWeek()}>
+              {breads.demo.skipWeek}
+            </button>
+            <button type="button" className="demo-tools__button" onClick={() => void skipAWeekWithoutSaving()}>
+              {breads.demo.skipWeekWithoutSaving}
+            </button>
+          </div>
+        </section>
+      )}
 
       <p className="home__disclaimer">{copy.disclaimer}</p>
 

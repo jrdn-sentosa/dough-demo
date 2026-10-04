@@ -523,6 +523,61 @@ Help text: There's no right answer. It helps us explain what feels comfortable f
 - where.unknown.title: Where to hold it
 - where.unknown.body: Which account fits depends on whether you earn income from a job. A Roth IRA needs it, and a regular investment account doesn't. You can answer that anytime by retaking the first questions in Settings.
 
+## Streaks and breads _(draft)_
+
+Unlocks are measured in weeks of saving. Ladder: baguette 2, bagel 4, focaccia 6, pretzel 8, brioche 12, croissant 16.
+
+### Bread names
+
+- sandwich: Sandwich loaf
+- baguette: Baguette
+- bagel: Bagel
+- focaccia: Focaccia
+- pretzel: Pretzel
+- brioche: Brioche
+- croissant: Croissant
+
+### Home streak card
+
+- label: Your streak
+- valueNone: No streak yet
+- valueWeek: {count}-week streak
+- valuePayPeriodOne: 1 pay period
+- valuePayPeriod: {count} pay periods
+- valueMonthOne: 1 month
+- valueMonth: {count} months
+- weeksPill: {weeks} weeks
+- startNext: {bread} unlocks at {weeks} weeks of saving.
+- unlockedNext: {bread} unlocked. {next} next at {weeks} weeks.
+- allUnlocked: Every bread is unlocked. Nice steady saving.
+- resetValue: New streak starts now.
+- resetBody: Your unlocked breads stay yours. {bread} unlocks at {weeks} weeks of saving.
+- resetAllUnlocked: Your unlocked breads stay yours.
+
+### Unlock moment
+
+- title: {bread} unlocked
+- body: You can pick it for your next loaf.
+- dismiss: Dismiss
+
+### Bread picker
+
+- title: Pick a bread
+- intro: Any bread you've unlocked is yours to bake. It only changes the look.
+- defaultTag: Default
+- unlockedTag: Unlocked
+- lockedOne: 1 more week
+- locked: {count} more weeks
+- button: Grow in {bread}
+- back: Back
+- groupLabel: Bread for your next loaf
+
+### Demo tools (only with ?demo=1)
+
+- heading: Demo tools
+- skipWeek: Skip a week
+- skipWeekWithoutSaving: Skip a week without saving
+
 ## Tips while the loaf rises
 
 ### Why small deposits add up (unlocks at shape)

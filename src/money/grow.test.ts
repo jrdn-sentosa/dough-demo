@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { DataAdapter } from '../data/adapter';
 import { createMemoryAdapter } from '../data/memoryAdapter';
+import type { UnlockableBread } from '../domain/breads';
 import { advance } from './clock';
 import {
   addStarting,
@@ -37,12 +38,12 @@ describe('the shelf keeps every bake', () => {
 
   it('records the target and date of the first bake', async () => {
     const r = await ok(deposit(adapter, EF, dollars(100)));
-    expect(r.status.bakes).toEqual([{ targetCents: dollars(100), at: r.transaction.at }]);
+    expect(r.status.bakes).toEqual([{ targetCents: dollars(100), at: r.transaction.at, bread: 'sandwich' }]);
   });
 
   it('records an "Already built" bake with no date', async () => {
     const r = await ok(addStarting(adapter, EF, dollars(100)));
-    expect(r.status.bakes).toEqual([{ targetCents: dollars(100), at: null }]);
+    expect(r.status.bakes).toEqual([{ targetCents: dollars(100), at: null, bread: 'sandwich' }]);
   });
 
   it('starts with no bakes', async () => {
@@ -65,8 +66,8 @@ describe('the shelf keeps every bake', () => {
     const second = await ok(deposit(adapter, EF, dollars(200)));
     expect(second).toMatchObject({ baked: true, grown: true, rebuilt: false });
     expect(second.status.bakes).toEqual([
-      { targetCents: dollars(100), at: first.transaction.at },
-      { targetCents: dollars(300), at: second.transaction.at },
+      { targetCents: dollars(100), at: first.transaction.at, bread: 'sandwich' },
+      { targetCents: dollars(300), at: second.transaction.at, bread: 'sandwich' },
     ]);
     expect(second.status.firstBakedAt).toBe(first.transaction.at);
   });
@@ -76,8 +77,8 @@ describe('the shelf keeps every bake', () => {
     await ok(setTarget(adapter, EF, dollars(300), { grow: true }));
     const r = await ok(deposit(adapter, EF, dollars(200)));
     expect(r.status.bakes).toEqual([
-      { targetCents: dollars(100), at: null },
-      { targetCents: dollars(300), at: r.transaction.at },
+      { targetCents: dollars(100), at: null, bread: 'sandwich' },
+      { targetCents: dollars(300), at: r.transaction.at, bread: 'sandwich' },
     ]);
     expect(r.status.bakedAtStart).toBe(true);
   });
@@ -216,6 +217,51 @@ describe('growing needs a baked fund', () => {
     await ok(addStarting(adapter, EF, dollars(400)));
     const r = await ok(setTarget(adapter, EF, dollars(1200), { grow: true }));
     expect(r.status).toMatchObject({ growing: true, growFromCents: dollars(400), percent: 0 });
-    expect(r.status.bakes).toEqual([{ targetCents: dollars(400), at: null }]);
+    expect(r.status.bakes).toEqual([{ targetCents: dollars(400), at: null, bread: 'sandwich' }]);
+  });
+});
+
+describe('bread on grown bakes', () => {
+  async function unlock(...breads: UnlockableBread[]) {
+    const data = await adapter.load();
+    data.streaks.unlocked = breads.map((bread) => ({ bread, at: '2026-01-01T00:00:00.000Z', seen: true }));
+    await adapter.save(data);
+  }
+
+  beforeEach(async () => {
+    await startEf(100);
+    await ok(deposit(adapter, EF, dollars(100)));
+  });
+
+  it('grows in the chosen unlocked bread and bakes the second entry in it, keeping the first bread', async () => {
+    await unlock('baguette');
+    const grow = await ok(setTarget(adapter, EF, dollars(300), { grow: true, bread: 'baguette' }));
+    expect(grow.status.bread).toBe('baguette');
+    const done = await ok(deposit(adapter, EF, dollars(200)));
+    expect(done.status.bakes.map((b) => b.bread)).toEqual(['sandwich', 'baguette']);
+  });
+
+  it('refuses a bread that is not unlocked and changes nothing', async () => {
+    const r = await setTarget(adapter, EF, dollars(300), { grow: true, bread: 'croissant' });
+    expect(r).toMatchObject({ ok: false, code: 'bread-locked' });
+    expect(await getLoafStatus(adapter, EF)).toMatchObject({ bread: 'sandwich', targetCents: dollars(100), growing: false });
+  });
+
+  it('keeps the current bread when growing without choosing one', async () => {
+    await unlock('bagel');
+    await ok(setTarget(adapter, EF, dollars(300), { grow: true, bread: 'bagel' }));
+    await ok(deposit(adapter, EF, dollars(200)));
+    await ok(setTarget(adapter, EF, dollars(600), { grow: true }));
+    const done = await ok(deposit(adapter, EF, dollars(300)));
+    expect(done.status.bakes.map((b) => b.bread)).toEqual(['sandwich', 'bagel', 'bagel']);
+  });
+
+  it('starts a loaf in an unlocked bread, and refuses a locked one', async () => {
+    const fresh = createMemoryAdapter();
+    expect(await startLoaf(fresh, EF, dollars(100), { bread: 'pretzel' })).toMatchObject({ ok: false, code: 'bread-locked' });
+    adapter = fresh;
+    await unlock('pretzel');
+    const started = await ok(startLoaf(adapter, EF, dollars(100), { bread: 'pretzel' }));
+    expect(started.loaf.bread).toBe('pretzel');
   });
 });

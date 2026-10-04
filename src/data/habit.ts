@@ -1,5 +1,6 @@
 import { defaultHabit } from '../domain/habits';
 import type { Habit, PayFrequency } from '../domain/habits';
+import { streakPeriodDays } from '../domain/streaks';
 import { nowIso } from '../money/clock';
 import type { DataAdapter } from './adapter';
 import type { HysaCardState } from './types';
@@ -8,14 +9,24 @@ export type HabitInput =
   | { kind: 'weekly'; amountCents: number }
   | { kind: 'paycheck'; amountCents: number; paycheckCents: number; frequency: PayFrequency };
 
+/**
+ * The start date for a habit that replaces `previous`. Periods (and so streak windows) are counted from it,
+ * so it only moves when the period length changes, which is when the old windows no longer fit.
+ * Changing just the amount, or between ways of being paid that share a period length, keeps the streak.
+ */
+function startFor(previous: Habit | null, next: Habit): string {
+  return previous && streakPeriodDays(previous) === streakPeriodDays(next) ? previous.startedAt : next.startedAt;
+}
+
 /** Saves the habit from Saving setup. The start date comes from the demo clock; periods are counted from it. */
 export async function saveHabit(adapter: DataAdapter, input: HabitInput): Promise<Habit> {
   const data = await adapter.load();
   const startedAt = await nowIso(adapter);
-  data.habit =
+  const next: Habit =
     input.kind === 'weekly'
       ? { kind: 'weekly', amountCents: input.amountCents, paycheckCents: null, frequency: null, startedAt }
       : { kind: 'paycheck', amountCents: input.amountCents, paycheckCents: input.paycheckCents, frequency: input.frequency, startedAt };
+  data.habit = { ...next, startedAt: startFor(data.habit, next) };
   await adapter.save(data);
   return data.habit;
 }
@@ -25,7 +36,8 @@ export async function saveDefaultHabit(adapter: DataAdapter, loafId = 'emergency
   const data = await adapter.load();
   const loaf = data.loaves.find((l) => l.loafId === loafId);
   if (!loaf) return null;
-  data.habit = defaultHabit(loaf.targetCents, await nowIso(adapter));
+  const next = defaultHabit(loaf.targetCents, await nowIso(adapter));
+  data.habit = { ...next, startedAt: startFor(data.habit, next) };
   await adapter.save(data);
   return data.habit;
 }

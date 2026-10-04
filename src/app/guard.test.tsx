@@ -14,7 +14,7 @@ afterEach(cleanup);
 
 const user = { email: 'a@b.co' };
 const profile = profileFromAnswers({ essentials: '500-749' });
-const loaf = { loafId: 'emergency-fund' as const, targetCents: 65000, startedAt: '2026-01-01T00:00:00.000Z', bakes: [], growFromCents: null };
+const loaf = { loafId: 'emergency-fund' as const, targetCents: 65000, startedAt: '2026-01-01T00:00:00.000Z', bread: 'sandwich' as const, bakes: [], growFromCents: null };
 
 const signedOut = emptyData();
 const noProfile: AppData = { ...emptyData(), user };
@@ -84,7 +84,7 @@ describe('guardRedirect', () => {
   });
 
   it('does not hold a fund that has already baked at saving setup', () => {
-    const baked: AppData = { ...quizzed, loaves: [{ ...loaf, bakes: [{ targetCents: 65000, at: '2026-02-01T00:00:00.000Z' }] }] };
+    const baked: AppData = { ...quizzed, loaves: [{ ...loaf, bakes: [{ targetCents: 65000, at: '2026-02-01T00:00:00.000Z', bread: 'sandwich' }] }] };
     expect(guardRedirect('/', baked)).toBeNull();
   });
 
@@ -97,7 +97,7 @@ describe('guardRedirect', () => {
       amountCents,
       at: '2026-02-01T00:00:00.000Z',
     });
-    const bake = { targetCents: 65000, at: '2026-02-01T00:00:00.000Z' };
+    const bake = { targetCents: 65000, at: '2026-02-01T00:00:00.000Z', bread: 'sandwich' as const };
     /** Baked and sitting at its target. */
     const baked: AppData = { ...quizzed, habit, loaves: [{ ...loaf, bakes: [bake] }], transactions: [tx('deposit', 65000, 1)] };
     const withRisk = (d: AppData): AppData => ({
@@ -154,7 +154,7 @@ describe('guardRedirect', () => {
   it('sends a student whose fund started baked on to choose the next loaf', () => {
     const baked: AppData = {
       ...noLoaf,
-      loaves: [{ ...loaf, bakes: [{ targetCents: 65000, at: null }] }],
+      loaves: [{ ...loaf, bakes: [{ targetCents: 65000, at: null, bread: 'sandwich' }] }],
       transactions: [{ id: 'tx-1', loafId: 'emergency-fund', type: 'starting', source: 'manual', amountCents: 70000, at: '2026-01-01T00:00:00.000Z' }],
     };
     expect(guardRedirect('/new-loaf', baked)).toBe('/choose-loaf');

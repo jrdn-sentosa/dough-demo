@@ -1,0 +1,49 @@
+{
+  "draft": true,
+  "names": {
+    "sandwich": "Sandwich loaf",
+    "baguette": "Baguette",
+    "bagel": "Bagel",
+    "focaccia": "Focaccia",
+    "pretzel": "Pretzel",
+    "brioche": "Brioche",
+    "croissant": "Croissant"
+  },
+  "streak": {
+    "label": "Your streak",
+    "valueNone": "No streak yet",
+    "valueWeek": "{count}-week streak",
+    "valuePayPeriodOne": "1 pay period",
+    "valuePayPeriod": "{count} pay periods",
+    "valueMonthOne": "1 month",
+    "valueMonth": "{count} months",
+    "weeksPill": "{weeks} weeks",
+    "startNext": "{bread} unlocks at {weeks} weeks of saving.",
+    "unlockedNext": "{bread} unlocked. {next} next at {weeks} weeks.",
+    "allUnlocked": "Every bread is unlocked. Nice steady saving.",
+    "resetValue": "New streak starts now.",
+    "resetBody": "Your unlocked breads stay yours. {bread} unlocks at {weeks} weeks of saving.",
+    "resetAllUnlocked": "Your unlocked breads stay yours."
+  },
+  "unlock": {
+    "title": "{bread} unlocked",
+    "body": "You can pick it for your next loaf.",
+    "dismiss": "Dismiss"
+  },
+  "picker": {
+    "title": "Pick a bread",
+    "intro": "Any bread you've unlocked is yours to bake. It only changes the look.",
+    "defaultTag": "Default",
+    "unlockedTag": "Unlocked",
+    "lockedOne": "1 more week",
+    "locked": "{count} more weeks",
+    "button": "Grow in {bread}",
+    "back": "Back",
+    "groupLabel": "Bread for your next loaf"
+  },
+  "demo": {
+    "heading": "Demo tools",
+    "skipWeek": "Skip a week",
+    "skipWeekWithoutSaving": "Skip a week without saving"
+  }
+}

@@ -1,0 +1,190 @@
+<!doctype html>
+<!--
+  Dough! milestone 9 mockup: streaks and bread unlocks.
+  Open this file directly in a browser. Image paths are relative to docs/mockups/.
+  Checkpoint 1: the baguette's three stages beside the sandwich loaf, plus the
+  Home streak card, the unlock moment and the bread picker.
+
+  Behavior notes for the build:
+  - Unlocks are measured in weeks of consistent saving: weeksCovered = streak periods x period days / 7.
+    Ladder (weeks): baguette 2, bagel 4, focaccia 6, pretzel 8, brioche 12, croissant 16.
+  - The streak shows in its own unit: "4-week streak", "3 pay periods", "2 months".
+  - Locked breads show time left in weeks.
+  - A reset says "New streak starts now." Never "lost", "broke" or "failed". Withdrawals never reset a streak.
+  - The unlock moment is lighter than a baked loaf: no confetti, entrance under 400ms, reduced motion respected.
+  - All copy lives in content, not in components.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dough! milestone 9 mockup</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..700&family=Fraunces:opsz,wght,SOFT@9..144,400..800,0..100&display=swap">
+<style>
+  :root {
+    --ground: #FFFFFF; --crumb: #FFF6E6; --butter: #F6C453; --toast-edge: #B9773A;
+    --crust: #8A4B1F; --deep-crust: #5E3315; --rye: #2B1B12; --sage: #5E7A4F;
+    --text-muted: #6B5446; --field-border: #9C8467; --divider: #EADBC4;
+    --locked-bg: #F3ECE0; --locked-text: #7A6552;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--crumb); font-family: 'DM Sans', 'Avenir Next', 'Segoe UI', sans-serif; color: var(--rye); }
+  .display { font-family: 'Fraunces', 'Iowan Old Style', Georgia, serif; font-variation-settings: 'SOFT' 100; font-weight: 700; }
+  .board { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; padding: 24px; }
+  .phone { width: 390px; background: var(--ground); padding: 40px 24px 32px; display: flex; flex-direction: column; gap: 18px; border-radius: 28px; }
+  .sheet { width: 100%; max-width: 860px; background: var(--ground); border-radius: 28px; padding: 28px 32px; }
+  h1 { margin: 0; font-size: 28px; line-height: 1.1; }
+  h2 { margin: 0 0 4px; font-size: 20px; }
+  .note { margin: 0 0 16px; font-size: 14px; color: var(--text-muted); }
+  .eyebrow { font-size: 14px; font-weight: 600; color: var(--text-muted); }
+
+  /* Art comparison */
+  .row { display: grid; grid-template-columns: 90px repeat(3, 1fr); gap: 12px; align-items: center; margin-bottom: 12px; }
+  .row .name { font-size: 14px; font-weight: 700; color: var(--text-muted); }
+  .cell { background: var(--crumb); border-radius: 20px; padding: 10px 8px 6px; text-align: center; }
+  .cell img { width: 100%; height: auto; display: block; }
+  .cell span { font-size: 12px; color: var(--text-muted); }
+
+  /* Streak card (same family as the habit card) */
+  .streak {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 14px 16px; border: 1.5px solid var(--divider); border-radius: 20px;
+  }
+  .streak .label { font-size: 13px; font-weight: 700; color: var(--text-muted); }
+  .streak .value { font-size: 16px; font-weight: 700; }
+  .streak .next { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+  .streak img { width: 64px; height: auto; flex: none; }
+  .pill { padding: 4px 10px; border-radius: 999px; background: var(--locked-bg); font-size: 12px; font-weight: 700; color: var(--crust); white-space: nowrap; }
+  .pill.butter { background: var(--butter); color: var(--rye); }
+
+  /* Unlock moment: a light banner, not a celebration screen */
+  .unlock {
+    display: flex; align-items: center; gap: 14px; padding: 12px 14px;
+    background: var(--crumb); border: 1.5px dashed var(--toast-edge); border-radius: 12px;
+  }
+  .unlock img { width: 72px; height: auto; flex: none; }
+  .unlock .text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .unlock .title { font-size: 17px; }
+  .unlock .meta { font-size: 13px; color: var(--text-muted); }
+  .unlock button { border: 0; background: transparent; font: inherit; font-size: 13px; font-weight: 700; color: var(--crust); text-decoration: underline; cursor: pointer; min-height: 44px; }
+
+  /* Bread picker (slice-button style rows) */
+  .picker { display: flex; flex-direction: column; gap: 10px; }
+  .choice {
+    display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 6px 16px;
+    border: 3px solid var(--toast-edge); border-radius: 46px 46px 14px 14px / 32px 32px 14px 14px; background: var(--crumb);
+  }
+  .choice img { width: 56px; height: auto; flex: none; }
+  .choice .label { flex: 1; font-size: 16px; font-weight: 600; }
+  .choice.selected { background: #FFFFFF; box-shadow: inset 0 0 0 2px var(--crust); }
+  .choice.locked { border-color: var(--divider); background: var(--locked-bg); color: var(--locked-text); }
+  .choice.locked img { opacity: 0.45; filter: grayscale(0.6); }
+  .choice .meta { font-size: 12px; font-weight: 700; color: var(--locked-text); }
+
+  /* Buttons */
+  .loaf-button {
+    position: relative; width: 100%; height: 62px; border: 0; border-bottom: 5px solid var(--deep-crust);
+    border-radius: 70px 70px 16px 16px / 38px 38px 16px 16px; background: var(--crust); color: #FFFFFF;
+    font: inherit; font-size: 18px; font-weight: 700; padding-top: 6px;
+  }
+  .score { position: absolute; width: 30px; height: 3px; border-radius: 3px; background: var(--crumb); opacity: 0.55; transform: rotate(-14deg); }
+  .demo { display: flex; gap: 10px; }
+  .demo button {
+    flex: 1; min-height: 44px; border: 1.5px dashed var(--toast-edge); border-radius: 12px;
+    background: var(--crumb); font: inherit; font-size: 13px; font-weight: 700; color: var(--crust);
+  }
+</style>
+</head>
+<body>
+<div class="board">
+
+  <section class="sheet">
+    <h2 class="display">Contact sheet: all six breads</h2>
+    <p class="note">Same 200 x 140 viewBox, stroke widths, plate line, score style and palette as the sandwich loaf. Mix and Shape are the shared dough ball. Unlock order is top to bottom (weeks of saving in brackets).</p>
+    <div class="row">
+      <span class="name">Shared dough</span>
+      <div class="cell"><img src="../../design/loaves/sandwich/mix.svg" alt="Dough ball, mix"><span>Mix</span></div>
+      <div class="cell"><img src="../../design/loaves/sandwich/shape.svg" alt="Dough ball, shape"><span>Shape</span></div>
+      <div></div>
+    </div>
+    <div id="contact"></div>
+    <script>
+      const breads = [
+        ['sandwich', 'Sandwich (default)'], ['baguette', 'Baguette (2)'], ['bagel', 'Bagel (4)'],
+        ['focaccia', 'Focaccia (6)'], ['pretzel', 'Pretzel (8)'], ['brioche', 'Brioche (12)'], ['croissant', 'Croissant (16)']
+      ];
+      const stages = [['proof', 'Proof'], ['bake', 'Bake'], ['baked', 'Baked']];
+      document.getElementById('contact').innerHTML = breads.map(([id, name]) =>
+        '<div class="row"><span class="name">' + name + '</span>' +
+        stages.map(([s, label]) =>
+          '<div class="cell"><img src="../../design/loaves/' + id + '/' + s + '.svg" alt="' + name + ', ' + label + '"><span>' + label + '</span></div>'
+        ).join('') + '</div>').join('');
+    </script>
+  </section>
+
+  <main class="phone">
+    <div>
+      <span class="eyebrow">Your loaf</span>
+      <h1 class="display">Emergency fund</h1>
+    </div>
+
+    <div class="unlock" role="status">
+      <img src="../../design/loaves/baguette/bake.svg" alt="">
+      <div class="text">
+        <span class="title display">Baguette unlocked</span>
+        <span class="meta">You can pick it for your next loaf.</span>
+      </div>
+      <button type="button">Dismiss</button>
+    </div>
+
+    <div class="streak">
+      <div>
+        <div class="label">Your streak</div>
+        <div class="value">2-week streak</div>
+        <div class="next">Baguette unlocked. Bagel next at 4 weeks.</div>
+      </div>
+      <img src="../../design/loaves/baguette/baked.svg" alt="">
+    </div>
+
+    <div class="streak">
+      <div>
+        <div class="label">After a missed week</div>
+        <div class="value">New streak starts now.</div>
+        <div class="next">Your baguette stays unlocked. Bagel at 4 weeks.</div>
+      </div>
+      <span class="pill">0 weeks</span>
+    </div>
+
+    <div class="streak">
+      <div>
+        <div class="label">Paid every two weeks</div>
+        <div class="value">3 pay periods</div>
+        <div class="next">Focaccia next at 8 weeks. Pretzel after that.</div>
+      </div>
+      <span class="pill butter">6 weeks</span>
+    </div>
+
+    <div class="demo" aria-label="Demo tools">
+      <button type="button">Skip a week</button>
+      <button type="button">Skip a week without saving</button>
+    </div>
+  </main>
+
+  <main class="phone">
+    <div>
+      <span class="eyebrow">Your next loaf</span>
+      <h1 class="display">Pick a bread</h1>
+      <p class="note">Any bread you've unlocked is yours to bake. It only changes the look.</p>
+    </div>
+    <div class="picker">
+      <div class="choice"><img src="../../design/loaves/sandwich/bake.svg" alt=""><span class="label">Sandwich loaf</span><span class="meta">Default</span></div>
+      <div class="choice selected"><img src="../../design/loaves/baguette/bake.svg" alt=""><span class="label">Baguette</span><span class="pill butter">Unlocked</span></div>
+      <div class="choice locked"><img src="../../design/loaves/bagel/bake.svg" alt=""><span class="label">Bagel</span><span class="meta">2 more weeks</span></div>
+      <div class="choice locked"><img src="../../design/loaves/focaccia/bake.svg" alt=""><span class="label">Focaccia</span><span class="meta">4 more weeks</span></div>
+    </div>
+    <button class="loaf-button" type="button"><span class="score" style="top:9px;left:34%"></span><span class="score" style="top:12px;left:47%"></span><span class="score" style="top:9px;left:60%"></span>Grow in baguette</button>
+  </main>
+
+</div>
+</body>
+</html>

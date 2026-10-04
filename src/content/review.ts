@@ -1,6 +1,6 @@
 import { DEFAULT_GOAL_CENTS } from '../domain/bands';
 import { formatCents } from '../money/format';
-import { getLessons, getLoaf, getLoaves, getPlacement, getQuiz, getRisk } from './loader';
+import { getBreads, getLessons, getLoaf, getLoaves, getPlacement, getQuiz, getRisk } from './loader';
 import { fillTemplate } from './template';
 
 const LETTERS = 'ABCD';
@@ -161,6 +161,21 @@ export function renderContentReview(): string {
   out.push('### Risk quiz result', '');
   for (const [key, text] of flattenCopy(risk.result)) out.push(`- ${key}: ${text}`);
   out.push('');
+
+  const breads = getBreads();
+  out.push(`## Streaks and breads${draftTag(breads.draft)}`, '');
+  out.push('Unlocks are measured in weeks of saving. Ladder: baguette 2, bagel 4, focaccia 6, pretzel 8, brioche 12, croissant 16.', '');
+  for (const [heading, copy] of [
+    ['Bread names', breads.names],
+    ['Home streak card', breads.streak],
+    ['Unlock moment', breads.unlock],
+    ['Bread picker', breads.picker],
+    ['Demo tools (only with ?demo=1)', breads.demo],
+  ] as const) {
+    out.push(`### ${heading}`, '');
+    for (const [key, text] of flattenCopy(copy)) out.push(`- ${key}: ${text}`);
+    out.push('');
+  }
 
   out.push('## Tips while the loaf rises', '');
   for (const tip of loaf.tips) {

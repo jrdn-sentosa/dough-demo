@@ -1,3 +1,4 @@
+import type { BreadId } from '../domain/breads';
 import type { PayFrequency } from '../domain/habits';
 import type { RiskQuestionId } from '../domain/risk';
 import type { AccountType, LoafId, Stage } from '../domain/types';
@@ -371,4 +372,53 @@ export interface RiskContent {
     back: string;
     chooseAgain: string;
   };
+}
+
+/** Bread names and the copy for streaks, the unlock moment, the bread picker and the demo tools. */
+export interface BreadsContent {
+  draft: boolean;
+  names: Record<BreadId, string>;
+  streak: {
+    label: string;
+    valueNone: string;
+    /** {count}. */
+    valueWeek: string;
+    valuePayPeriodOne: string;
+    /** {count}. */
+    valuePayPeriod: string;
+    valueMonthOne: string;
+    /** {count}. */
+    valueMonth: string;
+    /** {weeks}. */
+    weeksPill: string;
+    /** {bread} and {weeks}. */
+    startNext: string;
+    /** {bread} (the latest unlocked), {next} and {weeks}. */
+    unlockedNext: string;
+    allUnlocked: string;
+    resetValue: string;
+    /** {bread} and {weeks}. */
+    resetBody: string;
+    resetAllUnlocked: string;
+  };
+  unlock: {
+    /** {bread}. */
+    title: string;
+    body: string;
+    dismiss: string;
+  };
+  picker: {
+    title: string;
+    intro: string;
+    defaultTag: string;
+    unlockedTag: string;
+    lockedOne: string;
+    /** {count}. */
+    locked: string;
+    /** {bread}. */
+    button: string;
+    back: string;
+    groupLabel: string;
+  };
+  demo: { heading: string; skipWeek: string; skipWeekWithoutSaving: string };
 }

@@ -3,8 +3,12 @@ import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 import { useData } from '../../app/DataProvider';
 import { AmountSheet } from '../../components/AmountSheet';
-import { getLoaf } from '../../content/loader';
+import { BreadSheet } from '../../components/BreadSheet';
+import { getBreads, getLoaf } from '../../content/loader';
 import { saveEssentials } from '../../data/profile';
+import { breadChoices } from '../../data/streaks';
+import { DEFAULT_BREAD } from '../../domain/breads';
+import type { BreadId } from '../../domain/breads';
 import { growGoal } from '../../domain/targets';
 import { setTarget } from '../../money/ledger';
 import { parseDollarsToCents } from '../../money/parse';
@@ -13,8 +17,11 @@ import { FLOW_LOAF } from '../useLessonFlow';
 export type GrowMonths = 3 | 6;
 
 export interface GrowCushion {
-  /** Start growing the cushion to this many months. Asks for monthly essentials first when they are unknown. */
-  start: (months: GrowMonths) => void;
+  /**
+   * Start growing the cushion to this many months, in this bread (the default when left out).
+   * Asks for monthly essentials first when they are unknown.
+   */
+  start: (months: GrowMonths, bread?: BreadId) => void;
   /** The essentials question, or null. Render it in the screen. */
   sheet: ReactNode;
   /** Why growing didn't work (from the money layer), or null. */
@@ -32,14 +39,16 @@ export function useGrowCushion(): GrowCushion {
   if (loaf.status !== 'built') throw new Error('growing needs a built loaf');
   const copy = loaf.flow.choose.essentials;
 
-  const [asking, setAsking] = useState<GrowMonths | null>(null);
+  const [asking, setAsking] = useState<{ months: GrowMonths; bread: BreadId | undefined } | null>(null);
   const [text, setText] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [picking, setPicking] = useState<GrowMonths | null>(null);
+  const [pickedBread, setPickedBread] = useState<BreadId>(DEFAULT_BREAD);
 
-  async function apply(months: GrowMonths, essentialsCents: number): Promise<boolean> {
+  async function apply(months: GrowMonths, essentialsCents: number, bread: BreadId | undefined): Promise<boolean> {
     const goal = growGoal(essentialsCents, months);
     if (goal.targetCents === null) return false;
-    const result = await setTarget(adapter, FLOW_LOAF, goal.targetCents, { grow: true });
+    const result = await setTarget(adapter, FLOW_LOAF, goal.targetCents, { grow: true, bread });
     if (!result.ok) {
       setError(result.message);
       return false;
@@ -50,14 +59,25 @@ export function useGrowCushion(): GrowCushion {
     return true;
   }
 
-  function start(months: GrowMonths) {
+  const choices = data ? breadChoices(data) : null;
+
+  function start(months: GrowMonths, bread?: BreadId) {
     setError(null);
+    if (bread === undefined && choices?.hasChoice) {
+      setPickedBread(DEFAULT_BREAD);
+      setPicking(months);
+      return;
+    }
+    proceed(months, bread);
+  }
+
+  function proceed(months: GrowMonths, bread: BreadId | undefined) {
     const essentials = data?.profile?.essentialsCents ?? null;
     if (essentials === null) {
       setText('');
-      setAsking(months);
+      setAsking({ months, bread });
     } else {
-      void apply(months, essentials);
+      void apply(months, essentials, bread);
     }
   }
 
@@ -65,12 +85,29 @@ export function useGrowCushion(): GrowCushion {
   async function confirm() {
     if (asking === null || cents === null || cents <= 0) return;
     await saveEssentials(adapter, cents);
-    if (await apply(asking, cents)) setAsking(null);
+    if (await apply(asking.months, cents, asking.bread)) setAsking(null);
   }
 
-  const option = asking === 6 ? loaf.growFurtherOption : loaf.growOption;
+  const option = asking?.months === 6 ? loaf.growFurtherOption : loaf.growOption;
+  const breadSheet =
+    picking === null || choices === null ? null : (
+      <BreadSheet
+        copy={getBreads()}
+        available={choices.available}
+        value={pickedBread}
+        onChange={setPickedBread}
+        weeksLeft={choices.weeksLeft}
+        onConfirm={() => {
+          const months = picking;
+          setPicking(null);
+          proceed(months, pickedBread);
+        }}
+        onCancel={() => setPicking(null)}
+      />
+    );
   const sheet =
-    asking === null ? null : (
+    breadSheet ??
+    (asking === null ? null : (
       <AmountSheet
         id="essentials"
         title={option.title}
@@ -88,7 +125,7 @@ export function useGrowCushion(): GrowCushion {
         onConfirm={() => void confirm()}
         onCancel={() => setAsking(null)}
       />
-    );
+    ));
 
   return { start, sheet, error };
 }

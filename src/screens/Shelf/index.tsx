@@ -50,7 +50,7 @@ export function Shelf() {
             const label = bakeLabel(bake, essentials, copy);
             return (
               <li key={`${bake.targetCents}-${i}`} className="shelf__slot">
-                <BakedLoaf loafId={FLOW_LOAF} mastered={mastered} width={96} sparkles={false} />
+                <BakedLoaf bread={bake.bread} mastered={mastered} width={96} sparkles={false} />
                 <span className="shelf__name">{loaf.title}</span>
                 <span className="shelf__sub">{label.sub}</span>
               </li>
