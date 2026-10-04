@@ -207,6 +207,7 @@ Not blocking the demo, but each needs doing before real students use it.
 - [ ] Review every piece of draft content and remove the `draft` flags (`docs/content-review.md`).
 - [ ] Set up the project's own SMTP sender for email codes (see `docs/setup.md`).
 - [ ] Accessibility and contrast pass (on the installed app too).
+- [ ] Separate Supabase project for development and previews, so branch previews and migration tests never touch the production database.
 
 ## Decisions
 
