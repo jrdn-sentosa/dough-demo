@@ -383,6 +383,43 @@ export interface SettingsContent {
   >;
   habit: Record<'title' | 'current' | 'weekly' | 'paycheck' | 'save' | 'restartNote' | 'saved' | 'savedRestart', string>;
   risk: Record<'title' | 'intro' | 'link', string>;
+  /** "Send feedback" and the version line. `{token}` placeholders are filled at display time. */
+  feedback: Record<
+    | 'title'
+    | 'intro'
+    | 'label'
+    | 'placeholder'
+    | 'counter'
+    | 'categoryLegend'
+    | 'categoryBug'
+    | 'categoryIdea'
+    | 'categoryOther'
+    | 'privacy'
+    | 'send'
+    | 'sending'
+    | 'sent'
+    | 'failed'
+    | 'demoNote'
+    | 'demoSend'
+    | 'emailTo'
+    | 'emailSubject'
+    | 'emailVersion'
+    | 'emailScreen'
+    | 'emailKind'
+    | 'version',
+    string
+  >;
+}
+
+/** Dough points, the points history and the daily quiz. Never mentions a day without a point. */
+export interface PointsContent {
+  draft: boolean;
+  home: Record<'label' | 'linkLabel', string>;
+  history: Record<'title' | 'intro' | 'total' | 'totalOne' | 'empty' | 'earned' | 'showMore' | 'back' | 'demoNote', string> & {
+    /** What earned a point, by kind. Tokens: `{date}`, `{lesson}`, `{loaf}`. */
+    reasons: Record<'fund-day' | 'video' | 'mastery' | 'bake' | 'quiz', string>;
+  };
+  daily: Record<'title' | 'intro' | 'check' | 'right' | 'wrong' | 'done', string>;
 }
 
 /** Bread names and the copy for streaks, the unlock moment, the bread picker and the demo tools. */

@@ -1,6 +1,7 @@
 import { BREAD_IDS } from '../domain/breads';
 import { parseFrontmatter } from '../domain/frontmatter';
 import { PAY_FREQUENCIES } from '../domain/habits';
+import { POINT_KINDS } from '../domain/points';
 import { RISK_QUESTION_IDS } from '../domain/risk';
 import { STAGES } from '../domain/stages';
 import type { AccountType, LoafId, Stage } from '../domain/types';
@@ -19,6 +20,7 @@ import type {
   LoafDefinition,
   PlacementContent,
   PlacementQuestion,
+  PointsContent,
   QuizChoice,
   QuizContent,
   Tip,
@@ -71,6 +73,10 @@ const breadFiles = import.meta.glob<unknown>('../../content/breads.json', {
   import: 'default',
 });
 const settingsFiles = import.meta.glob<unknown>('../../content/settings.json', {
+  eager: true,
+  import: 'default',
+});
+const pointsFiles = import.meta.glob<unknown>('../../content/points.json', {
   eager: true,
   import: 'default',
 });
@@ -398,6 +404,48 @@ export function parseSettings(raw: unknown, where = 'content/settings.json'): Se
     goal: record(o.goal, ['title', 'current', 'intro', 'monthsLegend', 'month', 'months', 'noEssentials', 'customLabel', 'save', 'invalid', 'edited', 'growing', 'baked'] as const, `${where} goal`),
     habit: record(o.habit, ['title', 'current', 'weekly', 'paycheck', 'save', 'restartNote', 'saved', 'savedRestart'] as const, `${where} habit`),
     risk: record(o.risk, ['title', 'intro', 'link'] as const, `${where} risk`),
+    feedback: record(
+      o.feedback,
+      [
+        'title',
+        'intro',
+        'label',
+        'placeholder',
+        'counter',
+        'categoryLegend',
+        'categoryBug',
+        'categoryIdea',
+        'categoryOther',
+        'privacy',
+        'send',
+        'sending',
+        'sent',
+        'failed',
+        'demoNote',
+        'demoSend',
+        'emailTo',
+        'emailSubject',
+        'emailVersion',
+        'emailScreen',
+        'emailKind',
+        'version',
+      ] as const,
+      `${where} feedback`,
+    ),
+  };
+}
+
+export function parsePoints(raw: unknown, where = 'content/points.json'): PointsContent {
+  const o = obj(raw, where);
+  const history = obj(o.history, `${where} history`);
+  return {
+    draft: bool(o, 'draft', where),
+    home: record(o.home, ['label', 'linkLabel'] as const, `${where} home`),
+    history: {
+      ...record(history, ['title', 'intro', 'total', 'totalOne', 'empty', 'earned', 'showMore', 'back', 'demoNote'] as const, `${where} history`),
+      reasons: record(history.reasons, POINT_KINDS, `${where} history reasons`),
+    },
+    daily: record(o.daily, ['title', 'intro', 'check', 'right', 'wrong', 'done'] as const, `${where} daily`),
   };
 }
 
@@ -462,6 +510,7 @@ interface Content {
   risk: RiskContent;
   breads: BreadsContent;
   settings: SettingsContent;
+  points: PointsContent;
   loaves: LoafDefinition[];
   lessons: Lesson[];
   quizzes: QuizContent[];
@@ -483,6 +532,9 @@ function content(): Content {
   const [settingsRaw] = Object.values(settingsFiles);
   if (settingsRaw === undefined) throw new ContentError('content/', 'settings.json is missing');
 
+  const [pointsRaw] = Object.values(pointsFiles);
+  if (pointsRaw === undefined) throw new ContentError('content/', 'points.json is missing');
+
   const loaves = Object.entries(loafFiles).map(([file, raw]) => parseLoaf(raw, file));
   const ids = loaves.map((l) => l.id);
   if (new Set(ids).size !== ids.length) throw new ContentError('content/loaves', 'duplicate loaf id');
@@ -492,6 +544,7 @@ function content(): Content {
     risk: parseRisk(riskRaw),
     breads: parseBreads(breadsRaw),
     settings: parseSettings(settingsRaw),
+    points: parsePoints(pointsRaw),
     loaves,
     lessons: Object.entries(lessonFiles).map(([file, src]) => parseLesson(src, file)),
     quizzes: Object.entries(quizFiles).map(([file, raw]) => parseQuiz(raw, file)),
@@ -505,6 +558,10 @@ export function getRisk(): RiskContent {
 
 export function getSettings(): SettingsContent {
   return content().settings;
+}
+
+export function getPoints(): PointsContent {
+  return content().points;
 }
 
 export function getBreads(): BreadsContent {

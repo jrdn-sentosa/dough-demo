@@ -1,6 +1,7 @@
 import { DEFAULT_GOAL_CENTS } from '../domain/bands';
 import { formatCents } from '../money/format';
-import { getBreads, getLessons, getLoaf, getLoaves, getPlacement, getQuiz, getRisk, getSettings } from './loader';
+import { POINT_KINDS, POINT_VALUES } from '../domain/points';
+import { getBreads, getLessons, getLoaf, getLoaves, getPlacement, getPoints, getQuiz, getRisk, getSettings } from './loader';
 import { fillTemplate } from './template';
 
 const LETTERS = 'ABCD';
@@ -183,6 +184,23 @@ export function renderContentReview(): string {
     ['Your goal', settings.goal],
     ['Your saving habit', settings.habit],
     ['Retake the risk quiz', settings.risk],
+    ['Send feedback', settings.feedback],
+  ] as const) {
+    out.push(`### ${heading}`, '');
+    for (const [key, text] of flattenCopy(copy)) out.push(`- ${key}: ${text}`);
+    out.push('');
+  }
+
+  const points = getPoints();
+  out.push(`## Dough points and the daily quiz${draftTag(points.draft)}`, '');
+  out.push(
+    `Points: ${POINT_KINDS.map((k) => `${k} ${POINT_VALUES[k]}`).join(', ')}. The numbers come from the app, not from this copy.`,
+    '',
+  );
+  for (const [heading, copy] of [
+    ['Home', points.home],
+    ['Points history', points.history],
+    ['Daily quiz card', points.daily],
   ] as const) {
     out.push(`### ${heading}`, '');
     for (const [key, text] of flattenCopy(copy)) out.push(`- ${key}: ${text}`);

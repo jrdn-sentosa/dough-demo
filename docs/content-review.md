@@ -619,6 +619,66 @@ Unlocks are measured in weeks of saving. Ladder: baguette 2, bagel 4, focaccia 6
 - intro: Your situation changed? Retake the risk quiz. There are no right answers, and it never changes your savings.
 - link: Retake the risk quiz
 
+### Send feedback
+
+- title: Send feedback
+- intro: Tell us what's working, what's confusing, or what you'd like to see.
+- label: Your feedback
+- placeholder: Type here
+- counter: {count} of {max}
+- categoryLegend: What kind is it? (optional)
+- categoryBug: Something's not working
+- categoryIdea: An idea
+- categoryOther: Something else
+- privacy: Please don't include account numbers, card numbers, or other financial details.
+- send: Send feedback
+- sending: Sending…
+- sent: Thanks. Your feedback was sent.
+- failed: That didn't send. Check your connection and try again.
+- demoNote: This opens your email app with your message ready to send.
+- demoSend: Email my feedback
+- emailTo: originaldoughmoney@gmail.com
+- emailSubject: Dough! feedback
+- emailVersion: App version: {version}
+- emailScreen: Screen: {screen}
+- emailKind: Kind: {category}
+- version: Version {version}
+
+## Dough points and the daily quiz _(draft)_
+
+Points: fund-day 1, video 1, mastery 5, bake 10, quiz 1. The numbers come from the app, not from this copy.
+
+### Home
+
+- label: Dough points
+- linkLabel: {points} Dough points. See what earned them.
+
+### Points history
+
+- title: Your Dough points
+- intro: Points are a small thank-you for habits that help. Once you have a point, it stays.
+- total: {points} points in all
+- totalOne: One point in all
+- empty: Your points will show up here as you go.
+- earned: +{points}
+- showMore: Show earlier points
+- back: Back to Home
+- demoNote: Points are just for fun. They aren't money and can't be exchanged for anything.
+- reasons.fund-day: Your fund held steady on {date}
+- reasons.video: Watched "{lesson}"
+- reasons.mastery: Mastered the {loaf} lessons
+- reasons.bake: Baked your {loaf}
+- reasons.quiz: Daily quiz answered right
+
+### Daily quiz card
+
+- title: Daily quiz
+- intro: One quick question from the lessons you've mastered.
+- check: Check answer
+- right: That's right. +{points} point.
+- wrong: Not quite. Here's the idea:
+- done: That's today's question. A new one is waiting tomorrow.
+
 ## Tips while the loaf rises
 
 ### Why small deposits add up (unlocks at shape)

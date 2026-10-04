@@ -29,5 +29,29 @@
     "title": "Your investing answers",
     "intro": "Your situation changed? Retake the risk quiz. There are no right answers, and it never changes your savings.",
     "link": "Retake the risk quiz"
+  },
+  "feedback": {
+    "title": "Send feedback",
+    "intro": "Tell us what's working, what's confusing, or what you'd like to see.",
+    "label": "Your feedback",
+    "placeholder": "Type here",
+    "counter": "{count} of {max}",
+    "categoryLegend": "What kind is it? (optional)",
+    "categoryBug": "Something's not working",
+    "categoryIdea": "An idea",
+    "categoryOther": "Something else",
+    "privacy": "Please don't include account numbers, card numbers, or other financial details.",
+    "send": "Send feedback",
+    "sending": "Sending…",
+    "sent": "Thanks. Your feedback was sent.",
+    "failed": "That didn't send. Check your connection and try again.",
+    "demoNote": "This opens your email app with your message ready to send.",
+    "demoSend": "Email my feedback",
+    "emailTo": "originaldoughmoney@gmail.com",
+    "emailSubject": "Dough! feedback",
+    "emailVersion": "App version: {version}",
+    "emailScreen": "Screen: {screen}",
+    "emailKind": "Kind: {category}",
+    "version": "Version {version}"
   }
 }
