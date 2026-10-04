@@ -374,6 +374,12 @@ Optional. Not started. Nothing in this section is built until the milestone begi
 
 Content for the Index funds, Bonds, Roth IRA, and Debt payoff loaves (cards only), multiple active loaves, crews or any social features, real banking or investing (the Plaid Sandbox stretch milestone is the only exception, and it is read-only test data), local business rewards, school single sign-on, push notifications, Apple sign-in (needs a paid Apple developer account), and native app store builds.
 
+## Deploying
+
+- The app is hosted on Vercel. Pushes to `main` deploy to production automatically, and every other branch gets its own preview link.
+- `vercel.json` rewrites every route to `index.html`, so refreshing or opening a link like `/placement` works. `react-router` handles routing in the browser. Files that exist (assets, icons, videos) are still served as they are.
+- Environment variables (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_DEMO_MODE`) are set in the Vercel dashboard, never committed. Only `.env.example` (with empty values) is in git.
+
 ## How to work in this repo
 
 - Read this file before starting. If a request conflicts with it, point out the conflict before writing code.
