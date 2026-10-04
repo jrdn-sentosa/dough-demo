@@ -203,6 +203,8 @@ In this demo, no real account is opened and no real money moves.
 
 ## Quiz _(draft)_
 
+The question bank has 10 questions. Each attempt of the quiz and of the test-out asks 5 of them, drawn at random with at least one from every lesson, and mastery is still 4 out of 5. The daily quiz can ask any of the 10, avoiding the last 3 it asked.
+
 ### Question 1: What is an emergency fund for?
 
 - A. Your car insurance payment that's due next month (`insurance-bill`)
@@ -252,6 +254,56 @@ Links to: lesson `ef-where-to-keep` at 10s.
 Explanation: Insurance protects your money, up to the legal limit, even if the institution runs into trouble. A higher rate or a bonus doesn't matter if the money isn't safe.
 
 Links to: lesson `ef-where-to-keep` at 42s.
+
+### Question 6: Your laptop dies a week before finals and you need it to finish your work. Is that a good use of your emergency fund?
+
+- A. Yes. It's urgent, you couldn't plan for it, and you need it (`yes-urgent`) **(correct)**
+- B. No. Wait until after finals and put it on a credit card (`wait-and-borrow`)
+- C. No. Electronics should always come out of your regular budget (`always-budget`)
+
+Explanation: A laptop that dies right before finals is urgent and you couldn't have planned for it, which is what the fund is for. Putting it on a credit card can cost more if you can't pay it off right away.
+
+Links to: lesson `ef-what-its-for` at 35s.
+
+### Question 7: You used part of your fund for a surprise medical bill. How should you think about that?
+
+- A. You used it for what it's for, and you can rebuild it a little at a time (`used-as-intended`) **(correct)**
+- B. You made a mistake, so it's better to stop saving for a while (`stop-saving`)
+- C. You need to put all of it back next month (`refill-at-once`)
+
+Explanation: Using your fund for a real emergency is exactly what it's for, so it isn't a mistake. You rebuild it at your own pace, a little at a time.
+
+Links to: lesson `ef-what-its-for` at 80s.
+
+### Question 8: Which of these should you leave out when you add up your monthly essentials?
+
+- A. Streaming, eating out, and shopping (`extras`) **(correct)**
+- B. Your phone bill (`phone`)
+- C. The cost of getting to class or work (`getting-around`)
+
+Explanation: Essentials are the costs you can't skip, like a phone and transportation. Extras such as streaming, eating out, and shopping stay out of the total.
+
+Links to: lesson `ef-how-much` at 25s.
+
+### Question 9: Your income changes a lot from month to month. Which goal is worth considering?
+
+- A. Six months of essentials (`six-months-variable`) **(correct)**
+- B. One month, since more than that isn't needed (`one-month-enough`)
+- C. The size of your biggest paycheck (`match-paycheck`)
+
+Explanation: When your income swings, a bigger cushion helps you get through the slow months. You can still start with one month and build up.
+
+Links to: lesson `ef-how-much` at 70s.
+
+### Question 10: A savings app says it helps you save. What should you check before you trust it with your emergency fund?
+
+- A. That your money is held at an FDIC-insured bank (`insured-bank`) **(correct)**
+- B. That it has lots of five-star reviews (`app-reviews`)
+- C. That it invests your money so it grows faster (`invests-it`)
+
+Explanation: Not every app is a bank. Check that your money is held at an insured bank, so it's protected up to the legal limit. Investing it would put your safety net at risk right when you need cash.
+
+Links to: lesson `ef-where-to-keep` at 95s.
 
 ## Lesson and quiz screens
 

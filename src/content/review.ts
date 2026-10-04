@@ -1,5 +1,6 @@
 import { DEFAULT_GOAL_CENTS } from '../domain/bands';
 import { formatCents } from '../money/format';
+import { MASTERY_PERCENT } from '../domain/mastery';
 import { POINT_KINDS, POINT_VALUES } from '../domain/points';
 import { getBreads, getLessons, getLoaf, getLoaves, getPlacement, getPoints, getQuiz, getRisk, getSettings } from './loader';
 import { fillTemplate } from './template';
@@ -116,6 +117,10 @@ export function renderContentReview(): string {
 
   const quiz = getQuiz('emergency-fund');
   out.push(`## Quiz${draftTag(quiz.draft)}`, '');
+  out.push(
+    `The question bank has ${quiz.questions.length} questions. Each attempt of the quiz and of the test-out asks ${quiz.draw} of them, drawn at random with at least one from every lesson, and mastery is still ${Math.round((MASTERY_PERCENT * quiz.draw) / 100)} out of ${quiz.draw}. The daily quiz can ask any of the ${quiz.questions.length}, avoiding the last 3 it asked.`,
+    '',
+  );
   quiz.questions.forEach((q, i) => {
     out.push(`### Question ${i + 1}: ${q.question}`, '');
     q.choices.forEach((c, j) => {
@@ -184,8 +189,7 @@ export function renderContentReview(): string {
     ['Your goal', settings.goal],
     ['Your saving habit', settings.habit],
     ['Retake the risk quiz', settings.risk],
-    ['Send feedback', settings.feedback],
-  ] as const) {
+    ['Send feedback', settings.feedback],  ] as const) {
     out.push(`### ${heading}`, '');
     for (const [key, text] of flattenCopy(copy)) out.push(`- ${key}: ${text}`);
     out.push('');

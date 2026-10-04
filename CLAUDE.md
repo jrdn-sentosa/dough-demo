@@ -209,7 +209,7 @@ Each topic keeps its bread above as the default. A student can also pick any bre
   1. What an emergency fund is for
   2. How much you need
   3. Where to keep it: high-yield savings
-- **Loaf quiz:** 5 questions on those videos.
+- **Loaf quiz:** a bank of 10 questions on those videos. Each attempt asks 5 of them (see "Question bank" under Lessons and quizzes).
 - **While it rises (short text tips, unlocked by stage):** Shape "Why small deposits add up", Proof "Make it automatic", Bake "When it's the right time to use it", Baked "Choosing your next loaf".
 
 ## Lessons and quizzes
@@ -244,6 +244,7 @@ Each topic keeps its bread above as the default. A student can also pick any bre
 ```
 
 - **Quiz screens:** one question per screen with a progress bar. In the normal quiz the student picks a choice (and can change it), then taps "Check answer"; feedback appears and the choices lock only after Check. Right answers are sage, wrong picks are crust, each with the explanation, and a wrong pick gets "Rewatch this part" (a link to the lesson at its timestamp, or "Read the summary" when the video file doesn't exist).
+- **Question bank:** `content/quizzes/<loaf>.json` holds the whole bank (10 for the emergency fund, every one marked draft with the file) and a `draw` number (5). The normal quiz and the test-out each draw `draw` questions per attempt with `drawQuiz` (`src/domain/drawQuiz.ts`): at least one from every lesson (so a miss can recommend any lesson), the rest at random, a fresh draw on every attempt including retries. Grading, saved attempts (`total` is the number asked, 5), mastery (still 4 out of 5) and the missed-lesson recommendations all use the questions that were asked, and each recommendation still comes from that question's own `lesson` link. The daily quiz draws from the whole bank (of mastered modules), still avoiding the last 3 it asked. The loader throws unless `draw` is a whole number from 1 to the size of the bank, and a test checks the bank covers every lesson and that `draw` is at least the number of lessons.
 - **Shuffling:** question order and choice order are shuffled on every attempt, in both normal and test-out modes (`src/domain/shuffle.ts`). Answers, saved attempts, grading, and lesson links all use the choice's fixed string id from the content file, never its position on screen or its wording. Ids are unique within a question and the `answer` must be one of them (the loader throws otherwise, and a test checks the content). Quiz attempts saved with positions before this change are dropped on load, since this is demo data.
 - **Mastery:** a loaf's lessons are "Mastered" once the best normal-quiz score is 4 out of 5 (80%) or more. It is worked out from saved attempts (`bestScore`, `isMastered` in `src/domain/mastery.ts`), not stored, and a later lower score never takes it away. Test-out attempts don't count. The lessons list shows a "Mastered" badge, and the quiz end screen says "You mastered this loaf's lessons." Below 4 it keeps the missed-question explanations and adds "Get 4 out of 5 to master these lessons. You can try again anytime." Retries have no limit and no cooldown.
 - **Emergency fund quiz:** completing it unlocks Saving setup. It does not require a passing score, because the real goal is getting the student to save. Show the score, explain every wrong answer, and allow retries.

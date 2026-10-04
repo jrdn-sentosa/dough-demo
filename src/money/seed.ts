@@ -2,6 +2,7 @@ import { getLessons, getQuiz } from '../content/loader';
 import { emptyData } from '../data/types';
 import type { AppData, Transaction } from '../data/types';
 import { LADDER } from '../domain/breads';
+import { drawQuiz } from '../domain/drawQuiz';
 import { profileFromAnswers } from '../domain/profile';
 import { targetForMonths } from '../domain/targets';
 import { DEMO_EMAIL } from '../data/session';
@@ -59,10 +60,12 @@ export function mayaSeed(now: Date): AppData {
     watchedAt: day(startDay + i),
     how: 'manual' as const,
   }));
+  // One attempt's worth of questions from the bank. A fixed draw, so Maya's seed is the same every time.
+  const asked = drawQuiz(quiz.questions, quiz.draw, () => 0);
   const answers: Record<string, string> = {};
   const missed: string[] = [];
-  quiz.questions.forEach((q, i) => {
-    if (i < quiz.questions.length - 1) {
+  asked.forEach((q, i) => {
+    if (i < asked.length - 1) {
       answers[q.id] = q.answer;
     } else {
       answers[q.id] = q.choices.find((c) => c.id !== q.answer)?.id ?? q.answer;
@@ -74,8 +77,8 @@ export function mayaSeed(now: Date): AppData {
       id: crypto.randomUUID(),
       loafId: EF,
       mode: 'lesson',
-      score: quiz.questions.length - 1,
-      total: quiz.questions.length,
+      score: asked.length - 1,
+      total: asked.length,
       answers,
       missedLessons: missed,
       at: day(startDay + 3),

@@ -12,6 +12,7 @@ import type { Lesson, QuizQuestionContent } from '../../content/types';
 import { syncPoints } from '../../data/points';
 import { recordQuizAttempt } from '../../data/progress';
 import type { QuizMode } from '../../data/types';
+import { drawQuiz } from '../../domain/drawQuiz';
 import { isMastered, isMasteryScore } from '../../domain/mastery';
 import { evaluateTestOut, gradeQuiz } from '../../domain/quiz';
 import { shuffleQuiz } from '../../domain/shuffle';
@@ -49,10 +50,12 @@ export function LoafQuiz() {
   const { loafId, flow, lessons, draft } = useLessonFlow();
   const t = flow.quiz;
   const quiz = useMemo(() => getQuiz(loafId), [loafId]);
-  const questions = quiz.questions;
 
-  // A fresh order for the questions and their choices on every attempt. Answers are kept by choice id.
-  const [shown, setShown] = useState(() => shuffleQuiz(questions));
+  // Each attempt asks `draw` questions from the bank, at least one per lesson, in a fresh order with fresh choice orders.
+  // Answers are kept by choice id, and grading and the lesson links use the questions that were asked.
+  const drawAttempt = () => shuffleQuiz(drawQuiz(quiz.questions, quiz.draw));
+  const [shown, setShown] = useState(drawAttempt);
+  const questions = useMemo(() => shown.map((s) => s.question), [shown]);
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [checked, setChecked] = useState(false);
@@ -60,7 +63,7 @@ export function LoafQuiz() {
   const [masteredBefore, setMasteredBefore] = useState(false);
 
   function restart() {
-    setShown(shuffleQuiz(questions));
+    setShown(drawAttempt());
     setIndex(0);
     setAnswers({});
     setChecked(false);

@@ -477,10 +477,16 @@ export function parseLesson(source: string, file: string): Lesson {
 
 export function parseQuiz(raw: unknown, file: string): QuizContent {
   const o = obj(raw, file);
+  const questions = arr(o, 'questions', file);
+  const draw = num(o, 'draw', file);
+  if (!Number.isInteger(draw) || draw < 1 || draw > questions.length) {
+    throw new ContentError(file, `"draw" must be a whole number from 1 to the number of questions (${questions.length})`);
+  }
   return {
     draft: bool(o, 'draft', file),
     loaf: oneOf(o, 'loaf', LOAF_IDS, file),
-    questions: arr(o, 'questions', file).map((q, i) => {
+    draw,
+    questions: questions.map((q, i) => {
       const w = `${file} question ${i + 1}`;
       const qo = obj(q, w);
       const choices = arr(qo, 'choices', w).map((c, j): QuizChoice => {

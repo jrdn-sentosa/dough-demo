@@ -334,6 +334,11 @@ export interface QuizQuestionContent {
 export interface QuizContent {
   draft: boolean;
   loaf: LoafId;
+  /**
+   * How many questions one attempt asks, drawn from `questions` (the bank). The quiz and the test-out each draw this
+   * many, with at least one question from every lesson. The daily quiz uses the whole bank.
+   */
+  draw: number;
   questions: QuizQuestionContent[];
 }
 
