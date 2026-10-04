@@ -589,6 +589,28 @@ describe('mastery', () => {
     expect(screen.queryByText(tellsHowToMaster)).toBeNull();
   });
 
+  it('offers Share only when this attempt mastered the lessons', async () => {
+    const user = userEvent.setup({ delay: null });
+    mount('/quiz', dataFor());
+    await answerNormal(user, all.slice(0, 4));
+    await screen.findByText('4 of 5 correct');
+    expect(screen.getByRole('button', { name: 'Share' })).toBeTruthy();
+  });
+
+  it('has no Share button below 4 out of 5, or at the end of the test-out', async () => {
+    const user = userEvent.setup({ delay: null });
+    mount('/quiz', dataFor());
+    await answerNormal(user, [0, 1, 2]);
+    await screen.findByText('3 of 5 correct');
+    expect(screen.queryByRole('button', { name: 'Share' })).toBeNull();
+    cleanup();
+
+    mount('/quiz?mode=test-out', dataFor());
+    await answerTestOut(user, all);
+    await screen.findByRole('heading');
+    expect(screen.queryByRole('button', { name: 'Share' })).toBeNull();
+  });
+
   it('a lower score after mastering says the best score still counts, and retries stay open', async () => {
     const user = userEvent.setup({ delay: null });
     mount('/quiz', dataFor(undefined, [attempt('lesson', 5)]));

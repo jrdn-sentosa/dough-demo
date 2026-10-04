@@ -321,6 +321,25 @@ input:focus-visible {
   margin: 0;
 }
 
+/* Share sheet: a short preview of the picture, so the buttons stay on screen */
+.share-sheet {
+  max-height: 100dvh;
+  overflow-y: auto;
+}
+
+.share-sheet__preview {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+}
+
+.share-sheet__preview img {
+  max-width: 100%;
+  max-height: 32dvh;
+  border: 1px solid var(--divider);
+  border-radius: 12px;
+}
+
 /* Lessons, lesson screen, quiz */
 .visually-hidden {
   position: absolute;

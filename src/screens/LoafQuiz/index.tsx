@@ -18,7 +18,9 @@ import { evaluateTestOut, gradeQuiz } from '../../domain/quiz';
 import { shuffleQuiz } from '../../domain/shuffle';
 import type { QuizGrade } from '../../domain/quiz';
 import { SliceButton } from '../../components/SliceButton';
-import { useLessonFlow } from '../useLessonFlow';
+import { ShareButton } from '../../components/ShareButton';
+import { DEFAULT_BREAD } from '../../domain/breads';
+import { FLOW_LOAF, useLessonFlow } from '../useLessonFlow';
 import { useVideoAvailable } from '../videoAvailable';
 
 /** The text of the correct choice, found by its id. */
@@ -166,6 +168,8 @@ interface EndProps {
 function LessonEnd({ grade, masteredBefore, questions, lessons, flow, draft, onRetry, onContinue }: EndProps & { masteredBefore: boolean; questions: QuizQuestionContent[]; onRetry: () => void; onContinue: () => void }) {
   const t = flow.quiz;
   const mastered = isMasteryScore(grade.score, grade.total);
+  const { data } = useData();
+  const bread = data?.loaves.find((l) => l.loafId === FLOW_LOAF)?.bread ?? DEFAULT_BREAD;
   return (
     <div className="quiz">
       <h1 className="screen-title">{t.scoreTitle}</h1>
@@ -196,6 +200,7 @@ function LessonEnd({ grade, masteredBefore, questions, lessons, flow, draft, onR
 
       <div className="quiz__actions">
         <LoafButton onClick={onContinue}>{t.continueSaving}</LoafButton>
+        {mastered && <ShareButton kind="mastered" bread={bread} mastered />}
         <SliceButton onClick={onRetry}>{t.tryAgain}</SliceButton>
       </div>
     </div>
