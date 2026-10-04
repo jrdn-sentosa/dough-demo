@@ -7,6 +7,7 @@ import type { AccountType, LoafId, Stage } from '../domain/types';
 import { ContentError, arr, bool, num, obj, oneOf, optStr, str } from './guards';
 import type {
   BreadsContent,
+  SettingsContent,
   CelebrationContent,
   ChooseContent,
   FlowContent,
@@ -66,6 +67,10 @@ const riskFiles = import.meta.glob<unknown>('../../content/risk.json', {
   import: 'default',
 });
 const breadFiles = import.meta.glob<unknown>('../../content/breads.json', {
+  eager: true,
+  import: 'default',
+});
+const settingsFiles = import.meta.glob<unknown>('../../content/settings.json', {
   eager: true,
   import: 'default',
 });
@@ -386,6 +391,15 @@ export function parseBreads(raw: unknown, where = 'content/breads.json'): Breads
   };
 }
 
+export function parseSettings(raw: unknown, where = 'content/settings.json'): SettingsContent {
+  const o = obj(raw, where);
+  return {
+    draft: bool(o, 'draft', where),
+    goal: record(o.goal, ['title', 'current', 'intro', 'monthsLegend', 'month', 'months', 'noEssentials', 'customLabel', 'save', 'invalid', 'edited', 'growing', 'baked'] as const, `${where} goal`),
+    habit: record(o.habit, ['title', 'current', 'weekly', 'paycheck', 'save', 'restartNote', 'saved', 'savedRestart'] as const, `${where} habit`),
+  };
+}
+
 export function parseLesson(source: string, file: string): Lesson {
   const match = /content\/lessons\/([^/]+)\/[^/]+\.md$/.exec(file);
   if (!match) throw new ContentError(file, 'lessons must live in content/lessons/<loaf>/');
@@ -446,6 +460,7 @@ interface Content {
   placement: PlacementContent;
   risk: RiskContent;
   breads: BreadsContent;
+  settings: SettingsContent;
   loaves: LoafDefinition[];
   lessons: Lesson[];
   quizzes: QuizContent[];
@@ -464,6 +479,9 @@ function content(): Content {
   const [breadsRaw] = Object.values(breadFiles);
   if (breadsRaw === undefined) throw new ContentError('content/', 'breads.json is missing');
 
+  const [settingsRaw] = Object.values(settingsFiles);
+  if (settingsRaw === undefined) throw new ContentError('content/', 'settings.json is missing');
+
   const loaves = Object.entries(loafFiles).map(([file, raw]) => parseLoaf(raw, file));
   const ids = loaves.map((l) => l.id);
   if (new Set(ids).size !== ids.length) throw new ContentError('content/loaves', 'duplicate loaf id');
@@ -472,6 +490,7 @@ function content(): Content {
     placement: parsePlacement(placementRaw),
     risk: parseRisk(riskRaw),
     breads: parseBreads(breadsRaw),
+    settings: parseSettings(settingsRaw),
     loaves,
     lessons: Object.entries(lessonFiles).map(([file, src]) => parseLesson(src, file)),
     quizzes: Object.entries(quizFiles).map(([file, raw]) => parseQuiz(raw, file)),
@@ -481,6 +500,10 @@ function content(): Content {
 
 export function getRisk(): RiskContent {
   return content().risk;
+}
+
+export function getSettings(): SettingsContent {
+  return content().settings;
 }
 
 export function getBreads(): BreadsContent {

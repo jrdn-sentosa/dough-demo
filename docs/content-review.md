@@ -584,6 +584,35 @@ Unlocks are measured in weeks of saving. Ladder: baguette 2, bagel 4, focaccia 6
 - confirm: Yes, do it
 - cancel: Cancel
 
+## Settings _(draft)_
+
+### Your goal
+
+- title: Your goal
+- current: Your goal is {goal}.
+- intro: Pick how many months of essentials you want in your fund, or type your own amount.
+- monthsLegend: Months of essentials
+- month: 1 month ({amount})
+- months: {count} months ({amount})
+- noEssentials: Add your monthly essentials by retaking the quiz to pick a goal in months.
+- customLabel: Or type an amount
+- save: Change my goal
+- invalid: Type a dollar amount, like 500.
+- edited: Your goal is now {goal}.
+- growing: Your goal is now {goal}. The new part of your loaf starts rising from here.
+- baked: Your goal is now {goal}. You've already saved that much, so your loaf is baked. Nice work.
+
+### Your saving habit
+
+- title: Your saving habit
+- current: Right now: {summary}.
+- weekly: {amount} a week
+- paycheck: {amount} each paycheck ({frequency})
+- save: Save my habit
+- restartNote: Changing how often you're paid starts a new streak. Your breads and best streak stay.
+- saved: Your habit is saved.
+- savedRestart: Your habit is saved. A new streak starts now, and your breads and best streak stay.
+
 ## Tips while the loaf rises
 
 ### Why small deposits add up (unlocks at shape)

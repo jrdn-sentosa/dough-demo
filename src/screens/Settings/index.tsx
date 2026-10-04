@@ -10,14 +10,18 @@ import { signOutAccount } from '../../data/auth';
 import { signOutLocal } from '../../data/session';
 import { clearCache } from '../../data/supabaseAdapter';
 import { getSupabase } from '../../data/supabaseClient';
+import { DraftNote } from '../../components/DraftNote';
+import { getSettings } from '../../content/loader';
 import { DISCLAIMER_LINES } from '../Login';
+import { GoalSection } from './GoalSection';
+import { HabitSection } from './HabitSection';
 
 export const RETAKE_PATH = `/placement?retake=1&return=${encodeURIComponent('/settings')}`;
 
 /**
  * A bare Settings screen: who is signed in, sign out for real accounts, "Exit demo" for the demo user (it keeps the local
  * demo data, so "Continue as demo user" picks up where they left off),
- * retaking the placement quiz, and the disclaimer. Goal and habit changes, demo tools and Reset demo come with milestone 11.
+ * retaking the placement quiz, changing the goal and the saving habit, the demo tools (`?demo=1`, demo user only), and the disclaimer.
  */
 export function Settings() {
   const { account } = useAuth();
@@ -56,6 +60,10 @@ export function SettingsView({ account, onSignOut }: { account: Account | null; 
         </Link>
       </div>
       <h1 className="screen-title">Settings</h1>
+      <DraftNote draft={getSettings().draft} />
+
+      <GoalSection />
+      <HabitSection />
 
       {account && (
         <section className="settings__section" aria-labelledby="settings-account">
