@@ -139,7 +139,7 @@ describe('celebration', () => {
   });
 
   it('goes on to the choices or the shelf', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const a = mount(await bakedAdapter(), '/loaf-complete');
     await user.click(await screen.findByRole('button', { name: 'Choose my next loaf' }));
     await screen.findByRole('heading', { name: 'Choose your next loaf' });
@@ -194,7 +194,7 @@ describe('bread shelf', () => {
   });
 
   it('gives mastered loaves the golden finish, and goes back to the loaf', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { pathname } = mount(await bakedAdapter({ mastered: true }), '/shelf');
     await screen.findByRole('heading', { name: 'Your bread shelf' });
     expect(document.querySelectorAll('.shelf .golden-finish')).toHaveLength(1);
@@ -240,7 +240,7 @@ describe('shelf labels', () => {
 
 describe('Home: the shelf link and the next loaf', () => {
   it('links to the bread shelf', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { pathname } = mount(await bakedAdapter(), '/');
     await user.click(await screen.findByRole('link', { name: 'Bread shelf' }));
     await screen.findByRole('heading', { name: 'Your bread shelf' });
@@ -248,7 +248,7 @@ describe('Home: the shelf link and the next loaf', () => {
   });
 
   it('offers "Choose my next loaf" once the loaf is baked, as the one loaf button', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { pathname } = mount(await bakedAdapter(), '/');
     await user.click(await screen.findByRole('button', { name: 'Choose my next loaf' }));
     await screen.findByRole('heading', { name: 'Choose your next loaf' });
@@ -336,7 +336,7 @@ describe('Choose your next loaf', () => {
 
   it('Grow my cushion grows the same loaf to 3 months and goes to Home as a new dough ball', async () => {
     const adapter = await bakedAdapter({ months: 1 });
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { pathname } = mount(adapter, '/choose-loaf');
     await user.click(await screen.findByRole('button', { name: 'Grow my cushion' }));
     await screen.findByText('Mixing · 0% of your new goal');
@@ -349,7 +349,7 @@ describe('Choose your next loaf', () => {
 
   it('with unknown essentials, asks for them first, then sets 3 times the answer', async () => {
     const adapter = await bakedAdapter({ answers: { ...baseAnswers, essentials: 'not-sure' }, targetCents: dollars(1000) });
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter, '/choose-loaf');
     await user.click(await screen.findByRole('button', { name: 'Grow my cushion' }));
     expect(screen.getByText('To size your 3-month goal, about how much do you need each month?')).toBeTruthy();
@@ -368,7 +368,7 @@ describe('Choose your next loaf', () => {
 
   it('shows the money layer\'s message if the new goal is not bigger than the old one', async () => {
     const adapter = await bakedAdapter({ answers: { ...baseAnswers, essentials: 'not-sure' }, targetCents: dollars(1000) });
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter, '/choose-loaf');
     await user.click(await screen.findByRole('button', { name: 'Grow my cushion' }));
     await user.type(screen.getByLabelText('About how much do you need each month?'), '100');
@@ -379,7 +379,7 @@ describe('Choose your next loaf', () => {
 
   it('cancelling the essentials question changes nothing', async () => {
     const adapter = await bakedAdapter({ answers: { ...baseAnswers, essentials: 'not-sure' }, targetCents: dollars(1000) });
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter, '/choose-loaf');
     await user.click(await screen.findByRole('button', { name: 'Grow my cushion' }));
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
@@ -389,7 +389,7 @@ describe('Choose your next loaf', () => {
 
   it('at 3 months, Start investing is recommended and "Grow to 6 months" is offered, never recommended', async () => {
     const adapter = await bakedAdapter({ months: 3 });
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter, '/choose-loaf');
     await screen.findByRole('heading', { name: 'Choose your next loaf' });
     const rec = recommended() as HTMLElement;
@@ -415,7 +415,7 @@ describe('Choose your next loaf', () => {
   });
 
   it('Start investing goes straight to the risk quiz when there is no card debt', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { pathname } = mount(await bakedAdapter({ months: 3 }), '/choose-loaf');
     await user.click(await screen.findByRole('button', { name: 'Start investing' }));
     await screen.findByText("Let's see what fits");
@@ -426,7 +426,7 @@ describe('Choose your next loaf', () => {
     const debt = { ...baseAnswers, cardDebt: 'yes' } as const;
 
     it('at 3 months or more: no path is recommended, and Start investing leads with the debt note', async () => {
-      const user = userEvent.setup();
+      const user = userEvent.setup({ delay: null });
       const { pathname } = mount(await bakedAdapter({ months: 3, answers: debt }), '/choose-loaf');
       await user.click(await screen.findByRole('button', { name: 'Start investing' }));
       expect(screen.queryByText('Recommended')).toBeNull();
@@ -443,7 +443,7 @@ describe('Choose your next loaf', () => {
     });
 
     it('"Continue anyway" goes on to the risk quiz, with Debt payoff marked Coming soon and not a button', async () => {
-      const user = userEvent.setup();
+      const user = userEvent.setup({ delay: null });
       const { pathname } = mount(await bakedAdapter({ months: 3, answers: debt }), '/choose-loaf');
       await user.click(await screen.findByRole('button', { name: 'Start investing' }));
       await screen.findByText('Paying off high-interest debt usually comes before investing.');
@@ -456,7 +456,7 @@ describe('Choose your next loaf', () => {
     });
 
     it('"Back" returns to the choices', async () => {
-      const user = userEvent.setup();
+      const user = userEvent.setup({ delay: null });
       mount(await bakedAdapter({ months: 3, answers: debt }), '/choose-loaf');
       await user.click(await screen.findByRole('button', { name: 'Start investing' }));
       await user.click(await screen.findByRole('button', { name: 'Back' }));
@@ -464,7 +464,7 @@ describe('Choose your next loaf', () => {
     });
 
     it('under 3 months: Keep saving is still recommended, and investing still shows the debt note first', async () => {
-      const user = userEvent.setup();
+      const user = userEvent.setup({ delay: null });
       mount(await bakedAdapter({ months: 1, answers: debt }), '/choose-loaf');
       await screen.findByRole('heading', { name: 'Choose your next loaf' });
       expect(within(recommended() as HTMLElement).getByRole('heading', { name: 'Grow your cushion to 3 months' })).toBeTruthy();
@@ -488,7 +488,7 @@ describe('Choose your next loaf', () => {
     });
 
     it('Personalize opens placement as a retake that returns here', async () => {
-      const user = userEvent.setup();
+      const user = userEvent.setup({ delay: null });
       const { pathname, search } = mount(await bakedAdapter({ months: 3, answers: unknown }), '/choose-loaf');
       await user.click(await screen.findByRole('button', { name: 'Personalize' }));
       await screen.findByText('Update your answers');
@@ -497,7 +497,7 @@ describe('Choose your next loaf', () => {
     });
 
     it('Start investing never skips the debt check: it asks the question first', async () => {
-      const user = userEvent.setup();
+      const user = userEvent.setup({ delay: null });
       const { pathname, search } = mount(await bakedAdapter({ months: 3, answers: unknown }), '/choose-loaf');
       await user.click(await screen.findByRole('button', { name: 'Start investing' }));
       await screen.findByText('Update your answers');
@@ -514,7 +514,7 @@ describe('Choose your next loaf', () => {
   });
 
   it('"Not now" goes back to the loaf', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { pathname } = mount(await bakedAdapter(), '/choose-loaf');
     await user.click(await screen.findByRole('button', { name: 'Not now, back to my loaf' }));
     await screen.findByRole('heading', { name: 'Emergency fund' });
@@ -537,7 +537,7 @@ describe('placement retake (Personalize)', () => {
   it('fills in the current answers, skips the savings question, and returns to the choices with the debt answer saved', async () => {
     const adapter = await bakedAdapter({ months: 3, answers: unknownDebt });
     await saveRisk(adapter, { horizon: 'over-five' });
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { pathname } = mount(adapter, '/placement?retake=1&return=/choose-loaf');
 
     // Question 1: essentials, prefilled.
@@ -570,7 +570,7 @@ describe('placement retake (Personalize)', () => {
 
   it('"Skip for now" keeps what was answered and goes straight back', async () => {
     const adapter = await bakedAdapter({ months: 3, answers: unknownDebt });
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter, '/placement?retake=1&return=/choose-loaf');
     await user.click(await screen.findByRole('button', { name: 'Skip for now' }));
     await screen.findByRole('heading', { name: 'Choose your next loaf' });
@@ -579,7 +579,7 @@ describe('placement retake (Personalize)', () => {
 
   it('only returns to a path inside the app', async () => {
     const adapter = await bakedAdapter({ months: 3, answers: unknownDebt });
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { pathname } = mount(adapter, '/placement?retake=1&return=//evil.example');
     await user.click(await screen.findByRole('button', { name: 'Skip for now' }));
     await screen.findByRole('heading', { name: 'Emergency fund' });
@@ -609,7 +609,7 @@ describe('risk quiz', () => {
   }
 
   it('asks four questions, one per screen, with a progress bar and no right answers', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(await bakedAdapter({ months: 3 }), '/risk-quiz');
     await screen.findByText("Let's see what fits");
     expect(screen.getByText(/no right answers/)).toBeTruthy();
@@ -629,7 +629,7 @@ describe('risk quiz', () => {
 
   it('saves the answers and their result on the profile, then shows what fits', async () => {
     const adapter = await bakedAdapter({ months: 3 });
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { pathname } = mount(adapter, '/risk-quiz');
     await takeQuiz(user, ['In more than 5 years', 'Wait it out', 'A balance of the two', 'A little']);
     await screen.findByRole('heading', { name: "Here's what fits" });
@@ -644,7 +644,7 @@ describe('risk quiz', () => {
 
   it('skipping asks first, keeps what was answered, and the rest take the cautious answer', async () => {
     const adapter = await bakedAdapter({ months: 3 });
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter, '/risk-quiz');
     await pick(user, 'In more than 5 years', 'Next');
     await user.click(await screen.findByRole('radio', { name: 'Add more' }));
@@ -661,7 +661,7 @@ describe('risk quiz', () => {
 
   it('skipping everything saves a skipped quiz with the steadier, cautious result', async () => {
     const adapter = await bakedAdapter({ months: 3 });
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter, '/risk-quiz');
     await user.click(await screen.findByRole('button', { name: 'Skip for now' }));
     await user.click(screen.getByRole('button', { name: 'Skip' }));
@@ -687,7 +687,7 @@ describe('risk result', () => {
 
   it('under 3 years: suggests keeping it in savings and explains why, and offers Grow your cushion', async () => {
     const adapter = await resultFor({ horizon: 'within-year', drop: 'add-more', priority: 'growth', experience: 'yes' }, { months: 1 });
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter, '/risk-result');
     await screen.findByRole('heading', { name: 'Keep this money in savings for now' });
     expect(screen.getByText(/shouldn't ride the ups and downs of the market/)).toBeTruthy();
@@ -774,7 +774,7 @@ describe('risk result', () => {
   });
 
   it('goes back to the loaf or to the choices', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const adapter = await resultFor({ horizon: 'over-five' });
     const { pathname } = mount(adapter, '/risk-result');
     await user.click(await screen.findByRole('button', { name: 'Back to my choices' }));

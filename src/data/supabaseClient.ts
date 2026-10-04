@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import type { FeedbackRow } from '../domain/feedback';
 import type { Db } from './supabaseAdapter';
 import { KEY_COLUMNS, type Row } from './supabaseMapping';
 
@@ -27,6 +28,17 @@ export function getSupabase(): SupabaseClient | null {
   return client;
 }
 
+/**
+ * Sends one feedback row. The `feedback` table is insert-only for signed-in users: no select policy, so
+ * nothing is read back (the insert asks for no returned row).
+ */
+export function feedbackSender(supabase: SupabaseClient): (row: FeedbackRow) => Promise<void> {
+  return async (row) => {
+    const { error } = await supabase.from('feedback').insert(row);
+    if (error) throw new Error(error.message);
+  };
+}
+
 /** The real `Db` for the adapter. Reads the user from the saved session, so it works with no network. */
 export function dbFromClient(supabase: SupabaseClient): Db {
   return {
@@ -43,6 +55,10 @@ export function dbFromClient(supabase: SupabaseClient): Db {
     },
     async upsert(table, rows) {
       const { error } = await supabase.from(table).upsert(rows);
+      if (error) throw new Error(error.message);
+    },
+    async insertOnly(table, rows) {
+      const { error } = await supabase.from(table).upsert(rows, { ignoreDuplicates: true });
       if (error) throw new Error(error.message);
     },
     async remove(table, keys) {

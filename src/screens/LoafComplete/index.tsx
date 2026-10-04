@@ -3,6 +3,7 @@ import { useData } from '../../app/DataProvider';
 import { BakedLoaf } from '../../components/BakedLoaf';
 import { DraftNote } from '../../components/DraftNote';
 import { LoafButton } from '../../components/LoafButton';
+import { ShareButton } from '../../components/ShareButton';
 import { SliceButton } from '../../components/SliceButton';
 import { getLoaf } from '../../content/loader';
 import { fillTemplate } from '../../content/template';
@@ -44,6 +45,7 @@ export function LoafComplete() {
   if (!data || !record) return null;
   const status = statusFor(data, record);
   const mastered = isMastered(data.quizAttempts, FLOW_LOAF);
+  const bread = record.bakes[record.bakes.length - 1]?.bread ?? record.bread;
   const amount = formatCents(status.balanceCents);
 
   let title: string;
@@ -79,7 +81,7 @@ export function LoafComplete() {
           />
         ))}
         <div className="celebrate__loaf">
-          <BakedLoaf bread={record.bakes[record.bakes.length - 1]?.bread ?? record.bread} mastered={mastered} width={300} />
+          <BakedLoaf bread={bread} mastered={mastered} width={300} />
         </div>
       </div>
       <h1 className="celebrate__title">{title}</h1>
@@ -96,6 +98,7 @@ export function LoafComplete() {
       <p className="celebrate__tagline">{copy.tagline}</p>
       <div className="celebrate__actions">
         <LoafButton onClick={() => navigate('/choose-loaf')}>{copy.chooseNext}</LoafButton>
+        <ShareButton kind="baked" bread={bread} mastered={mastered} />
         <SliceButton onClick={() => navigate('/shelf')}>{copy.shelf}</SliceButton>
       </div>
     </div>

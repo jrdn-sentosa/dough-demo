@@ -89,6 +89,7 @@ export function guardRedirect(pathname: string, data: AppData, search = ''): str
       return needsHabit(data) ? '/saving-setup' : null;
     case '/lessons':
     case '/quiz':
+    case '/points':
       return hasLoaf ? null : destinationFor(data);
     case '/saving-setup':
       if (!hasLoaf) return destinationFor(data);

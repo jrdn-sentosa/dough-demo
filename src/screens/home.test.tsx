@@ -101,7 +101,7 @@ describe('Home', () => {
 describe('weekly habit card', () => {
   it('says "Not logged yet" until the week has a deposit, then "Logged"', async () => {
     const adapter = await homeAdapter({ starting: dollars(240) });
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter);
     await screen.findByText('$35 to your loaf');
     expect(within(habitCard()).getByText('This week')).toBeTruthy();
@@ -157,7 +157,7 @@ describe('weekly habit card', () => {
 
 describe('add to my loaf', () => {
   it('opens prefilled with the habit amount, and the button confirms the amount', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(await homeAdapter({ starting: dollars(80) }));
     await user.click(await screen.findByRole('button', { name: 'Add to my loaf' }));
     const input = screen.getByLabelText('How much did you move to savings?') as HTMLInputElement;
@@ -173,7 +173,7 @@ describe('add to my loaf', () => {
 
   it('logs a simulated deposit and moves the loaf to its new stage, saying so and pointing to the new tip', async () => {
     const adapter = await homeAdapter({ starting: dollars(80) }); // 20%: mix
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter);
     await screen.findByText('Mixing · 20% of your goal');
     expect(stageOf()).toBe('mix');
@@ -201,7 +201,7 @@ describe('add to my loaf', () => {
   });
 
   it('says nothing about stages when the deposit stays in the same stage', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(await homeAdapter({ starting: dollars(80) }));
     await user.click(await screen.findByRole('button', { name: 'Add to my loaf' }));
     const input = screen.getByLabelText('How much did you move to savings?');
@@ -214,7 +214,7 @@ describe('add to my loaf', () => {
 
   it('refuses amounts that are not dollars or look like a typo, without writing anything', async () => {
     const adapter = await homeAdapter({ starting: dollars(80) });
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter);
     await user.click(await screen.findByRole('button', { name: 'Add to my loaf' }));
     const input = screen.getByLabelText('How much did you move to savings?');
@@ -233,7 +233,7 @@ describe('add to my loaf', () => {
 
   it('goes to the celebration when the deposit bakes the loaf', async () => {
     const adapter = await homeAdapter({ starting: dollars(360) }); // 90%: bake
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { pathname } = mount(adapter);
     await screen.findByText('Baking · 90% of your goal');
     await user.click(screen.getByRole('button', { name: 'Add to my loaf' }));
@@ -250,7 +250,7 @@ describe('add to my loaf', () => {
 describe('use my fund', () => {
   it('shows what is available, then logs the withdrawal with the supportive message and a smaller loaf', async () => {
     const adapter = await homeAdapter({ starting: dollars(240) }); // 60%: proof
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter);
     await screen.findByText('Proofing · 60% of your goal');
     await user.click(screen.getByRole('button', { name: 'Use my fund' }));
@@ -271,7 +271,7 @@ describe('use my fund', () => {
 
   it('tells them what is available when they ask for more than the fund holds', async () => {
     const adapter = await homeAdapter({ starting: dollars(240) });
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter);
     await user.click(await screen.findByRole('button', { name: 'Use my fund' }));
     await user.type(screen.getByLabelText('How much do you need?'), '300');
@@ -304,7 +304,7 @@ describe('rebuild mode', () => {
   it('shows the rebuild message after using a baked fund', async () => {
     const adapter = await homeAdapter({ target: dollars(200) });
     await deposit(adapter, EF, dollars(200));
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter);
     await user.click(await screen.findByRole('button', { name: 'Use my fund' }));
     await user.type(screen.getByLabelText('How much do you need?'), '120');
@@ -315,7 +315,7 @@ describe('rebuild mode', () => {
 
   it('goes to the rebuilt celebration when a rebuild reaches the target again', async () => {
     const adapter = await bakedThenUsed();
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { pathname } = mount(adapter);
     await user.click(await screen.findByRole('button', { name: 'Add to my loaf' }));
     const input = screen.getByLabelText('How much did you move to savings?');
@@ -359,7 +359,7 @@ describe('growing mode', () => {
   });
 
   it('ends growing on a withdrawal, and progress goes back to balance over target', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(await growing());
     await user.click(await screen.findByRole('button', { name: 'Use my fund' }));
     await user.type(screen.getByLabelText('How much do you need?'), '50');
@@ -374,7 +374,7 @@ describe('growing mode', () => {
 describe('tips while it rises', () => {
   it('unlocks by stage, with a New badge until opened', async () => {
     const adapter = await homeAdapter({ starting: dollars(240) }); // proof
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter);
     await screen.findByText('Tips while it rises');
 
@@ -416,7 +416,7 @@ describe('high-yield savings reminder', () => {
 
   it('shows after "I\'ll do this later" with the what-to-look-for points, and can be dismissed', async () => {
     const adapter = await homeAdapter({ accountList: ['checking'], hysaCard: 'pending' });
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter);
     const card = await screen.findByRole('region', { name: title });
     expect(within(card).getByRole('heading', { name: title })).toBeTruthy();
@@ -434,7 +434,7 @@ describe('high-yield savings reminder', () => {
 
   it('"I have one now" works the same as in saving setup: adds the account to the profile and clears the card', async () => {
     const adapter = await homeAdapter({ accountList: ['checking'], hysaCard: 'pending' });
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter);
     const card = await screen.findByRole('region', { name: title });
     await user.click(within(card).getByRole('button', { name: 'I have one now' }));

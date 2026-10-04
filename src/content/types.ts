@@ -334,6 +334,11 @@ export interface QuizQuestionContent {
 export interface QuizContent {
   draft: boolean;
   loaf: LoafId;
+  /**
+   * How many questions one attempt asks, drawn from `questions` (the bank). The quiz and the test-out each draw this
+   * many, with at least one question from every lesson. The daily quiz uses the whole bank.
+   */
+  draw: number;
   questions: QuizQuestionContent[];
 }
 
@@ -383,6 +388,73 @@ export interface SettingsContent {
   >;
   habit: Record<'title' | 'current' | 'weekly' | 'paycheck' | 'save' | 'restartNote' | 'saved' | 'savedRestart', string>;
   risk: Record<'title' | 'intro' | 'link', string>;
+  /** "Send feedback" and the version line. `{token}` placeholders are filled at display time. */
+  feedback: Record<
+    | 'title'
+    | 'intro'
+    | 'label'
+    | 'placeholder'
+    | 'counter'
+    | 'categoryLegend'
+    | 'categoryBug'
+    | 'categoryIdea'
+    | 'categoryOther'
+    | 'privacy'
+    | 'send'
+    | 'sending'
+    | 'sent'
+    | 'failed'
+    | 'demoNote'
+    | 'demoSend'
+    | 'emailTo'
+    | 'emailSubject'
+    | 'emailVersion'
+    | 'emailScreen'
+    | 'emailKind'
+    | 'version',
+    string
+  >;
+  /** "Clear app data", a demo-mode tool in Settings. `askDemo` is for the demo user, `askAccount` for a signed-in account. */
+  clearData: Record<'title' | 'intro' | 'button' | 'askDemo' | 'askAccount' | 'confirm' | 'cancel' | 'working' | 'failed', string>;
+}
+
+/** Dough points, the points history and the daily quiz. Never mentions a day without a point. */
+export interface PointsContent {
+  draft: boolean;
+  home: Record<'label' | 'linkLabel', string>;
+  history: Record<'title' | 'intro' | 'total' | 'totalOne' | 'empty' | 'earned' | 'showMore' | 'back' | 'demoNote', string> & {
+    /** What earned a point, by kind. Tokens: `{date}`, `{lesson}`, `{loaf}`. */
+    reasons: Record<'fund-day' | 'video' | 'mastery' | 'bake' | 'quiz', string>;
+  };
+  daily: Record<'title' | 'intro' | 'check' | 'right' | 'wrong' | 'done', string>;
+}
+
+/**
+ * The Share button, its sheet and the lines on the share picture. Never has an amount token: the picture
+ * says nothing about the student's money.
+ */
+export interface ShareContent {
+  draft: boolean;
+  button: Record<'label', string>;
+  sheet: Record<
+    | 'title'
+    | 'intro'
+    | 'sizeLegend'
+    | 'story'
+    | 'post'
+    | 'preparing'
+    | 'previewAlt'
+    | 'shareImage'
+    | 'copyText'
+    | 'close'
+    | 'downloaded'
+    | 'copied'
+    | 'copyFailed'
+    | 'failed',
+    string
+  >;
+  /** The lines drawn on the picture (and used in the copied text). */
+  card: Record<'baked' | 'mastered' | 'tagline', string>;
 }
 
 /** Bread names and the copy for streaks, the unlock moment, the bread picker and the demo tools. */

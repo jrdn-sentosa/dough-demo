@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router';
+import { trackScreen } from './screenTracker';
 import { isDemoMode } from './demoFlag';
 import { useData } from './DataProvider';
 import { guardRedirect } from './guard';
@@ -12,6 +14,7 @@ export function AppShell() {
   const { data, connection } = useData();
   const { pathname, search } = useLocation();
   const redirect = data ? guardRedirect(pathname, data, search) : null;
+  useEffect(() => trackScreen(pathname), [pathname]);
 
   return (
     <div className="app-backdrop">

@@ -213,8 +213,8 @@ describe('quiz content', () => {
   const quiz = getQuiz('emergency-fund');
   const lessons = getLessons('emergency-fund');
 
-  it('has 5 questions with 3 or 4 choices and a valid answer', () => {
-    expect(quiz.questions).toHaveLength(5);
+  it('has a bank of 10 questions with 3 or 4 choices and a valid answer', () => {
+    expect(quiz.questions).toHaveLength(10);
     for (const q of quiz.questions) {
       expect(q.choices.length).toBeGreaterThanOrEqual(3);
       expect(q.choices.length).toBeLessThanOrEqual(4);
@@ -256,11 +256,34 @@ describe('quiz content', () => {
     expect(new Set(quiz.questions.map((q) => q.lesson))).toEqual(new Set(lessons.map((l) => l.id)));
   });
 
+  it('asks 5 of the 10 per attempt, enough to include every lesson, and mastery stays 4 out of 5', () => {
+    expect(quiz.draw).toBe(5);
+    expect(quiz.draw).toBeGreaterThanOrEqual(lessons.length);
+    expect(quiz.draw).toBeLessThanOrEqual(quiz.questions.length);
+    expect(Math.ceil((quiz.draw * MASTERY_PERCENT) / 100)).toBe(4);
+  });
+
+  it('keeps every question a short bank entry: the new ones are in the same format as the first five', () => {
+    for (const q of quiz.questions) {
+      expect(Object.keys(q).sort(), q.id).toEqual(['answer', 'choices', 'explain', 'id', 'lesson', 'question', 'timestamp']);
+    }
+    expect(quiz.questions.map((q) => q.id)).toEqual(Array.from({ length: 10 }, (_, i) => `ef-q${i + 1}`));
+  });
+
+  it('refuses a draw count that is not between 1 and the size of the bank', () => {
+    const raw = { draft: true, loaf: 'emergency-fund', questions: quiz.questions };
+    expect(() => parseQuiz({ ...raw, draw: 0 }, 'quiz.json')).toThrow(ContentError);
+    expect(() => parseQuiz({ ...raw, draw: 11 }, 'quiz.json')).toThrow(ContentError);
+    expect(() => parseQuiz({ ...raw, draw: 2.5 }, 'quiz.json')).toThrow(ContentError);
+    expect(() => parseQuiz(raw, 'quiz.json')).toThrow(ContentError);
+    expect(parseQuiz({ ...raw, draw: 5 }, 'quiz.json').draw).toBe(5);
+  });
+
   it('has mastery copy that matches the mastery bar', () => {
     const loaf = getLoaf('emergency-fund');
     if (loaf.status !== 'built') throw new Error('expected built');
-    const needed = (quiz.questions.length * MASTERY_PERCENT) / 100;
-    expect(loaf.flow.quiz.masteryHint).toContain(`${needed} out of ${quiz.questions.length}`);
+    const needed = (quiz.draw * MASTERY_PERCENT) / 100;
+    expect(loaf.flow.quiz.masteryHint).toContain(`${needed} out of ${quiz.draw}`);
     expect(loaf.flow.quiz.mastered).toBe("You mastered this loaf's lessons.");
     expect(loaf.flow.lessons.mastered).toBe('Mastered');
   });
@@ -347,6 +370,7 @@ describe('malformed content throws', () => {
     const bad = {
       draft: true,
       loaf: 'emergency-fund',
+      draw: 1,
       questions: [
         { id: 'x', question: 'q', choices: choicesOf('a', 'b', 'c'), answer: 'd', explain: 'e', lesson: 'l', timestamp: 1 },
       ],
@@ -358,6 +382,7 @@ describe('malformed content throws', () => {
     const bad = {
       draft: true,
       loaf: 'emergency-fund',
+      draw: 1,
       questions: [{ id: 'x', question: 'q', choices: choicesOf('a', 'b', 'c'), answer: 1, explain: 'e', lesson: 'l', timestamp: 1 }],
     };
     expect(() => parseQuiz(bad, 'quiz.json')).toThrow(ContentError);
@@ -367,6 +392,7 @@ describe('malformed content throws', () => {
     const bad = {
       draft: true,
       loaf: 'emergency-fund',
+      draw: 1,
       questions: [{ id: 'x', question: 'q', choices: choicesOf('a', 'b', 'a'), answer: 'a', explain: 'e', lesson: 'l', timestamp: 1 }],
     };
     expect(() => parseQuiz(bad, 'quiz.json')).toThrow(/unique/);
@@ -376,6 +402,7 @@ describe('malformed content throws', () => {
     const bad = {
       draft: true,
       loaf: 'emergency-fund',
+      draw: 1,
       questions: [{ id: 'x', question: 'q', choices: [{ label: 'A' }, { id: 'b', label: 'B' }, { id: 'c', label: 'C' }], answer: 'b', explain: 'e', lesson: 'l', timestamp: 1 }],
     };
     expect(() => parseQuiz(bad, 'quiz.json')).toThrow(ContentError);

@@ -118,8 +118,9 @@ The Google button uses Google's four-color "G" and a white button with a thin gr
 In the Vercel dashboard, open the `dough-demo` project → **Settings → Environment Variables**:
 
 1. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` (and `VITE_GOOGLE_SIGNIN=true` once step 6 is done) for **Production** and **Preview** (and Development if you use `vercel dev`). For Preview choose **All Preview Branches**.
-2. If `VITE_SUPABASE_ANON_KEY` exists, delete it.
-3. **Redeploy.** Vite bakes these values in when it builds, so a deployment made before you added them still shows only the demo option. Use **Deployments → ⋯ → Redeploy** on the branch you want to test, or push a new commit.
+2. Add `VITE_APP_URL` = `https://dough-demo.vercel.app` for **Production** and **Preview** (All Preview Branches). It is the address on share cards and in the share link, so a card made on a preview link or a local run still points to the real app. Leave it empty (or unset, as in `.env.local`) and the share link uses the address of the page the student is on. The same happens if the value isn't a web address (it needs `https://`), and the browser console warns with the bad value. It is only a public address, not a secret.
+3. If `VITE_SUPABASE_ANON_KEY` exists, delete it.
+4. **Redeploy.** Vite bakes these values in when it builds, so a deployment made before you added them still shows only the demo option. Use **Deployments → ⋯ → Redeploy** on the branch you want to test, or push a new commit.
 
 ## 8. Check Row Level Security (once, done)
 
@@ -205,11 +206,18 @@ Dough! is a progressive web app, so it installs from the browser. There is no ap
 
 ## Replace the placeholder app icon
 
-The current icon is a placeholder (a loaf in the app's palette). There is **one source file**, `design/icon/icon.svg`, and **one command** that makes every size from it. To use the final logo:
+The current icon is the Dough! character on the app's crust brown. There are **two source files** and **one command** that makes every size from them:
 
-1. Make the logo as an **SVG, 512×512, a full-bleed square** (the background fills the whole square, with no rounded corners and no transparency).
-2. Keep everything that matters inside the **centre 80%** (a circle of radius 205 around the middle point 256,256). Phones crop the icon to their own shape (a circle, a rounded square), and the same file is used as the maskable icon.
-3. Replace `design/icon/icon.svg` with it. Keep the file name and path.
+- `design/icon/icon.svg` makes the regular icons and the apple-touch icon. The artwork is about **85% of the width**, because these are shown whole or with rounded corners.
+- `design/icon/icon-maskable.svg` makes the maskable icon only. Android crops it to its own shape (a circle, a rounded square, a teardrop), so the artwork's farthest point from the centre must be **at most 36% of the size** (a margin inside the 40% safe zone).
+
+(`design/icon/icon-original.svg` is the untouched original, kept for reference. `design/icon/preview.html` shows every crop with the source it uses: open it in a browser.)
+
+To use a different logo:
+
+1. Make the logo as an **SVG, a full-bleed square** (the background fills the whole square, with no rounded corners and no transparency), with the artwork centred.
+2. Save it twice, with the sizes above: artwork about 85% of the width in `design/icon/icon.svg`, and the same artwork scaled down so its farthest point is at most 36% of the size from the centre in `design/icon/icon-maskable.svg`. Keep the file names and paths.
+3. Open `design/icon/preview.html` and check the crops.
 4. Run:
 
    ```
@@ -218,8 +226,8 @@ The current icon is a placeholder (a loaf in the app's palette). There is **one 
 
    It rewrites everything in `public/icons/`: `icon-192.png`, `icon-512.png`, `maskable-512.png`, `apple-touch-icon.png` (180×180) and `favicon-32.png`.
 5. If the logo's background is not the placeholder's crust brown, change the `background` colour on the `flatten` line in `scripts/generate-icons.mjs` to match (it only fills any transparent corners).
-6. Run `npm run test` (a test checks every icon exists at the right size) and `npm run build`.
-7. Commit `design/icon/icon.svg` and `public/icons/`, then deploy.
+6. Run `npm run test` (tests check every icon exists at the right size, and measure how much of the icon the artwork covers) and `npm run build`.
+7. Commit `design/icon/icon.svg`, `design/icon/icon-maskable.svg` and `public/icons/`, then deploy.
 8. To see the new icon on a phone, **remove the installed app and add it again** (see "Install the app on a phone"). Phones keep the old icon until then. Browsers can also cache the tab icon for a while.
 
 ## Demo tools

@@ -203,6 +203,8 @@ In this demo, no real account is opened and no real money moves.
 
 ## Quiz _(draft)_
 
+The question bank has 10 questions. Each attempt of the quiz and of the test-out asks 5 of them, drawn at random with at least one from every lesson, and mastery is still 4 out of 5. The daily quiz can ask any of the 10, avoiding the last 3 it asked.
+
 ### Question 1: What is an emergency fund for?
 
 - A. Your car insurance payment that's due next month (`insurance-bill`)
@@ -252,6 +254,56 @@ Links to: lesson `ef-where-to-keep` at 10s.
 Explanation: Insurance protects your money, up to the legal limit, even if the institution runs into trouble. A higher rate or a bonus doesn't matter if the money isn't safe.
 
 Links to: lesson `ef-where-to-keep` at 42s.
+
+### Question 6: Your laptop dies a week before finals and you need it to finish your work. Is that a good use of your emergency fund?
+
+- A. Yes. It's urgent, you couldn't plan for it, and you need it (`yes-urgent`) **(correct)**
+- B. No. Wait until after finals and put it on a credit card (`wait-and-borrow`)
+- C. No. Electronics should always come out of your regular budget (`always-budget`)
+
+Explanation: A laptop that dies right before finals is urgent and you couldn't have planned for it, which is what the fund is for. Putting it on a credit card can cost more if you can't pay it off right away.
+
+Links to: lesson `ef-what-its-for` at 35s.
+
+### Question 7: You used part of your fund for a surprise medical bill. How should you think about that?
+
+- A. You used it for what it's for, and you can rebuild it a little at a time (`used-as-intended`) **(correct)**
+- B. You made a mistake, so it's better to stop saving for a while (`stop-saving`)
+- C. You need to put all of it back next month (`refill-at-once`)
+
+Explanation: Using your fund for a real emergency is exactly what it's for, so it isn't a mistake. You rebuild it at your own pace, a little at a time.
+
+Links to: lesson `ef-what-its-for` at 80s.
+
+### Question 8: Which of these should you leave out when you add up your monthly essentials?
+
+- A. Streaming, eating out, and shopping (`extras`) **(correct)**
+- B. Your phone bill (`phone`)
+- C. The cost of getting to class or work (`getting-around`)
+
+Explanation: Essentials are the costs you can't skip, like a phone and transportation. Extras such as streaming, eating out, and shopping stay out of the total.
+
+Links to: lesson `ef-how-much` at 25s.
+
+### Question 9: Your income changes a lot from month to month. Which goal is worth considering?
+
+- A. Six months of essentials (`six-months-variable`) **(correct)**
+- B. One month, since more than that isn't needed (`one-month-enough`)
+- C. The size of your biggest paycheck (`match-paycheck`)
+
+Explanation: When your income swings, a bigger cushion helps you get through the slow months. You can still start with one month and build up.
+
+Links to: lesson `ef-how-much` at 70s.
+
+### Question 10: A savings app says it helps you save. What should you check before you trust it with your emergency fund?
+
+- A. That your money is held at an FDIC-insured bank (`insured-bank`) **(correct)**
+- B. That it has lots of five-star reviews (`app-reviews`)
+- C. That it invests your money so it grows faster (`invests-it`)
+
+Explanation: Not every app is a bank. Check that your money is held at an insured bank, so it's protected up to the legal limit. Investing it would put your safety net at risk right when you need cash.
+
+Links to: lesson `ef-where-to-keep` at 95s.
 
 ## Lesson and quiz screens
 
@@ -618,6 +670,109 @@ Unlocks are measured in weeks of saving. Ladder: baguette 2, bagel 4, focaccia 6
 - title: Your investing answers
 - intro: Your situation changed? Retake the risk quiz. There are no right answers, and it never changes your savings.
 - link: Retake the risk quiz
+
+### Send feedback
+
+- title: Send feedback
+- intro: Tell us what's working, what's confusing, or what you'd like to see.
+- label: Your feedback
+- placeholder: Type here
+- counter: {count} of {max}
+- categoryLegend: What kind is it? (optional)
+- categoryBug: Something's not working
+- categoryIdea: An idea
+- categoryOther: Something else
+- privacy: Please don't include account numbers, card numbers, or other financial details.
+- send: Send feedback
+- sending: Sending…
+- sent: Thanks. Your feedback was sent.
+- failed: That didn't send. Check your connection and try again.
+- demoNote: This opens your email app with your message ready to send.
+- demoSend: Email my feedback
+- emailTo: originaldoughmoney@gmail.com
+- emailSubject: Dough! feedback
+- emailVersion: App version: {version}
+- emailScreen: Screen: {screen}
+- emailKind: Kind: {category}
+- version: Version {version}
+
+### Clear app data (only with ?demo=1)
+
+- title: Clear app data
+- intro: For testing: wipe what Dough! has saved on this device.
+- button: Clear app data
+- askDemo: This clears everything Dough! has saved on this device: your demo loaf and answers, the app's saved files, and its offline copy. It can't be undone. Then the app starts over at the login screen.
+- askAccount: This clears everything Dough! has saved on this device, including the offline copy of your account, and signs you out here only. Your account and your loaf stay safe online, and you stay signed in on your other devices. Then the app starts over at the login screen.
+- confirm: Yes, clear it
+- cancel: Cancel
+- working: Clearing…
+- failed: Some of it couldn't be cleared on this device. Close the app and try again.
+
+## Dough points and the daily quiz _(draft)_
+
+Points: fund-day 1, video 1, mastery 5, bake 10, quiz 1. The numbers come from the app, not from this copy.
+
+### Home
+
+- label: Dough points
+- linkLabel: {points} Dough points. See what earned them.
+
+### Points history
+
+- title: Your Dough points
+- intro: Points are a small thank-you for habits that help. Once you have a point, it stays.
+- total: {points} points in all
+- totalOne: One point in all
+- empty: Your points will show up here as you go.
+- earned: +{points}
+- showMore: Show earlier points
+- back: Back to Home
+- demoNote: Points are just for fun. They aren't money and can't be exchanged for anything.
+- reasons.fund-day: Your fund held steady on {date}
+- reasons.video: Watched "{lesson}"
+- reasons.mastery: Mastered the {loaf} lessons
+- reasons.bake: Baked your {loaf}
+- reasons.quiz: Daily quiz answered right
+
+### Daily quiz card
+
+- title: Daily quiz
+- intro: One quick question from the lessons you've mastered.
+- check: Check answer
+- right: That's right. +{points} point.
+- wrong: Not quite. Here's the idea:
+- done: That's today's question. A new one is waiting tomorrow.
+
+## Sharing _(draft)_
+
+The picture never shows an amount, a goal or a balance.
+
+### Share button
+
+- label: Share
+
+### Share sheet
+
+- title: Share your win
+- intro: This makes a picture of your loaf. It never shows anything about your money.
+- sizeLegend: Picture shape
+- story: Story (tall)
+- post: Post (square)
+- preparing: Getting your picture ready...
+- previewAlt: A preview of your share picture
+- shareImage: Share picture
+- copyText: Copy text
+- close: Close
+- downloaded: Your picture was saved to this device. You can post it from there.
+- copied: Copied. You can paste it anywhere.
+- copyFailed: Couldn't copy. You can select the text and copy it yourself.
+- failed: Couldn't make the picture this time. You can still copy the text.
+
+### Lines on the picture
+
+- baked: I just baked my emergency fund loaf
+- mastered: I mastered the emergency fund lessons
+- tagline: Stack that bread.
 
 ## Tips while the loaf rises
 

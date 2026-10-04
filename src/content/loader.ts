@@ -1,6 +1,7 @@
 import { BREAD_IDS } from '../domain/breads';
 import { parseFrontmatter } from '../domain/frontmatter';
 import { PAY_FREQUENCIES } from '../domain/habits';
+import { POINT_KINDS } from '../domain/points';
 import { RISK_QUESTION_IDS } from '../domain/risk';
 import { STAGES } from '../domain/stages';
 import type { AccountType, LoafId, Stage } from '../domain/types';
@@ -19,6 +20,8 @@ import type {
   LoafDefinition,
   PlacementContent,
   PlacementQuestion,
+  PointsContent,
+  ShareContent,
   QuizChoice,
   QuizContent,
   Tip,
@@ -71,6 +74,14 @@ const breadFiles = import.meta.glob<unknown>('../../content/breads.json', {
   import: 'default',
 });
 const settingsFiles = import.meta.glob<unknown>('../../content/settings.json', {
+  eager: true,
+  import: 'default',
+});
+const pointsFiles = import.meta.glob<unknown>('../../content/points.json', {
+  eager: true,
+  import: 'default',
+});
+const shareFiles = import.meta.glob<unknown>('../../content/share.json', {
   eager: true,
   import: 'default',
 });
@@ -398,6 +409,67 @@ export function parseSettings(raw: unknown, where = 'content/settings.json'): Se
     goal: record(o.goal, ['title', 'current', 'intro', 'monthsLegend', 'month', 'months', 'noEssentials', 'customLabel', 'save', 'invalid', 'edited', 'growing', 'baked'] as const, `${where} goal`),
     habit: record(o.habit, ['title', 'current', 'weekly', 'paycheck', 'save', 'restartNote', 'saved', 'savedRestart'] as const, `${where} habit`),
     risk: record(o.risk, ['title', 'intro', 'link'] as const, `${where} risk`),
+    feedback: record(
+      o.feedback,
+      [
+        'title',
+        'intro',
+        'label',
+        'placeholder',
+        'counter',
+        'categoryLegend',
+        'categoryBug',
+        'categoryIdea',
+        'categoryOther',
+        'privacy',
+        'send',
+        'sending',
+        'sent',
+        'failed',
+        'demoNote',
+        'demoSend',
+        'emailTo',
+        'emailSubject',
+        'emailVersion',
+        'emailScreen',
+        'emailKind',
+        'version',
+      ] as const,
+      `${where} feedback`,
+    ),
+    clearData: record(
+      o.clearData,
+      ['title', 'intro', 'button', 'askDemo', 'askAccount', 'confirm', 'cancel', 'working', 'failed'] as const,
+      `${where} clearData`,
+    ),
+  };
+}
+
+export function parsePoints(raw: unknown, where = 'content/points.json'): PointsContent {
+  const o = obj(raw, where);
+  const history = obj(o.history, `${where} history`);
+  return {
+    draft: bool(o, 'draft', where),
+    home: record(o.home, ['label', 'linkLabel'] as const, `${where} home`),
+    history: {
+      ...record(history, ['title', 'intro', 'total', 'totalOne', 'empty', 'earned', 'showMore', 'back', 'demoNote'] as const, `${where} history`),
+      reasons: record(history.reasons, POINT_KINDS, `${where} history reasons`),
+    },
+    daily: record(o.daily, ['title', 'intro', 'check', 'right', 'wrong', 'done'] as const, `${where} daily`),
+  };
+}
+
+export function parseShare(raw: unknown, where = 'content/share.json'): ShareContent {
+  const o = obj(raw, where);
+  return {
+    draft: bool(o, 'draft', where),
+    button: record(o.button, ['label'] as const, `${where} button`),
+    sheet: record(
+      o.sheet,
+      ['title', 'intro', 'sizeLegend', 'story', 'post', 'preparing', 'previewAlt', 'shareImage', 'copyText', 'close', 'downloaded', 'copied', 'copyFailed', 'failed'] as const,
+      `${where} sheet`,
+    ),
+    card: record(o.card, ['baked', 'mastered', 'tagline'] as const, `${where} card`),
   };
 }
 
@@ -429,10 +501,16 @@ export function parseLesson(source: string, file: string): Lesson {
 
 export function parseQuiz(raw: unknown, file: string): QuizContent {
   const o = obj(raw, file);
+  const questions = arr(o, 'questions', file);
+  const draw = num(o, 'draw', file);
+  if (!Number.isInteger(draw) || draw < 1 || draw > questions.length) {
+    throw new ContentError(file, `"draw" must be a whole number from 1 to the number of questions (${questions.length})`);
+  }
   return {
     draft: bool(o, 'draft', file),
     loaf: oneOf(o, 'loaf', LOAF_IDS, file),
-    questions: arr(o, 'questions', file).map((q, i) => {
+    draw,
+    questions: questions.map((q, i) => {
       const w = `${file} question ${i + 1}`;
       const qo = obj(q, w);
       const choices = arr(qo, 'choices', w).map((c, j): QuizChoice => {
@@ -462,6 +540,8 @@ interface Content {
   risk: RiskContent;
   breads: BreadsContent;
   settings: SettingsContent;
+  points: PointsContent;
+  share: ShareContent;
   loaves: LoafDefinition[];
   lessons: Lesson[];
   quizzes: QuizContent[];
@@ -483,6 +563,12 @@ function content(): Content {
   const [settingsRaw] = Object.values(settingsFiles);
   if (settingsRaw === undefined) throw new ContentError('content/', 'settings.json is missing');
 
+  const [pointsRaw] = Object.values(pointsFiles);
+  if (pointsRaw === undefined) throw new ContentError('content/', 'points.json is missing');
+
+  const [shareRaw] = Object.values(shareFiles);
+  if (shareRaw === undefined) throw new ContentError('content/', 'share.json is missing');
+
   const loaves = Object.entries(loafFiles).map(([file, raw]) => parseLoaf(raw, file));
   const ids = loaves.map((l) => l.id);
   if (new Set(ids).size !== ids.length) throw new ContentError('content/loaves', 'duplicate loaf id');
@@ -492,6 +578,8 @@ function content(): Content {
     risk: parseRisk(riskRaw),
     breads: parseBreads(breadsRaw),
     settings: parseSettings(settingsRaw),
+    points: parsePoints(pointsRaw),
+    share: parseShare(shareRaw),
     loaves,
     lessons: Object.entries(lessonFiles).map(([file, src]) => parseLesson(src, file)),
     quizzes: Object.entries(quizFiles).map(([file, raw]) => parseQuiz(raw, file)),
@@ -505,6 +593,14 @@ export function getRisk(): RiskContent {
 
 export function getSettings(): SettingsContent {
   return content().settings;
+}
+
+export function getPoints(): PointsContent {
+  return content().points;
+}
+
+export function getShare(): ShareContent {
+  return content().share;
 }
 
 export function getBreads(): BreadsContent {

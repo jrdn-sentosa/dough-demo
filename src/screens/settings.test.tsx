@@ -35,7 +35,7 @@ function mountSettings(data: AppData, props: Partial<Parameters<typeof SettingsV
 
 describe('Settings', () => {
   it('shows the signed-in email and signs out a real account', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const onSignOut = vi.fn().mockResolvedValue(undefined);
     mountSettings(accountData, { account, onSignOut });
     expect((await screen.findByText('sam@school.edu')).tagName).toBe('STRONG');
@@ -93,7 +93,7 @@ describe('Exit demo', () => {
   });
 
   it('goes back to the login screen and keeps the demo data for next time', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const adapter = createMemoryAdapter(demoData);
     const router = mountApp(adapter);
     await user.click(await screen.findByRole('button', { name: 'Exit demo' }));

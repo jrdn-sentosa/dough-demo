@@ -1,6 +1,7 @@
 {
   "draft": true,
   "loaf": "emergency-fund",
+  "draw": 5,
   "questions": [
     {
       "id": "ef-q1",
@@ -66,6 +67,71 @@
       "explain": "Insurance protects your money, up to the legal limit, even if the institution runs into trouble. A higher rate or a bonus doesn't matter if the money isn't safe.",
       "lesson": "ef-where-to-keep",
       "timestamp": 42
+    },
+    {
+      "id": "ef-q6",
+      "question": "Your laptop dies a week before finals and you need it to finish your work. Is that a good use of your emergency fund?",
+      "choices": [
+        { "id": "yes-urgent", "label": "Yes. It's urgent, you couldn't plan for it, and you need it" },
+        { "id": "wait-and-borrow", "label": "No. Wait until after finals and put it on a credit card" },
+        { "id": "always-budget", "label": "No. Electronics should always come out of your regular budget" }
+      ],
+      "answer": "yes-urgent",
+      "explain": "A laptop that dies right before finals is urgent and you couldn't have planned for it, which is what the fund is for. Putting it on a credit card can cost more if you can't pay it off right away.",
+      "lesson": "ef-what-its-for",
+      "timestamp": 35
+    },
+    {
+      "id": "ef-q7",
+      "question": "You used part of your fund for a surprise medical bill. How should you think about that?",
+      "choices": [
+        { "id": "used-as-intended", "label": "You used it for what it's for, and you can rebuild it a little at a time" },
+        { "id": "stop-saving", "label": "You made a mistake, so it's better to stop saving for a while" },
+        { "id": "refill-at-once", "label": "You need to put all of it back next month" }
+      ],
+      "answer": "used-as-intended",
+      "explain": "Using your fund for a real emergency is exactly what it's for, so it isn't a mistake. You rebuild it at your own pace, a little at a time.",
+      "lesson": "ef-what-its-for",
+      "timestamp": 80
+    },
+    {
+      "id": "ef-q8",
+      "question": "Which of these should you leave out when you add up your monthly essentials?",
+      "choices": [
+        { "id": "extras", "label": "Streaming, eating out, and shopping" },
+        { "id": "phone", "label": "Your phone bill" },
+        { "id": "getting-around", "label": "The cost of getting to class or work" }
+      ],
+      "answer": "extras",
+      "explain": "Essentials are the costs you can't skip, like a phone and transportation. Extras such as streaming, eating out, and shopping stay out of the total.",
+      "lesson": "ef-how-much",
+      "timestamp": 25
+    },
+    {
+      "id": "ef-q9",
+      "question": "Your income changes a lot from month to month. Which goal is worth considering?",
+      "choices": [
+        { "id": "six-months-variable", "label": "Six months of essentials" },
+        { "id": "one-month-enough", "label": "One month, since more than that isn't needed" },
+        { "id": "match-paycheck", "label": "The size of your biggest paycheck" }
+      ],
+      "answer": "six-months-variable",
+      "explain": "When your income swings, a bigger cushion helps you get through the slow months. You can still start with one month and build up.",
+      "lesson": "ef-how-much",
+      "timestamp": 70
+    },
+    {
+      "id": "ef-q10",
+      "question": "A savings app says it helps you save. What should you check before you trust it with your emergency fund?",
+      "choices": [
+        { "id": "insured-bank", "label": "That your money is held at an FDIC-insured bank" },
+        { "id": "app-reviews", "label": "That it has lots of five-star reviews" },
+        { "id": "invests-it", "label": "That it invests your money so it grows faster" }
+      ],
+      "answer": "insured-bank",
+      "explain": "Not every app is a bank. Check that your money is held at an insured bank, so it's protected up to the legal limit. Investing it would put your safety net at risk right when you need cash.",
+      "lesson": "ef-where-to-keep",
+      "timestamp": 95
     }
   ]
 }

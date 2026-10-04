@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Dough! Icon Preview</title>
+<style>
+  /* Layout: a header, a control bar, then one table (columns are the crops, each labelled with the source file it uses; rows are sizes). */
+  :root {
+    --ground: #FFFFFF;
+    --ink: #2B1B12;
+    --muted: #6B5446;
+    --card: #FFF6E6;
+    --line: #EADBC4;
+    --accent: #8A4B1F;
+    --focus: #B9773A;
+    --stage-white: #FFFFFF;
+    --stage-crumb: #FFF6E6;
+    --stage-dark: #1E1511;
+    --stage-grey: #D9D4CE;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --display: Georgia, "Times New Roman", serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #17110D; --ink: #F5E9D8; --muted: #BBA88F; --card: #251A14; --line: #3A2B21;
+      --accent: #E0A266; --focus: #E0A266; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #17110D; --ink: #F5E9D8; --muted: #BBA88F; --card: #251A14; --line: #3A2B21;
+    --accent: #E0A266; --focus: #E0A266; color-scheme: dark;
+  }
+  body { background: var(--ground); color: var(--ink); font-family: var(--font); line-height: 1.5; padding-inline: 16px; padding-block: 24px 48px; }
+  .page { max-width: 960px; margin-inline: auto; display: grid; gap: 28px; }
+  h1 { font-family: var(--display); font-size: 1.9rem; line-height: 1.15; margin: 0; text-wrap: balance; }
+  p { margin: 0; max-width: 65ch; }
+  .muted { color: var(--muted); }
+  .controls { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; padding: 12px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+  .controls fieldset { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-width: 0; }
+  .controls legend { float: left; margin-right: 8px; font-weight: 600; padding: 0; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; cursor: pointer; background: var(--ground); }
+  .chip input { accent-color: var(--accent); }
+  .swatch { width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--muted); }
+  .block { display: grid; gap: 14px; }
+  .scroller { overflow-x: auto; }
+  table { border-collapse: collapse; min-width: 720px; width: 100%; }
+  th { text-align: left; vertical-align: bottom; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 0 12px 8px 0; }
+  th .file { display: block; margin-top: 2px; font-size: 0.75rem; font-weight: 400; letter-spacing: 0; text-transform: none; font-family: ui-monospace, Menlo, Consolas, monospace; }
+  td { padding: 12px 16px 12px 0; vertical-align: middle; border-top: 1px solid var(--line); }
+  td.size { font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; width: 1%; }
+  .stage { display: inline-grid; place-items: center; padding: 14px; border-radius: 12px; background: var(--stage-white); border: 1px solid var(--line); }
+  .stage[data-bg="crumb"] { background: var(--stage-crumb); }
+  .stage[data-bg="grey"] { background: var(--stage-grey); }
+  .stage[data-bg="dark"] { background: var(--stage-dark); }
+  .crop { position: relative; width: var(--s); height: var(--s); overflow: hidden; background: #8A4B1F; }
+  .crop img { display: block; width: 100%; height: 100%; object-fit: cover; max-width: none; }
+  .crop--circle { border-radius: 50%; }
+  .crop--round { border-radius: 22.37%; }
+  .crop--square { border-radius: 0; }
+  /* Rings on the maskable crops: dashed is the 40% safe zone, dotted is the 36% limit the artwork is held to. */
+  .ring { position: absolute; border-radius: 50%; pointer-events: none; display: none; box-shadow: 0 0 0 1px #000000; }
+  .ring--zone { inset: 10%; border: 1.5px dashed #FFFFFF; }
+  .ring--limit { inset: 14%; border: 1.5px dotted #F6C453; }
+  .rings-on .ring { display: block; }
+  .small .ring { border-width: 1px; }
+  .note { font-size: 0.9rem; }
+  input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  @media (max-width: 520px) { h1 { font-size: 1.5rem; } }
+</style>
+</head>
+<body>
+<div class="page" id="page">
+  <header class="block">
+    <h1>Dough! app icon</h1>
+    <p class="muted">Each crop uses the source file that makes that icon. The rounded square and square crops use the larger artwork. The circle and the Android rounded square use the maskable artwork, which keeps a margin inside the safe zone.</p>
+  </header>
+
+  <div class="controls">
+    <fieldset>
+      <legend>Behind the icon</legend>
+      <label class="chip"><input type="radio" name="bg" value="white" checked><span class="swatch" style="background:#FFFFFF"></span>White</label>
+      <label class="chip"><input type="radio" name="bg" value="crumb"><span class="swatch" style="background:#FFF6E6"></span>Cream</label>
+      <label class="chip"><input type="radio" name="bg" value="grey"><span class="swatch" style="background:#D9D4CE"></span>Grey</label>
+      <label class="chip"><input type="radio" name="bg" value="dark"><span class="swatch" style="background:#1E1511"></span>Dark</label>
+    </fieldset>
+    <label class="chip"><input type="checkbox" id="rings">Show the safe zone on the maskable crops</label>
+  </div>
+
+  <section class="block" aria-label="Icon crops">
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Size</th>
+            <th scope="col">Circle<span class="file">icon-maskable.svg</span></th>
+            <th scope="col">Android rounded square<span class="file">icon-maskable.svg</span></th>
+            <th scope="col">iPhone rounded square<span class="file">icon.svg</span></th>
+            <th scope="col">Square<span class="file">icon.svg</span></th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p class="muted note">The dashed ring is the middle 80%, the safe zone Android keeps for any mask. The dotted ring is 72%, the limit the maskable artwork is held to, so its farthest point sits inside it. The iPhone crop uses a corner radius of about 22% of the width.</p>
+  </section>
+</div>
+<script>
+  var MASKABLE_SRC = "icon-maskable.svg";
+  var REGULAR_SRC = "icon.svg";
+  var SIZES = [192, 96, 48, 29];
+  var COLUMNS = [
+    { shape: "circle", src: MASKABLE_SRC, rings: true, label: "maskable, circle crop" },
+    { shape: "round", src: MASKABLE_SRC, rings: true, label: "maskable, rounded square crop" },
+    { shape: "round", src: REGULAR_SRC, rings: false, label: "regular, rounded square crop" },
+    { shape: "square", src: REGULAR_SRC, rings: false, label: "regular, square crop" }
+  ];
+  var body = document.getElementById("rows");
+  SIZES.forEach(function (s) {
+    var tr = document.createElement("tr");
+    var size = document.createElement("td");
+    size.className = "size";
+    size.textContent = s + " px";
+    tr.appendChild(size);
+    COLUMNS.forEach(function (col) {
+      var td = document.createElement("td");
+      var stage = document.createElement("div");
+      stage.className = "stage";
+      stage.setAttribute("data-bg", "white");
+      var crop = document.createElement("div");
+      crop.className = "crop crop--" + col.shape + (s <= 48 ? " small" : "");
+      crop.style.setProperty("--s", s + "px");
+      var img = document.createElement("img");
+      img.src = col.src;
+      img.alt = "Icon, " + col.label + ", " + s + " pixels";
+      crop.appendChild(img);
+      if (col.rings) {
+        ["ring ring--zone", "ring ring--limit"].forEach(function (cls) {
+          var ring = document.createElement("span");
+          ring.className = cls;
+          ring.setAttribute("aria-hidden", "true");
+          crop.appendChild(ring);
+        });
+      }
+      stage.appendChild(crop);
+      td.appendChild(stage);
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+  document.querySelectorAll('input[name="bg"]').forEach(function (r) {
+    r.addEventListener("change", function () {
+      document.querySelectorAll(".stage").forEach(function (el) { el.setAttribute("data-bg", r.value); });
+    });
+  });
+  document.getElementById("rings").addEventListener("change", function (e) {
+    document.getElementById("page").classList.toggle("rings-on", e.target.checked);
+  });
+</script>
+</body>
+</html>

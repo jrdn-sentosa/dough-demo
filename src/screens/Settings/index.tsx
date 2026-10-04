@@ -10,11 +10,15 @@ import { isDemoMode } from '../../app/demoFlag';
 import { signOutAccount } from '../../data/auth';
 import { signOutLocal } from '../../data/session';
 import { clearCache } from '../../data/supabaseAdapter';
-import { getSupabase } from '../../data/supabaseClient';
+import { feedbackSender, getSupabase } from '../../data/supabaseClient';
 import { DraftNote } from '../../components/DraftNote';
 import { getSettings } from '../../content/loader';
 import { DISCLAIMER_LINES } from '../Login';
 import { GoalSection } from './GoalSection';
+import { ClearDataSection } from './ClearDataSection';
+import type { ClearActions } from './ClearDataSection';
+import { FeedbackSection } from './FeedbackSection';
+import type { FeedbackSender } from './FeedbackSection';
 import { HabitSection } from './HabitSection';
 
 export const RETAKE_PATH = `/placement?retake=1&return=${encodeURIComponent('/settings')}`;
@@ -31,11 +35,29 @@ export function Settings() {
     if (auth) await signOutAccount(auth);
     clearCache(current.id);
   }
-  return <SettingsView account={account} onSignOut={signOut} />;
+  return <SettingsView account={account} onSignOut={signOut} sendFeedback={sendToSupabase} />;
 }
 
-/** Exported so tests can pass an account and a fake sign-out. */
-export function SettingsView({ account, onSignOut }: { account: Account | null; onSignOut: (account: Account) => Promise<void> }) {
+/** Feedback goes to the `feedback` table with the signed-in session. Without Supabase there is nothing to send to. */
+const sendToSupabase: FeedbackSender = async (row) => {
+  const supabase = getSupabase();
+  if (!supabase) throw new Error('Feedback needs an account');
+  await feedbackSender(supabase)(row);
+};
+
+/** Exported so tests can pass an account, a fake sign-out and a fake feedback sender. */
+export function SettingsView({
+  account,
+  onSignOut,
+  sendFeedback = sendToSupabase,
+  clearActions,
+}: {
+  account: Account | null;
+  onSignOut: (account: Account) => Promise<void>;
+  sendFeedback?: FeedbackSender;
+  /** Tests pass fakes for clearing the device and reloading. */
+  clearActions?: ClearActions;
+}) {
   const { adapter, data, refresh } = useData();
   const [busy, setBusy] = useState(false);
   if (!data) return null;
@@ -96,6 +118,8 @@ export function SettingsView({ account, onSignOut }: { account: Account | null; 
         </section>
       )}
 
+      {isDemoMode() && <ClearDataSection account={account} actions={clearActions} />}
+
       {data.profile && (
         <section className="settings__section" aria-labelledby="settings-placement">
           <h2 id="settings-placement" className="settings__heading">
@@ -119,6 +143,8 @@ export function SettingsView({ account, onSignOut }: { account: Account | null; 
           </Link>
         </section>
       )}
+
+      <FeedbackSection account={account} send={sendFeedback} />
 
       <p className="login__disclaimer">
         {DISCLAIMER_LINES[0]}

@@ -37,7 +37,7 @@ Ask before adding any dependency not listed here.
 - `npm run preview`: serve the production build, used to test PWA install and offline behavior
 - `npm run test`: run Vitest
 - `npm run lint`: run ESLint
-- `npm run icons`: regenerate every app icon in `public/icons/` from `design/icon/icon.svg`
+- `npm run icons`: regenerate every app icon in `public/icons/` from `design/icon/icon.svg` (regular icons and apple-touch) and `design/icon/icon-maskable.svg` (maskable icon only)
 
 ## Folder structure
 
@@ -46,16 +46,19 @@ src/
   app/          routing, providers, app shell, phone frame for desktop
   screens/      Login, PlacementQuiz, PlacementResult, NewLoaf, Lesson,
                 LoafQuiz, SavingSetup, Home, LoafComplete, ChooseLoaf,
-                Shelf, RiskQuiz, RiskResult, Settings
+                Shelf, RiskQuiz, RiskResult, Settings, Points
   components/   LoafButton, SliceButton, LoafIllustration, ProgressBar,
                 ChoiceGroup (radio or checkbox inputs styled as slice buttons,
                 used by placement and the quiz), VideoPlayer, QuizQuestion, LessonRow,
                 StageBar, HabitCard, TipRow, AmountSheet, HysaPoints (Home and Saving setup),
-                HabitForm (Saving setup and Settings), DemoActions (Reset and Start fresh demo)
+                HabitForm (Saving setup and Settings), DemoActions (Reset and Start fresh demo),
+                DailyQuizCard (Home), ShareButton, ShareSheet
   domain/       pure logic: placement scoring, targets, stages,
-                recommendations, quiz grading (no React, no Supabase)
+                recommendations, quiz grading, points, daily quiz, local days,
+                share card content and link (no React, no Supabase)
   content/      typed loader for everything in content/ (import.meta.glob),
                 throws on malformed content; review-page renderer
+  share/        share card canvas drawing and the share, download and copy paths (no React)
   money/        simulated deposits and withdrawals, demo clock
   data/         the only code that talks to storage: DataAdapter interface,
                 localStorage (demo user), in-memory (tests) and Supabase (real accounts) adapters
@@ -63,7 +66,9 @@ src/
 content/
   placement.json            placement quiz questions and scoring
   risk.json                 risk quiz questions and result copy (educational)
-  settings.json             Settings copy: change your goal, change your habit
+  settings.json             Settings copy: change your goal, change your habit, send feedback
+  points.json               Dough points, points history and daily quiz copy
+  share.json                Share button, sheet and share card lines (never money)
   loaves/<loaf>.json        loaf definition: title, bread, lessons, quiz, tips
   lessons/<loaf>/<id>.md    lesson page text and video metadata
   quizzes/<loaf>.json       loaf quiz questions
@@ -72,7 +77,10 @@ public/
   icons/                    PWA icons (generated: npm run icons)
   video-cache.js            service worker helper that keeps played videos for offline
 design/
-  icon/icon.svg             the one source for every app icon (placeholder)
+  icon/icon.svg             source for the regular icons and apple-touch icon (artwork about 85% of the width)
+  icon/icon-maskable.svg    source for the maskable icon only (artwork's farthest point at most 36% from the centre)
+  icon/icon-original.svg    the untouched original artwork, kept for reference
+  icon/preview.html         shows each crop with the source it uses (open locally; not served)
   loaves/                   stage illustrations as SVG
 ```
 
@@ -165,7 +173,7 @@ Titled "Here's where you'll start." Shows the first loaf, the goal in dollars an
 
 ### Retaking placement and changing the goal (Settings)
 
-Settings (`/settings`, linked from Home) has, in order: **Change your goal**, **Change your habit**, the signed-in email and **Sign out** (real accounts) or **Exit demo** (the demo user, who has no account; it uses `signOutLocal` and keeps the local demo data, so "Continue as demo user" picks up where they left off), the demo tools (only with `?demo=1`, demo user only: **Reset demo** and **Start fresh demo**, each asking first), **Retake the quiz** (`/placement?retake=1&return=/settings`) and the disclaimer. Copy is in `content/settings.json`. **Retake the risk quiz** appears only once the emergency fund has baked (the same `canChooseNext` check as the `/risk-quiz` route guard), since the route is closed before that.
+Settings (`/settings`, linked from Home) has, in order: **Change your goal**, **Change your habit**, the signed-in email and **Sign out** (real accounts) or **Exit demo** (the demo user, who has no account; it uses `signOutLocal` and keeps the local demo data, so "Continue as demo user" picks up where they left off), the demo tools (only with `?demo=1`, demo user only: **Reset demo** and **Start fresh demo**, each asking first), **Clear app data** (only with `?demo=1`, for the demo user and for accounts; see "Demo mode"), **Retake the quiz** (`/placement?retake=1&return=/settings`), **Send feedback** (see "Dough points, daily quiz, and feedback") and the disclaimer. Copy is in `content/settings.json`. **Retake the risk quiz** appears only once the emergency fund has baked (the same `canChooseNext` check as the `/risk-quiz` route guard), since the route is closed before that.
 
 - **Retake the quiz** reruns placement with current answers prefilled. New answers update the profile, account steps, and recommendations. It never deletes or changes transactions.
 - If the new answers suggest a different goal, ask "Update your goal to $X?" instead of changing it silently. If the current target is the $1,000 starter goal and the student now gives essentials, suggest 1 month of essentials. If the target was months-based (1, 3, or 6 months), re-price the same number of months. A custom amount is left alone. Nothing is suggested unless the essentials or savings answer changed.
@@ -204,7 +212,7 @@ Each topic keeps its bread above as the default. A student can also pick any bre
   1. What an emergency fund is for
   2. How much you need
   3. Where to keep it: high-yield savings
-- **Loaf quiz:** 5 questions on those videos.
+- **Loaf quiz:** a bank of 10 questions on those videos. Each attempt asks 5 of them (see "Question bank" under Lessons and quizzes).
 - **While it rises (short text tips, unlocked by stage):** Shape "Why small deposits add up", Proof "Make it automatic", Bake "When it's the right time to use it", Baked "Choosing your next loaf".
 
 ## Lessons and quizzes
@@ -239,6 +247,7 @@ Each topic keeps its bread above as the default. A student can also pick any bre
 ```
 
 - **Quiz screens:** one question per screen with a progress bar. In the normal quiz the student picks a choice (and can change it), then taps "Check answer"; feedback appears and the choices lock only after Check. Right answers are sage, wrong picks are crust, each with the explanation, and a wrong pick gets "Rewatch this part" (a link to the lesson at its timestamp, or "Read the summary" when the video file doesn't exist).
+- **Question bank:** `content/quizzes/<loaf>.json` holds the whole bank (10 for the emergency fund, every one marked draft with the file) and a `draw` number (5). The normal quiz and the test-out each draw `draw` questions per attempt with `drawQuiz` (`src/domain/drawQuiz.ts`): at least one from every lesson (so a miss can recommend any lesson), the rest at random, a fresh draw on every attempt including retries. Grading, saved attempts (`total` is the number asked, 5), mastery (still 4 out of 5) and the missed-lesson recommendations all use the questions that were asked, and each recommendation still comes from that question's own `lesson` link. The daily quiz draws from the whole bank (of mastered modules), still avoiding the last 3 it asked. The loader throws unless `draw` is a whole number from 1 to the size of the bank, and a test checks the bank covers every lesson and that `draw` is at least the number of lessons.
 - **Shuffling:** question order and choice order are shuffled on every attempt, in both normal and test-out modes (`src/domain/shuffle.ts`). Answers, saved attempts, grading, and lesson links all use the choice's fixed string id from the content file, never its position on screen or its wording. Ids are unique within a question and the `answer` must be one of them (the loader throws otherwise, and a test checks the content). Quiz attempts saved with positions before this change are dropped on load, since this is demo data.
 - **Mastery:** a loaf's lessons are "Mastered" once the best normal-quiz score is 4 out of 5 (80%) or more. It is worked out from saved attempts (`bestScore`, `isMastered` in `src/domain/mastery.ts`), not stored, and a later lower score never takes it away. Test-out attempts don't count. The lessons list shows a "Mastered" badge, and the quiz end screen says "You mastered this loaf's lessons." Below 4 it keeps the missed-question explanations and adds "Get 4 out of 5 to master these lessons. You can try again anytime." Retries have no limit and no cooldown.
 - **Emergency fund quiz:** completing it unlocks Saving setup. It does not require a passing score, because the real goal is getting the student to save. Show the score, explain every wrong answer, and allow retries.
@@ -310,7 +319,7 @@ The result is a pure function in `src/domain/risk.ts` with unit tests:
 - The result shows which loaf fits (Coming soon) and is saved to the profile (`profile.risk`: status, answers, result). Retaking placement never clears it.
 - The 4-out-of-5 knowledge check still applies before any investing loaf starts, once that content exists.
 
-## Dough! Plus (simulated, milestone 14, planned, not built)
+## Dough! Plus (simulated, milestone 17, planned, not built)
 
 - **Always free:** the emergency fund loaf and everything about it (saving, withdrawing, rebuilding, growing to 3 or 6 months), the placement quiz, the risk quiz and its result, and streak breads.
 - **Plus:** the investing loaves (lessons, quizzes, loaves), a set of exclusive breads that streaks can't unlock, and bank linking once Plaid exists.
@@ -319,6 +328,31 @@ The result is a pure function in `src/domain/risk.ts` with unit tests:
 - **Demo:** no payments. "Start free trial" sets a premium flag in saved data. A demo tool behind `?demo=1` turns it off.
 - **One gate.** Every premium check goes through one pure function (`src/domain/entitlements.ts`), so real billing can replace the flag later. No other code reads the flag.
 - **Later, not now:** charging real money needs Vercel's paid plan and clear renewal and cancellation terms. A payment provider in test mode would be its own milestone.
+
+## Dough points, daily quiz, and feedback (milestone 13)
+
+- **Points are not money.** They are trust-based until Plaid verifies balances, so they must not be redeemable for anything of real value (no cash, prizes, discounts) before then. Copy never calls them a reward you can cash in, and the points screen says they aren't money.
+- **Ledger:** `AppData.points` is append-only. Each award has a unique key, so nothing is awarded twice, and points are never deducted (loading drops non-positive rows and duplicate keys). Values live in `POINT_VALUES` (`src/domain/points.ts`), never in copy. Keys: `fund-day:<day>`, `video:<lessonId>`, `mastery:<loafId>`, `bake:<loafId>:<targetCents>`, `quiz:<day>`. Local for the demo user, the `point_events` table for accounts (own-row select and insert only, no update or delete; the adapter writes it with insert-ignore-duplicates and never deletes from it).
+- **Awards:**
+  - **Fund holds steady, 1 point a day:** the emergency fund's balance at the end of a finished local day is above $0 and not lower than at the end of the day before (the first day compares to $0). Only the one `emergency-fund` loaf counts, and a `starting` row counts like any balance. Days are local midnight to midnight on the demo clock. `syncPoints` back-fills every missed day from the transactions when Home opens. The per-day balances come from `endOfDayBalances` in `src/money/ledger.ts`, because only `src/money/` calculates balances.
+  - **Video, 1 point once per lesson:** when the seconds actually played (the media element's `played` ranges, so skipping ahead and replays add nothing) reach 90% of the video. Played time counts for one visit only. "Mark as watched" and the "Video coming soon" poster never earn points.
+  - **Mastery, 5 points once per module,** dated by the first mastering attempt. **Loaf baked, 10 points once per bake,** keyed by the target, so rebuilding to the same goal awards nothing and growing to a new goal does. An "Already built" bake earns nothing.
+  - **Daily quiz, 1 point if right,** once a day (`quiz:<day>`).
+- **Writes** that load, change and save the whole data (points, daily quiz, marking a lesson watched) run one after another through `serialized` in `src/data/points.ts`, so a video finishing while Home syncs can't overwrite either write. On Home, `syncStreaks` and `syncPoints` run in sequence.
+- **Daily quiz:** available only after at least one module is mastered. One question a day drawn from the quizzes of mastered modules, avoiding the last 3 questions shown (the avoid list shrinks, oldest first, when the pool is that small). The first Home view of the day picks it and saves it (`AppData.dailyQuizzes`, the `daily_quizzes` table), so a reload shows the same one. One try a day, with the explanation either way. Logic in `src/domain/dailyQuiz.ts`; the card is `DailyQuizCard`.
+- **UI:** the points total on Home links to `/points` (the history: what earned each point, and when, newest first). Copy is in `content/points.json`. No guilt: a day without a point is never mentioned, and a test checks the copy for loss words.
+- **Feedback (Settings):** a text box (max 1,000 characters) and an optional category (bug, idea, other). Accounts insert a row into `feedback` (RLS: insert of own rows only, never select; the length is also checked in the database). It carries the app version (`__APP_VERSION__` from `vite.config.ts`: the `package.json` version plus the short commit on Vercel) and the path of the screen the student came from, never a query string or any financial data. The demo user, who has no account, gets a `mailto:` link to the address in `content/settings.json`.
+- **Referrals (milestone 15, after Sharing):** 10 points to the referrer when the friend finishes placement and makes a first deposit, awarded by a Supabase database function (`security definer`) so one account never writes another's rows. Not built yet.
+
+## Sharing (milestone 14)
+
+- **Where:** a "Share" button on the celebration screen (loaf baked) and on the quiz end screen, the second only when that attempt mastered the lessons (not on the test-out end screen). It opens a sheet (`ShareButton`, `ShareSheet`).
+- **The card:** an image made in the browser on a canvas (`src/share/renderCard.ts`): the loaf in its bread, the golden finish and sparkles when mastered (the artwork paths are shared with `GoldenFinish` in `goldenFinishArt.ts`), a short line ("I just baked my emergency fund loaf" or "I mastered the emergency fund lessons"), "Stack that bread." and the app's address (the host of the share link: `VITE_APP_URL`, which is `https://dough-demo.vercel.app` in Vercel, falling back to `window.location.origin` when it's empty or not a valid web address, with a console warning naming the bad value; only `buildShareLink` reads it). Two sizes, 1080x1920 (story) and 1080x1080 (post). It waits for the app fonts (`document.fonts.load`) before drawing, and uses the palette as hex values copied from `tokens.css`. Only bundled, same-origin art is drawn, so the canvas is never tainted and it works offline.
+- **Never money:** no amounts, goals, balances or anything about the student's money. `shareCardContent` in `src/domain/share.ts` takes only the kind, the copy and the link, so there is nowhere for money to enter, and tests check the card, the copied text and `content/share.json`.
+- **Sending:** the phone's share sheet with the image when the device can send files (`navigator.canShare`), otherwise the image downloads. "Copy text" is always offered. Closing the share sheet is quiet. The picture is made when the sheet opens, so the "Share picture" tap only hands over a finished picture (share sheets need a recent tap).
+- **One link function:** `buildShareLink` (`src/domain/share.ts`) is the only place a share link is built. It is the app's address with no path or query; a referral code goes in its `ref` argument when referrals exist (milestone 15).
+- **Works for the demo user and accounts.** No tracking: nothing is stored, counted or sent, and there are no new tables.
+- Copy is in `content/share.json` (marked draft), reviewed in `docs/content-review.md`.
 
 ## Streaks and bread unlocks (milestone 9)
 
@@ -352,11 +386,11 @@ The result is a pure function in `src/domain/risk.ts` with unit tests:
 - **Offline and two devices (real accounts only):** if the connection drops, the loaf stays readable (the adapter keeps a read-only copy under `dough:cache:<user id>`, removed on sign out) and a banner says changes can't be saved. There is no offline syncing: a change made offline is not kept. The adapter never writes before it has read, so an empty screen from a failed load can't overwrite saved rows. Using two devices at the same time is "last save wins" for loaf and `user_state` rows. Transactions are insert-only with random ids, so deposits are never lost. Fine for the demo.
 - **Local storage:** one versioned key, `dough:v1`. If saved data is missing, unreadable, or the wrong version, start fresh instead of crashing. Every read and write is wrapped in try/catch because some browsers block storage in private mode. If writes are blocked, the app keeps working from memory.
 - **Tests** use an in-memory adapter that implements the same `DataAdapter` interface, so they never touch real browser storage.
-- Supabase tables: `profiles` (`placementStatus`, essentials range and figure, existing savings range, `accounts`, `cardDebt`, `earnedIncome`, `monthsCovered`, and the risk quiz `risk` status, answers and result; any of these can be null when unknown), `loaves`, `transactions` (with a `type` of `starting`, `deposit`, or `withdrawal`, and a `source` of `manual`, `plaid`, or `seed`), `lesson_progress`, `quiz_attempts`, and `user_state` (one row per user: `habit`, `tips_seen`, `hysa_card`, `streaks`, and the demo clock offset). There is no `placement_results` table: placement results are derived from `profiles` (the starting point is recomputed from the answers). The schema is in `supabase/migrations/`, and a test checks that every table has Row Level Security and an own-rows policy.
+- Supabase tables: `profiles` (`placementStatus`, essentials range and figure, existing savings range, `accounts`, `cardDebt`, `earnedIncome`, `monthsCovered`, and the risk quiz `risk` status, answers and result; any of these can be null when unknown), `loaves`, `transactions` (with a `type` of `starting`, `deposit`, or `withdrawal`, and a `source` of `manual`, `plaid`, or `seed`), `lesson_progress`, `quiz_attempts`, `point_events` (the points ledger, append-only), `daily_quizzes`, `feedback` (insert-only), and `user_state` (one row per user: `habit`, `tips_seen`, `hysa_card`, `streaks`, and the demo clock offset). There is no `placement_results` table: placement results are derived from `profiles` (the starting point is recomputed from the answers). The schema is in `supabase/migrations/`, and a test checks that every table has Row Level Security and an own-rows policy.
 - **Transaction source:** every row records where it came from: `manual` (the student typed it, the default), `plaid` (read from a linked sandbox account), or `seed` (demo seed data such as Maya's history). Source never changes how balances, stages, or baking work. Rows saved before `source` existed load as `manual`.
 - Saving habit, opened tips and the high-yield reminder (`habit`, `tipsSeen`, `hysaCard` on `AppData`) are plans and flags, not money. They live in `src/data/` (`habit.ts`, `profile.ts`) and are stored in `user_state`. Old saved data without them loads with no habit, no seen tips and no reminder.
 - Row Level Security is on for every table. Users can only read and write their own rows.
-- Env vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` (the `sb_publishable_...` key) in `.env.local`. The app uses only these two. Secret keys never go in the app, never get a `VITE_` prefix, and never go in git.
+- Env vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` (the `sb_publishable_...` key) in `.env.local`. The app uses only these two for Supabase (plus the public flags `VITE_GOOGLE_SIGNIN`, `VITE_DEMO_MODE` and `VITE_APP_URL`). Secret keys never go in the app, never get a `VITE_` prefix, and never go in git.
 
 ## Demo mode
 
@@ -366,6 +400,7 @@ The result is a pure function in `src/domain/risk.ts` with unit tests:
 - **Start fresh demo** (Settings, and the login screen, behind `?demo=1`) clears the demo data on this device and runs the full first-time flow from the placement quiz.
 - **Skip a week** adds one simulated deposit of the user's habit amount and moves the demo clock forward 7 days.
 - **Reset demo** (Settings, behind `?demo=1`) restores Maya's seed data and puts the demo clock back to real time. Reset and Start fresh only ever touch the local demo user: they are hidden when someone is signed in with an account, and `resetDemo` and `startFreshDemo` refuse (`not-demo`) for any user but the demo user.
+- **Clear app data** (Settings, behind `?demo=1`, shown to the demo user and to accounts) asks first, then clears everything this device stores for Dough! (`clearAppData`, `src/data/clearAppData.ts`): the keys `dough:v1`, `dough:cache:<user id>` and `dough.demo` and the saved sign-in session in `localStorage` and `sessionStorage`, every Cache API cache, and every service worker registration (unregistered). Then it reloads the app at `/login?demo=1`. It never deletes anything in Supabase: for a signed-in account the only server call is `signOut({ scope: 'local' })`, which ends the session on this device and leaves the student's other devices signed in. Every step runs even if one fails, and the screen says if something could not be cleared instead of reloading. Copy is in `content/settings.json` under `clearData`.
 - The demo clock lives in `src/money/clock.ts`. Domain code gets "now" from it, never from `Date.now()` directly.
 
 ## Design system
@@ -421,7 +456,7 @@ Warm, encouraging, plain. Explain the why behind every nudge. No guilt, no shame
 - Videos use `playsinline` so they don't force full-screen on iPhone.
 - The service worker (`vite-plugin-pwa`, settings in `pwa.config.ts`) precaches the app shell, fonts, loaf art, and icons. Lesson text and quizzes are bundled into the JS, so they come with it. Videos and captions under `/videos/` are kept only after first play, by `public/video-cache.js` (the first play streams from the network, then the whole file is stored once and range requests are answered from it; a missing file is never stored). **Never cache Supabase or any other origin**: there is no runtime rule for other origins, and sign-in paths are never answered from the cache. A test checks this.
 - **Updates:** a new version waits until the student taps Refresh on the calm "New version available" message (`UpdatePrompt`, with "Not now"). It never swaps in mid-lesson. Only the production build registers the service worker.
-- **App icon:** one source file, `design/icon/icon.svg` (a placeholder loaf; full-bleed square, artwork in the centre 80% so it also works as the maskable icon). `npm run icons` (`scripts/generate-icons.mjs`, uses `sharp`) writes every size to `public/icons/`. Steps to swap in the final logo are in `docs/setup.md`.
+- **App icon:** two source files, both full-bleed squares with the artwork centred. `design/icon/icon.svg` has the artwork at about 85% of the width and makes the regular icons (192, 512, favicon) and the apple-touch icon, which are shown whole or with rounded corners. `design/icon/icon-maskable.svg` has the artwork's farthest point at most 36% of the size from the centre (inside the 40% safe zone that Android masks keep) and makes the maskable icon only. `npm run icons` (`scripts/generate-icons.mjs`, uses `sharp`) writes every size to `public/icons/`, and a test measures the generated PNGs against these rules. The manifest file names did not change. Steps to swap in the final logo are in `docs/setup.md`.
 - Nothing may depend on hover. Touch targets are at least 44×44px.
 - On screens wider than 600px, center the app in a 390×844 phone frame on a `--crumb` backdrop, so it presents well on a laptop.
 
@@ -454,7 +489,7 @@ Content for the Index funds, Bonds, Roth IRA, and Debt payoff loaves (cards only
 
 - The app is hosted on Vercel. Pushes to `main` deploy to production automatically, and every other branch gets its own preview link.
 - `vercel.json` rewrites page routes only to `index.html`, so refreshing or opening a link like `/placement` works. `react-router` handles routing in the browser. Paths under `assets/`, `videos/`, `icons/`, and any path ending in a file extension are not rewritten, so a missing video, image, or icon returns a real 404. (The video player still has an `onError` poster as a backup, because the dev and preview servers answer a missing file with the app's index page.)
-- Environment variables (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_DEMO_MODE`) are set in the Vercel dashboard, never committed. Only `.env.example` (with empty values) is in git.
+- Environment variables (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_DEMO_MODE`, `VITE_APP_URL` = `https://dough-demo.vercel.app`) are set in the Vercel dashboard, never committed. Only `.env.example` (with empty values) is in git.
 
 ## How to work in this repo
 

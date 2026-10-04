@@ -2,6 +2,8 @@ import type { DataAdapter } from '../data/adapter';
 import type { AppData, Bake, LoafRecord, Transaction, TransactionSource, TransactionType } from '../data/types';
 import { DEFAULT_BREAD } from '../domain/breads';
 import type { BreadId } from '../domain/breads';
+import { addDays, localDayKey } from '../domain/days';
+import type { DayBalance } from '../domain/points';
 import type { LoafId, Stage } from '../domain/types';
 import { growthPercent, progressPercent, stageForPercent } from '../domain/stages';
 import { MAX_ENTRY_CENTS, MAX_STARTING_CENTS, checkAmount, type AmountErrorCode } from './amounts';
@@ -111,6 +113,28 @@ export function balanceCents(data: AppData, loafId: LoafId): number {
     total += t.type === 'withdrawal' ? -t.amountCents : t.amountCents;
   }
   return total;
+}
+
+/**
+ * The loaf's balance at the end of each local day, from the first transaction through the day before `today`
+ * (today isn't over yet). A day with no transactions carries the balance forward. Points for "the fund holds
+ * steady" are worked out from this, and it lives here because only `src/money/` calculates balances.
+ */
+export function endOfDayBalances(data: AppData, loafId: LoafId, today: string): DayBalance[] {
+  const rows = data.transactions.filter((t) => t.loafId === loafId).sort((a, b) => a.at.localeCompare(b.at));
+  if (rows.length === 0) return [];
+  const change = new Map<string, number>();
+  for (const t of rows) {
+    const day = localDayKey(t.at);
+    change.set(day, (change.get(day) ?? 0) + (t.type === 'withdrawal' ? -t.amountCents : t.amountCents));
+  }
+  const series: DayBalance[] = [];
+  let balance = 0;
+  for (let day = localDayKey(rows[0].at); day < today; day = addDays(day, 1)) {
+    balance += change.get(day) ?? 0;
+    series.push({ day, endCents: balance });
+  }
+  return series;
 }
 
 /** Progress toward the current goal: the new part only while growing, otherwise the whole fund. */

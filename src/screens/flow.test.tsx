@@ -30,7 +30,7 @@ const withAnswers = (answers: PlacementAnswers): AppData => ({ ...signedIn, prof
 
 describe('sign in', () => {
   it('"Continue as demo user" signs in Maya, who lands on Home with her loaf', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { adapter, pathname } = mount('/login', emptyData());
     await user.click(await screen.findByRole('button', { name: 'Continue as demo user' }));
     await waitFor(() => expect(pathname()).toBe('/'));
@@ -38,7 +38,7 @@ describe('sign in', () => {
   });
 
   it('"Start fresh demo" (demo mode only) starts a plain demo user at the placement quiz', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     sessionStorage.setItem('dough.demo', '1');
     try {
       const { pathname } = mount('/login', emptyData());
@@ -53,7 +53,7 @@ describe('sign in', () => {
 
 describe('placement quiz', () => {
   it('keeps the answers given when the student skips, and fills the rest with defaults', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { adapter, pathname } = mount('/placement', signedIn);
 
     await user.click(await screen.findByRole('radio', { name: '$500–$749' }));
@@ -78,7 +78,7 @@ describe('placement quiz', () => {
   });
 
   it('skipping before answering anything stores a skipped placement', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { adapter, pathname } = mount('/placement', signedIn);
     await user.click(await screen.findByRole('button', { name: 'Skip for now' }));
     await user.click(screen.getByRole('button', { name: 'Skip' }));
@@ -88,7 +88,7 @@ describe('placement quiz', () => {
   });
 
   it('"Keep answering" closes the confirmation and stays on the question', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { pathname } = mount('/placement', signedIn);
     await user.click(await screen.findByRole('button', { name: 'Skip for now' }));
     await user.click(screen.getByRole('button', { name: 'Keep answering' }));
@@ -98,7 +98,7 @@ describe('placement quiz', () => {
   });
 
   it('Q3: "None of these" and "Not sure" clear the other choices', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount('/placement', signedIn);
     await user.click(await screen.findByRole('radio', { name: '$500–$749' }));
     await user.click(screen.getByRole('button', { name: 'Next' }));
@@ -129,7 +129,7 @@ describe('placement quiz', () => {
 
 describe('your new loaf', () => {
   it('asks "Is that right?" over $10,000 and starts nothing until the student says yes', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { adapter, pathname } = mount(
       '/new-loaf',
       withAnswers({ essentials: '1500-plus', savings: '1000-plus', accounts: ['checking'], cardDebt: 'no', earnedIncome: true, essentialsExactCents: 400_000 }),
@@ -159,7 +159,7 @@ describe('your new loaf', () => {
   });
 
   it('starts a plain loaf with the suggested goal', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { adapter, pathname } = mount('/new-loaf', withAnswers({ essentials: '500-749', savings: 'none' }));
     await user.click(await screen.findByRole('button', { name: 'Start my loaf' }));
     await waitFor(() => expect(pathname()).toBe('/lessons'));
@@ -169,7 +169,7 @@ describe('your new loaf', () => {
   });
 
   it('counts any reported savings by default, even under one month, and lets the student uncheck it', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount('/new-loaf', withAnswers({ essentials: '500-749', savings: '500-999' })); // $500 of a $650 month
     const box = (await screen.findByRole('checkbox', { name: 'Count the money I already have set aside' })) as HTMLInputElement;
     expect(box.checked).toBe(true);
@@ -178,7 +178,7 @@ describe('your new loaf', () => {
   });
 
   it('blocks a goal that existing savings already cover', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount('/new-loaf', withAnswers({ essentials: 'under-250', savings: '250-499' }));
     // Savings between 1 and 3 months are counted by default.
     expect(((await screen.findByRole('checkbox', { name: 'Count the money I already have set aside' })) as HTMLInputElement).checked).toBe(true);
@@ -189,7 +189,7 @@ describe('your new loaf', () => {
   });
 
   it('a fund that is already built goes to the shelf and on to ChooseLoaf', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { adapter, pathname } = mount('/new-loaf', withAnswers({ essentials: 'under-250', savings: '1000-plus', cardDebt: 'no' }));
     await user.click(await screen.findByRole('button', { name: 'Choose your next loaf' }));
     await waitFor(() => expect(pathname()).toBe('/choose-loaf'));

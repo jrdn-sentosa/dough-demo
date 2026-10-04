@@ -321,6 +321,25 @@ input:focus-visible {
   margin: 0;
 }
 
+/* Share sheet: a short preview of the picture, so the buttons stay on screen */
+.share-sheet {
+  max-height: 100dvh;
+  overflow-y: auto;
+}
+
+.share-sheet__preview {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+}
+
+.share-sheet__preview img {
+  max-width: 100%;
+  max-height: 32dvh;
+  border: 1px solid var(--divider);
+  border-radius: 12px;
+}
+
 /* Lessons, lesson screen, quiz */
 .visually-hidden {
   position: absolute;
@@ -1595,6 +1614,120 @@ input:focus-visible {
 .home__links {
   display: inline-flex;
   gap: var(--space-3);
+}
+
+/* Dough points: the total on Home, the history, and the daily quiz card */
+.home__points {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  font-size: 15px;
+  color: var(--crust);
+  text-decoration: none;
+}
+
+.home__points strong {
+  font-family: var(--font-display);
+  font-variation-settings: 'SOFT' 100;
+  font-size: 20px;
+}
+
+.daily-quiz {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.daily-quiz h2 {
+  margin: 0;
+}
+
+.daily-quiz__intro,
+.daily-quiz__done {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.points {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.points__total {
+  margin: 0;
+  font-family: var(--font-display);
+  font-variation-settings: 'SOFT' 100;
+  font-weight: 700;
+  font-size: 26px;
+}
+
+.points__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.points__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: var(--space-3);
+  padding: 12px 0;
+  border-bottom: 1.5px solid var(--divider);
+}
+
+.points__what {
+  grid-column: 1;
+}
+
+.points__when {
+  grid-column: 1;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.points__earned {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  font-weight: 700;
+  color: var(--sage);
+}
+
+.points__note {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* Settings: Send feedback */
+.feedback-form__label {
+  font-weight: 700;
+}
+
+.feedback-form__text {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--field-border);
+  border-radius: 12px;
+  background: var(--crumb);
+  color: var(--rye);
+  font: inherit;
+  resize: vertical;
+}
+
+.feedback-form__text::placeholder {
+  color: var(--placeholder);
+}
+
+.feedback-form__count {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: right;
 }
 
 .demo-tools__ask {
