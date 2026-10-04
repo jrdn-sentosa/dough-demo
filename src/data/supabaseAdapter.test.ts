@@ -171,6 +171,66 @@ describe('supabase adapter offline', () => {
     expect((await fresh.load()).transactions).toHaveLength(1);
   });
 
+  describe('the points ledger is append-only', () => {
+    const point = (key: string, points = 1) => ({
+      key,
+      kind: 'video' as const,
+      points,
+      at: '2026-01-02T00:00:00.000Z',
+      ref: key,
+    });
+
+    it('is written with insert-only calls, never an update', async () => {
+      const { db, adapter } = await setup();
+      const data = await adapter.load();
+      data.points.push(point('video:a'));
+      await adapter.save(data);
+      expect(db.writes).toHaveLength(1);
+      expect(db.writes[0]).toMatchObject({ op: 'insert', table: 'point_events' });
+      expect(db.tables.point_events).toHaveLength(1);
+    });
+
+    it('sends only the new awards on the next save', async () => {
+      const { db, adapter } = await setup();
+      const data = await adapter.load();
+      data.points.push(point('video:a'));
+      await adapter.save(data);
+      db.writes.length = 0;
+      data.points.push(point('video:b'));
+      await adapter.save(data);
+      expect(db.writes).toHaveLength(1);
+      expect(db.writes[0].rows.map((r) => r.award_key)).toEqual(['video:b']);
+    });
+
+    it('never deletes a row, even when the saved data no longer has it', async () => {
+      const { db, adapter } = await setup();
+      const data = await adapter.load();
+      data.points.push(point('video:a'));
+      await adapter.save(data);
+      db.writes.length = 0;
+      data.points = [];
+      await adapter.save(data);
+      expect(db.writes.filter((w) => w.op === 'remove' && w.table === 'point_events')).toEqual([]);
+      expect(db.tables.point_events).toHaveLength(1);
+      expect((await adapter.load()).points.map((p) => p.key)).toEqual(['video:a']);
+    });
+
+    it('leaves a stored award exactly as it was when the same key is sent again', async () => {
+      const { db, adapter } = await setup();
+      const data = await adapter.load();
+      data.points.push(point('video:a', 1));
+      await adapter.save(data);
+      // A second device that never saw the first award writes the same key with different points.
+      const other = createSupabaseAdapter(db, fakeStorage());
+      const theirs = await other.load();
+      theirs.points = [];
+      await other.save(theirs);
+      theirs.points.push(point('video:a', 9));
+      await other.save(theirs);
+      expect(db.tables.point_events.map((r) => r.points)).toEqual([1]);
+    });
+  });
+
   it('clears the offline copy on sign out', async () => {
     const { storage } = await setup();
     expect(storage.map.has(CACHE_PREFIX + 'user-1')).toBe(true);

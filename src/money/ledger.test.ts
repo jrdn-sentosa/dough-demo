@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { DataAdapter } from '../data/adapter';
 import { createMemoryAdapter } from '../data/memoryAdapter';
+import type { LoafId } from '../domain/types';
 import { advance } from './clock';
 import {
   addStarting,
   balanceCents,
+  endOfDayBalances,
   deposit,
   getLoafStatus,
   listTransactions,
@@ -304,5 +306,43 @@ describe('loaf lookups', () => {
   it('does not start the same loaf twice', async () => {
     await startEf();
     expect(await startLoaf(adapter, EF, 1000)).toMatchObject({ ok: false, code: 'loaf-exists' });
+  });
+});
+
+describe('endOfDayBalances', () => {
+  const at = (day: number, hour = 12) => new Date(2026, 9, day, hour).toISOString();
+  const tx = (id: string, type: 'starting' | 'deposit' | 'withdrawal', amountCents: number, when: string, loafId: LoafId = EF) => ({
+    id,
+    loafId,
+    type,
+    source: 'manual' as const,
+    amountCents,
+    at: when,
+  });
+
+  it('carries the balance through quiet days and stops before today', async () => {
+    const data = await adapter.load();
+    data.transactions = [tx('a', 'deposit', 1000, at(1)), tx('b', 'withdrawal', 300, at(3)), tx('c', 'deposit', 50, at(3, 23))];
+    expect(endOfDayBalances(data, EF, '2026-10-05')).toEqual([
+      { day: '2026-10-01', endCents: 1000 },
+      { day: '2026-10-02', endCents: 1000 },
+      { day: '2026-10-03', endCents: 750 },
+      { day: '2026-10-04', endCents: 750 },
+    ]);
+  });
+
+  it('is empty with no rows, and ignores other loaves', async () => {
+    const data = await adapter.load();
+    data.transactions = [tx('a', 'deposit', 1000, at(1), 'roth-ira')];
+    expect(endOfDayBalances(data, EF, '2026-10-05')).toEqual([]);
+  });
+
+  it('counts a starting row on its own day', async () => {
+    const data = await adapter.load();
+    data.transactions = [tx('a', 'starting', 2500, at(2))];
+    expect(endOfDayBalances(data, EF, '2026-10-04')).toEqual([
+      { day: '2026-10-02', endCents: 2500 },
+      { day: '2026-10-03', endCents: 2500 },
+    ]);
   });
 });

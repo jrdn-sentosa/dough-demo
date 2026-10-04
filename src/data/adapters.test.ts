@@ -109,6 +109,15 @@ function fullData(): AppData {
   data.tipsSeen = ['emergency-fund:shape'];
   data.hysaCard = 'pending';
   data.streaks = { unlocked: [{ bread: 'baguette', at: '2026-01-15T00:00:00.000Z', seen: true }], bestDays: 14 };
+  data.points = [
+    { key: 'fund-day:2026-01-02', kind: 'fund-day', points: 1, at: '2026-01-02T23:59:59.999Z', ref: '2026-01-02' },
+    { key: 'video:ef-what-its-for', kind: 'video', points: 1, at: '2026-01-03T10:00:00.000Z', ref: 'ef-what-its-for' },
+    { key: 'mastery:emergency-fund', kind: 'mastery', points: 5, at: '2026-01-03T10:05:00.000Z', ref: 'emergency-fund' },
+  ];
+  data.dailyQuizzes = [
+    { day: '2026-01-04', loafId: 'emergency-fund', questionId: 'ef-q1', choiceId: 'car-repair', correct: true },
+    { day: '2026-01-05', loafId: 'emergency-fund', questionId: 'ef-q2', choiceId: null, correct: null },
+  ];
   data.clock.offsetDays = 3;
   return data;
 }

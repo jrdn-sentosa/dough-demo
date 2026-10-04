@@ -91,6 +91,26 @@ export function nextLessonId(rows: readonly LessonRow[], currentId: string): str
 
 export const WATCHED_FRACTION = 0.9;
 
+/** The slice of a media element's `played` list these rules need. */
+export interface PlayedRanges {
+  readonly length: number;
+  start(index: number): number;
+  end(index: number): number;
+}
+
+/** Seconds actually played: the total length of the played ranges. Skipped parts and replays add nothing. */
+export function playedSeconds(ranges: PlayedRanges | null | undefined): number {
+  if (!ranges) return 0;
+  let total = 0;
+  for (let i = 0; i < ranges.length; i++) total += Math.max(0, ranges.end(i) - ranges.start(i));
+  return total;
+}
+
+/** Video points need 90% of the video played, not just reached by seeking. */
+export function reachedPlayedThreshold(played: number, duration: number): boolean {
+  return Number.isFinite(duration) && duration > 0 && played / duration >= WATCHED_FRACTION;
+}
+
 /** A lesson counts as watched once the video reaches 90%. */
 export function reachedWatchThreshold(currentTime: number, duration: number): boolean {
   return Number.isFinite(duration) && duration > 0 && currentTime / duration >= WATCHED_FRACTION;

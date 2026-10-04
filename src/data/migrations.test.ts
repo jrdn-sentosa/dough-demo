@@ -10,13 +10,57 @@ const tables = [...sql.matchAll(/create\s+table\s+(?:if\s+not\s+exists\s+)?(?:pu
 
 describe('Supabase migrations', () => {
   it('create the tables the app needs', () => {
-    expect(tables.sort()).toEqual(['lesson_progress', 'loaves', 'profiles', 'quiz_attempts', 'transactions', 'user_state']);
+    expect([...tables].sort()).toEqual([
+      'daily_quizzes',
+      'feedback',
+      'lesson_progress',
+      'loaves',
+      'point_events',
+      'profiles',
+      'quiz_attempts',
+      'transactions',
+      'user_state',
+    ]);
   });
+
+  /** Tables that deliberately allow less than everything on a user's own rows. */
+  const limited: Record<string, readonly ('select' | 'insert')[]> = {
+    point_events: ['select', 'insert'],
+    feedback: ['insert'],
+  };
+
+  const own = String.raw`user_id\s*=\s*\(select auth\.uid\(\)\)`;
+  const policiesOn = (table: string) =>
+    [...sql.matchAll(new RegExp(String.raw`create\s+policy\s+"[^"]+"\s+on\s+(?:public\.)?${table}\s+for\s+(\w+)\s+to\s+authenticated([^;]*);`, 'gi'))].map(
+      (m) => ({ command: m[1].toLowerCase(), body: m[2] }),
+    );
 
   it.each(tables)('%s has Row Level Security and an own-rows policy', (table) => {
     expect(sql).toMatch(new RegExp(`alter\\s+table\\s+(?:public\\.)?${table}\\s+enable\\s+row\\s+level\\s+security`, 'i'));
-    const policy = new RegExp(`create\\s+policy\\s+"[^"]+"\\s+on\\s+(?:public\\.)?${table}\\s+for\\s+all\\s+to\\s+authenticated\\s+using\\s*\\(\\s*user_id\\s*=\\s*\\(select auth\\.uid\\(\\)\\)\\s*\\)\\s*with\\s+check\\s*\\(\\s*user_id\\s*=\\s*\\(select auth\\.uid\\(\\)\\)\\s*\\)`, 'i');
-    expect(sql).toMatch(policy);
+    const policies = policiesOn(table);
+    const commands = limited[table] ?? ['all'];
+    expect(policies.map((p) => p.command).sort()).toEqual([...commands].sort());
+    for (const p of policies) {
+      // Every policy limits rows to the signed-in user: reads by `using`, writes by `with check`.
+      const reads = p.command === 'select' || p.command === 'all';
+      const writes = p.command === 'insert' || p.command === 'all';
+      if (reads) expect(p.body).toMatch(new RegExp(String.raw`using\s*\(\s*${own}\s*\)`, 'i'));
+      if (writes) expect(p.body).toMatch(new RegExp(String.raw`with\s+check\s*\(\s*${own}\s*\)`, 'i'));
+    }
+  });
+
+  it('lets feedback be sent but never read, and points be added but never changed or removed', () => {
+    const grantsTo = (table: string) =>
+      [...sql.matchAll(/grant\s+([\w,\s]+?)\s+on\s+([^;]*?)\s+to\s+authenticated\s*;/gi)]
+        .filter((m) => new RegExp(`(?:public\\.)?${table}\\b`).test(m[2]))
+        .flatMap((m) => m[1].split(',').map((s) => s.trim().toLowerCase()));
+    expect(grantsTo('feedback')).toEqual(['insert']);
+    expect(grantsTo('point_events').sort()).toEqual(['insert', 'select']);
+    expect(sql).toMatch(/revoke\s+all\s+on\s+public\.point_events,\s*public\.feedback\s+from\s+authenticated/i);
+  });
+
+  it('limits the feedback message length in the database too', () => {
+    expect(sql).toMatch(/char_length\(btrim\(message\)\)\s+between\s+1\s+and\s+1000/i);
   });
 
   it.each(tables)('%s has a user_id column that cascades from auth.users', (table) => {

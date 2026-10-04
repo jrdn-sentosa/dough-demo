@@ -45,6 +45,10 @@ export function dbFromClient(supabase: SupabaseClient): Db {
       const { error } = await supabase.from(table).upsert(rows);
       if (error) throw new Error(error.message);
     },
+    async insertOnly(table, rows) {
+      const { error } = await supabase.from(table).upsert(rows, { ignoreDuplicates: true });
+      if (error) throw new Error(error.message);
+    },
     async remove(table, keys) {
       for (const key of keys) {
         let query = supabase.from(table).delete().eq('user_id', key.user_id as string);

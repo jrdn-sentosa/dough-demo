@@ -1,7 +1,7 @@
 import type { AdapterStatus, DataAdapter } from './adapter';
 import { normalizeAppData } from './normalize';
 import type { StorageLike } from './localAdapter';
-import { KEY_COLUMNS, TABLES, emptyRows, fromRows, rowKey, toRows, type Row, type TableName, type TableRows } from './supabaseMapping';
+import { APPEND_ONLY_TABLES, KEY_COLUMNS, TABLES, emptyRows, fromRows, rowKey, toRows, type Row, type TableName, type TableRows } from './supabaseMapping';
 import { emptyData, type AppData } from './types';
 
 /**
@@ -14,6 +14,8 @@ export interface Db {
   /** All of the signed-in user's rows in a table (Row Level Security limits it to them). */
   select(table: TableName): Promise<Row[]>;
   upsert(table: TableName, rows: Row[]): Promise<void>;
+  /** Inserts rows and ignores any whose key already exists. For append-only tables, which never get an UPDATE. */
+  insertOnly(table: TableName, rows: Row[]): Promise<void>;
   /** Deletes the rows with these key values (each row has `user_id` plus the table's key columns). */
   remove(table: TableName, keys: Row[]): Promise<void>;
 }
@@ -139,9 +141,13 @@ export function createSupabaseAdapter(db: Db, storage?: StorageLike): DataAdapte
 
         for (const table of TABLES) {
           const changed = next[table].filter((r) => snapshot![table].get(rowKey(table, r)) !== JSON.stringify(r));
-          if (changed.length) await db.upsert(table, changed);
+          if (!changed.length) continue;
+          if (APPEND_ONLY_TABLES.includes(table)) await db.insertOnly(table, changed);
+          else await db.upsert(table, changed);
         }
         for (const table of [...TABLES].reverse()) {
+          // An append-only table never loses a row, whatever the data being saved holds.
+          if (APPEND_ONLY_TABLES.includes(table)) continue;
           const gone = [...snapshot[table].keys()].filter((k) => !nextSnap[table].has(k));
           if (!gone.length) continue;
           const cols = KEY_COLUMNS[table];

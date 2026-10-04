@@ -1,5 +1,7 @@
 import type { BreadId } from '../domain/breads';
+import type { DailyQuizEntry } from '../domain/dailyQuiz';
 import type { Habit } from '../domain/habits';
+import type { PointEvent, PointKind } from '../domain/points';
 import type { PlacementStatus, Profile } from '../domain/profile';
 import type { RiskRecord } from '../domain/risk';
 import type { AccountType, CardDebt, LoafId } from '../domain/types';
@@ -22,7 +24,16 @@ import type {
 export type Row = Record<string, unknown>;
 
 /** Tables in the order they must be written (a transaction needs its loaf first). Deletes run in reverse. */
-export const TABLES = ['profiles', 'loaves', 'transactions', 'lesson_progress', 'quiz_attempts', 'user_state'] as const;
+export const TABLES = [
+  'profiles',
+  'loaves',
+  'transactions',
+  'lesson_progress',
+  'quiz_attempts',
+  'point_events',
+  'daily_quizzes',
+  'user_state',
+] as const;
 export type TableName = (typeof TABLES)[number];
 
 export type TableRows = Record<TableName, Row[]>;
@@ -34,11 +45,25 @@ export const KEY_COLUMNS: Record<TableName, readonly string[]> = {
   transactions: ['id'],
   lesson_progress: ['loaf_id', 'lesson_id'],
   quiz_attempts: ['id'],
+  point_events: ['award_key'],
+  daily_quizzes: ['day'],
   user_state: [],
 };
 
+/** Tables that only ever gain rows: written with insert-and-ignore-duplicates, never updated or deleted. */
+export const APPEND_ONLY_TABLES: readonly TableName[] = ['point_events'];
+
 export function emptyRows(): TableRows {
-  return { profiles: [], loaves: [], transactions: [], lesson_progress: [], quiz_attempts: [], user_state: [] };
+  return {
+    profiles: [],
+    loaves: [],
+    transactions: [],
+    lesson_progress: [],
+    quiz_attempts: [],
+    point_events: [],
+    daily_quizzes: [],
+    user_state: [],
+  };
 }
 
 /** A stable string for a row's primary key, used to compare saved and new rows. */
@@ -106,6 +131,22 @@ export function toRows(data: AppData, userId: string): TableRows {
       answers: q.answers,
       missed_lessons: q.missedLessons,
       at: q.at,
+    })),
+    point_events: data.points.map((e) => ({
+      user_id: userId,
+      award_key: e.key,
+      kind: e.kind,
+      points: e.points,
+      ref: e.ref,
+      at: e.at,
+    })),
+    daily_quizzes: data.dailyQuizzes.map((q) => ({
+      user_id: userId,
+      day: q.day,
+      loaf_id: q.loafId,
+      question_id: q.questionId,
+      choice_id: q.choiceId,
+      correct: q.correct,
     })),
     user_state: [
       {
@@ -208,6 +249,30 @@ export function fromRows(rows: TableRows, user: { email: string } | null): AppDa
       }),
     )
     .sort((a, b) => a.at.localeCompare(b.at));
+
+  data.points = rows.point_events
+    .map(
+      (r): PointEvent => ({
+        key: String(r.award_key),
+        kind: r.kind as PointKind,
+        points: Number(r.points),
+        at: iso(r.at),
+        ref: String(r.ref ?? ''),
+      }),
+    )
+    .sort((a, b) => a.at.localeCompare(b.at) || a.key.localeCompare(b.key));
+
+  data.dailyQuizzes = rows.daily_quizzes
+    .map(
+      (r): DailyQuizEntry => ({
+        day: String(r.day),
+        loafId: r.loaf_id as LoafId,
+        questionId: String(r.question_id),
+        choiceId: str(r.choice_id),
+        correct: typeof r.correct === 'boolean' ? r.correct : null,
+      }),
+    )
+    .sort((a, b) => a.day.localeCompare(b.day));
 
   const s = rows.user_state[0];
   if (s) {

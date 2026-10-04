@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { hasTestedOut, lessonPlan, nextLessonId, reachedWatchThreshold, savingUnlocked } from './lessons';
-import type { AttemptInfo, LessonInfo } from './lessons';
+import {
+  hasTestedOut,
+  lessonPlan,
+  nextLessonId,
+  playedSeconds,
+  reachedPlayedThreshold,
+  reachedWatchThreshold,
+  savingUnlocked,
+} from './lessons';
+import type { AttemptInfo, LessonInfo, PlayedRanges } from './lessons';
 
 const lessons: LessonInfo[] = [
   { id: 'a', optionalFor: null },
@@ -100,5 +108,33 @@ describe('reachedWatchThreshold', () => {
     expect(reachedWatchThreshold(5, 0)).toBe(false);
     expect(reachedWatchThreshold(5, NaN)).toBe(false);
     expect(reachedWatchThreshold(5, Infinity)).toBe(false);
+  });
+});
+
+describe('played seconds', () => {
+  const ranges = (...pairs: [number, number][]): PlayedRanges => ({
+    length: pairs.length,
+    start: (i) => pairs[i][0],
+    end: (i) => pairs[i][1],
+  });
+
+  it('adds up the ranges that were played', () => {
+    expect(playedSeconds(ranges([0, 30], [50, 70]))).toBe(50);
+    expect(playedSeconds(null)).toBe(0);
+    expect(playedSeconds(ranges())).toBe(0);
+  });
+
+  it('does not count skipping to the end as playing', () => {
+    // Played the first 10 seconds, jumped to 90 and played the last 5 of a 100-second video.
+    const played = playedSeconds(ranges([0, 10], [90, 95]));
+    expect(reachedWatchThreshold(95, 100)).toBe(true);
+    expect(reachedPlayedThreshold(played, 100)).toBe(false);
+  });
+
+  it('is reached at 90% played, and never without a known duration', () => {
+    expect(reachedPlayedThreshold(89, 100)).toBe(false);
+    expect(reachedPlayedThreshold(90, 100)).toBe(true);
+    expect(reachedPlayedThreshold(5, 0)).toBe(false);
+    expect(reachedPlayedThreshold(5, NaN)).toBe(false);
   });
 });

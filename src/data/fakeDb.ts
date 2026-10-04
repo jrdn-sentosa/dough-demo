@@ -6,7 +6,7 @@ export interface FakeDb extends Db {
   /** Everything stored, by table. */
   tables: Record<TableName, Row[]>;
   /** Every write call, in order, so tests can check what was (not) sent. */
-  writes: { op: 'upsert' | 'remove'; table: TableName; rows: Row[] }[];
+  writes: { op: 'upsert' | 'insert' | 'remove'; table: TableName; rows: Row[] }[];
   /** When set, every call throws as a dropped connection would. */
   offline: boolean;
   /** Throws on the n-th write call from now (1 = the next write). For partial-failure tests. */
@@ -55,6 +55,18 @@ export function createFakeDb(user: { id: string; email: string } | null = { id: 
         const stored = JSON.parse(JSON.stringify(row)) as Row;
         if (i >= 0) tables[table][i] = stored;
         else tables[table].push(stored);
+      }
+    },
+    async insertOnly(table, rows) {
+      if (db.offline) throw new TypeError('Failed to fetch');
+      if (db.failWriteNumber !== null && --db.failWriteNumber === 0) throw new Error('write failed');
+      db.writes.push({ op: 'insert', table, rows });
+      for (const row of rows) {
+        if (row.user_id !== db.signedInAs?.id) throw new Error('new row violates row-level security policy');
+        const key = rowKey(table, row);
+        // ON CONFLICT DO NOTHING: an existing row is left exactly as it was.
+        if (tables[table].some((r) => r.user_id === row.user_id && rowKey(table, r) === key)) continue;
+        tables[table].push(JSON.parse(JSON.stringify(row)) as Row);
       }
     },
     async remove(table, keys) {

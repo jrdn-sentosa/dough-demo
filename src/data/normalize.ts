@@ -1,4 +1,6 @@
 import { DEFAULT_BREAD, UNLOCKABLE_BREADS, isBreadId } from '../domain/breads';
+import type { DailyQuizEntry } from '../domain/dailyQuiz';
+import { POINT_KINDS, type PointEvent } from '../domain/points';
 import { TRANSACTION_SOURCES, type AppData, type Bake, type LoafRecord, type Streaks, type TransactionSource } from './types';
 
 /**
@@ -39,6 +41,45 @@ function withStreaks(streaks: Streaks | undefined): Streaks {
   };
 }
 
+/** Keeps well-formed ledger rows with positive whole points, one per key. Points are never deducted. */
+function withPoints(points: unknown): PointEvent[] {
+  if (!Array.isArray(points)) return [];
+  const seen = new Set<string>();
+  const out: PointEvent[] = [];
+  for (const p of points as PointEvent[]) {
+    const ok =
+      typeof p?.key === 'string' &&
+      (POINT_KINDS as readonly string[]).includes(p.kind) &&
+      Number.isInteger(p.points) &&
+      p.points > 0 &&
+      typeof p.at === 'string' &&
+      !seen.has(p.key);
+    if (!ok) continue;
+    seen.add(p.key);
+    out.push({ key: p.key, kind: p.kind, points: p.points, at: p.at, ref: typeof p.ref === 'string' ? p.ref : '' });
+  }
+  return out;
+}
+
+/** Keeps well-formed daily quiz entries, one per day. */
+function withDailyQuizzes(entries: unknown): DailyQuizEntry[] {
+  if (!Array.isArray(entries)) return [];
+  const seen = new Set<string>();
+  const out: DailyQuizEntry[] = [];
+  for (const e of entries as DailyQuizEntry[]) {
+    if (typeof e?.day !== 'string' || typeof e.loafId !== 'string' || typeof e.questionId !== 'string' || seen.has(e.day)) continue;
+    seen.add(e.day);
+    out.push({
+      day: e.day,
+      loafId: e.loafId,
+      questionId: e.questionId,
+      choiceId: typeof e.choiceId === 'string' ? e.choiceId : null,
+      correct: typeof e.correct === 'boolean' ? e.correct : null,
+    });
+  }
+  return out;
+}
+
 /**
  * Quiz answers used to be saved as choice positions (numbers). They are choice ids (text) now.
  * This is demo data, so attempts saved the old way are dropped instead of converted.
@@ -63,6 +104,8 @@ export function normalizeAppData(data: AppData): AppData {
     tipsSeen: Array.isArray(data.tipsSeen) ? data.tipsSeen : [],
     hysaCard: data.hysaCard === 'pending' || data.hysaCard === 'dismissed' ? data.hysaCard : null,
     streaks: withStreaks(data.streaks),
+    points: withPoints(data.points),
+    dailyQuizzes: withDailyQuizzes(data.dailyQuizzes),
     transactions: data.transactions.map((t) => ({
       ...t,
       source: TRANSACTION_SOURCES.includes(t.source) ? t.source : ('manual' as TransactionSource),
