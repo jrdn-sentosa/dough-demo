@@ -115,9 +115,17 @@ function fullData(): AppData {
     { key: 'mastery:emergency-fund', kind: 'mastery', points: 5, at: '2026-01-03T10:05:00.000Z', ref: 'emergency-fund' },
   ];
   data.dailyQuizzes = [
-    { day: '2026-01-04', loafId: 'emergency-fund', questionId: 'ef-q1', choiceId: 'car-repair', correct: true },
-    { day: '2026-01-05', loafId: 'emergency-fund', questionId: 'ef-q2', choiceId: null, correct: null },
+    {
+      day: '2026-01-04',
+      questions: [
+        { loafId: 'emergency-fund', questionId: 'ef-q1', choiceId: 'car-repair', correct: true },
+        { loafId: 'emergency-fund', questionId: 'ef-q2', choiceId: 'wrong', correct: false },
+        { loafId: 'emergency-fund', questionId: 'ef-q3', choiceId: null, correct: null },
+      ],
+    },
+    { day: '2026-01-05', questions: [{ loafId: 'emergency-fund', questionId: 'ef-q2', choiceId: null, correct: null }] },
   ];
+  data.dailyQuizPopup = { off: false, hiddenDay: '2026-01-05' };
   data.clock.offsetDays = 3;
   return data;
 }

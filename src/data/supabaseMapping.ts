@@ -1,5 +1,5 @@
 import type { BreadId } from '../domain/breads';
-import type { DailyQuizEntry } from '../domain/dailyQuiz';
+import type { DailyQuizEntry, PopupPrefs } from '../domain/dailyQuiz';
 import type { Habit } from '../domain/habits';
 import type { PointEvent, PointKind } from '../domain/points';
 import type { PlacementStatus, Profile } from '../domain/profile';
@@ -143,10 +143,12 @@ export function toRows(data: AppData, userId: string): TableRows {
     daily_quizzes: data.dailyQuizzes.map((q) => ({
       user_id: userId,
       day: q.day,
-      loaf_id: q.loafId,
-      question_id: q.questionId,
-      choice_id: q.choiceId,
-      correct: q.correct,
+      questions: q.questions,
+      // The columns from when the quiz asked one question a day. New rows leave them empty.
+      loaf_id: null,
+      question_id: null,
+      choice_id: null,
+      correct: null,
     })),
     user_state: [
       {
@@ -154,6 +156,7 @@ export function toRows(data: AppData, userId: string): TableRows {
         habit: data.habit,
         tips_seen: data.tipsSeen,
         hysa_card: data.hysaCard,
+        daily_quiz_popup: data.dailyQuizPopup,
         streaks: data.streaks,
         clock_offset_days: data.clock.offsetDays,
       },
@@ -262,14 +265,24 @@ export function fromRows(rows: TableRows, user: { email: string } | null): AppDa
     )
     .sort((a, b) => a.at.localeCompare(b.at) || a.key.localeCompare(b.key));
 
+  // A row from before the quiz asked three questions has no `questions`: its single question is in the old columns.
   data.dailyQuizzes = rows.daily_quizzes
     .map(
       (r): DailyQuizEntry => ({
         day: String(r.day),
-        loafId: r.loaf_id as LoafId,
-        questionId: String(r.question_id),
-        choiceId: str(r.choice_id),
-        correct: typeof r.correct === 'boolean' ? r.correct : null,
+        questions:
+          Array.isArray(r.questions) && r.questions.length > 0
+            ? (r.questions as DailyQuizEntry['questions'])
+            : r.question_id == null
+              ? []
+              : [
+                  {
+                    loafId: r.loaf_id as LoafId,
+                    questionId: String(r.question_id),
+                    choiceId: str(r.choice_id),
+                    correct: typeof r.correct === 'boolean' ? r.correct : null,
+                  },
+                ],
       }),
     )
     .sort((a, b) => a.day.localeCompare(b.day));
@@ -279,6 +292,7 @@ export function fromRows(rows: TableRows, user: { email: string } | null): AppDa
     data.habit = (s.habit ?? null) as Habit | null;
     data.tipsSeen = Array.isArray(s.tips_seen) ? (s.tips_seen as string[]) : [];
     data.hysaCard = (s.hysa_card ?? null) as HysaCardState;
+    data.dailyQuizPopup = (s.daily_quiz_popup ?? data.dailyQuizPopup) as PopupPrefs;
     data.streaks = (s.streaks ?? data.streaks) as Streaks;
     data.clock = { offsetDays: Number(s.clock_offset_days ?? 0) };
   }

@@ -1,5 +1,5 @@
 import type { BreadId, UnlockableBread } from '../domain/breads';
-import type { DailyQuizEntry } from '../domain/dailyQuiz';
+import type { DailyQuizEntry, PopupPrefs } from '../domain/dailyQuiz';
 import type { PointEvent } from '../domain/points';
 import type { Habit } from '../domain/habits';
 import type { Profile } from '../domain/profile';
@@ -128,8 +128,10 @@ export interface AppData {
   streaks: Streaks;
   /** The points ledger. Append-only: rows are only ever added, each with a unique key. */
   points: PointEvent[];
-  /** One entry per day the daily quiz ran. */
+  /** One entry per day the daily quiz ran, with that day's questions. */
   dailyQuizzes: DailyQuizEntry[];
+  /** The daily quiz popup preference: off for good, or hidden for one day. A flag, not money. */
+  dailyQuizPopup: PopupPrefs;
   clock: ClockState;
 }
 
@@ -148,6 +150,7 @@ export function emptyData(): AppData {
     streaks: { unlocked: [], bestDays: 0 },
     points: [],
     dailyQuizzes: [],
+    dailyQuizPopup: { off: false, hiddenDay: null },
     clock: { offsetDays: 0 },
   };
 }
