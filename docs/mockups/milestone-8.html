@@ -1,0 +1,302 @@
+<!doctype html>
+<!--
+  Dough! milestone 8 mockups: celebration, bread shelf, choose your next loaf.
+  Match layout, colors, sizes, and button shapes. Values here are exact.
+
+  Celebration
+  - Shown state: first bake, with lessons mastered (golden finish + sparkles).
+  - Without mastery: same baked loaf, no golden highlight or sparkles.
+  - Copy variants (in content):
+      first bake:  "Your loaf is baked!" / "You saved {amount} for emergencies. That's a real cushion."
+      rebuilt:     "You rebuilt your fund." / "It's back to {amount}, ready for the next surprise."
+      grown:       "Your cushion is at {months} months." / "That's {amount} set aside. Seriously impressive."
+  - Entrance: loaf scales up gently and confetti settles, under 400ms. No motion with prefers-reduced-motion.
+
+  Bread shelf
+  - Baked loaves from the loaf's bakes list, newest last. "Already built" when baked at start (no date).
+  - A grown fund shows two entries: "1 month" and "3 months".
+  - Upcoming loaves are dashed outlines with "Coming soon".
+
+  Choose your next loaf
+  - The recommended option comes from recommendNext and sits on top with a "Recommended" pill.
+  - Shown state: recommendation is "Grow your cushion to 3 months" (functional).
+  - needsPersonalization state: replace the recommended card with
+      "Answer a few quick questions for a personalized pick" and a loaf button "Personalize" (opens placement retake).
+  - Coming soon cards are not buttons. No "notify me".
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dough! milestone 8 mockups</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..700&family=Fraunces:opsz,wght,SOFT@9..144,400..800,0..100&display=swap">
+<style>
+  :root {
+    --ground: #FFFFFF;
+    --crumb: #FFF6E6;
+    --butter: #F6C453;
+    --toast-edge: #B9773A;
+    --crust: #8A4B1F;
+    --deep-crust: #5E3315;
+    --rye: #2B1B12;
+    --sage: #5E7A4F;
+    --text-muted: #6B5446;
+    --divider: #EADBC4;
+    --locked-bg: #F3ECE0;
+    --locked-text: #7A6552;
+    --outline: #C9B497;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--crumb);
+    font-family: 'DM Sans', 'Avenir Next', 'Segoe UI', sans-serif;
+    color: var(--rye);
+  }
+  .screens { display: flex; flex-wrap: wrap; justify-content: center; gap: 32px; padding: 24px; }
+  .phone {
+    width: 390px;
+    min-height: 844px;
+    background: var(--ground);
+    padding: 48px 24px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .caption { margin: 0 0 8px; text-align: center; font-size: 13px; font-weight: 700; color: var(--text-muted); }
+  .display {
+    font-family: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+    font-variation-settings: 'SOFT' 100;
+    font-weight: 700;
+  }
+  h1 { margin: 0; font-size: 32px; line-height: 1.1; }
+  p { margin: 0; }
+  .muted { color: var(--text-muted); }
+
+  .loaf-button {
+    position: relative; width: 100%; height: 62px; border: 0;
+    border-bottom: 5px solid var(--deep-crust);
+    border-radius: 70px 70px 16px 16px / 38px 38px 16px 16px;
+    background: var(--crust); color: #FFFFFF; font: inherit; font-size: 18px; font-weight: 700;
+    padding-top: 6px; cursor: pointer;
+  }
+  .loaf-button:active { transform: translateY(3px); border-bottom-width: 2px; }
+  .score { position: absolute; width: 30px; height: 3px; border-radius: 3px; background: var(--crumb); opacity: 0.55; transform: rotate(-14deg); }
+  .slice-button {
+    width: 100%; height: 60px; border: 3px solid var(--toast-edge);
+    border-radius: 46px 46px 14px 14px / 30px 30px 14px 14px;
+    background: var(--crumb); color: var(--rye); font: inherit; font-size: 16px; font-weight: 600;
+    padding-top: 6px; cursor: pointer;
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px;
+    font-size: 12px; font-weight: 700;
+  }
+
+  /* Celebration */
+  .celebrate { align-items: center; text-align: center; }
+  .stage { position: relative; width: 300px; height: 230px; margin-top: 12px; }
+  .confetti { position: absolute; border-radius: 2px; }
+  .celebrate h1 { font-size: 36px; color: var(--crust); }
+  .celebrate .body { font-size: 17px; line-height: 1.45; }
+  .tagline { font-size: 15px; font-weight: 700; color: var(--crust); }
+  .push { margin-top: auto; width: 100%; display: flex; flex-direction: column; gap: 12px; }
+
+  /* Shelf */
+  .shelf { display: flex; flex-direction: column; gap: 6px; }
+  .shelf h2 { margin: 0; font-size: 17px; font-weight: 700; }
+  .row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; align-items: end; padding: 0 4px; }
+  .slot { display: flex; justify-content: center; }
+  .plank { height: 10px; border-radius: 5px; background: var(--toast-edge); border-bottom: 3px solid #8E5A2A; }
+  .labels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 8px; text-align: center; }
+  .labels .name { display: block; font-size: 14px; font-weight: 700; }
+  .labels .sub { display: block; font-size: 12px; color: var(--text-muted); }
+  .labels .soon .name { color: var(--locked-text); }
+  .total {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 14px 16px; border: 1.5px solid var(--divider); border-radius: 20px;
+  }
+  .total .label { font-size: 13px; font-weight: 700; color: var(--text-muted); }
+  .total .value { font-size: 22px; color: var(--crust); }
+
+  /* Choose */
+  .rec {
+    display: flex; flex-direction: column; gap: 10px; padding: 18px;
+    border-radius: 24px; background: var(--crumb); border: 2px solid var(--butter);
+  }
+  .rec-top { display: flex; align-items: center; gap: 14px; }
+  .rec h2 { margin: 0; font-size: 19px; }
+  .option {
+    display: flex; align-items: center; gap: 14px; padding: 12px 0;
+    border-bottom: 1.5px solid #F1E6D4;
+  }
+  .option .text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .option .title { font-size: 15px; font-weight: 700; color: var(--locked-text); }
+  .option .why { font-size: 13px; line-height: 1.35; color: var(--text-muted); }
+  .soon-pill { background: var(--locked-bg); color: var(--locked-text); }
+</style>
+</head>
+<body>
+<div class="screens">
+
+  <!-- 1. Celebration -->
+  <div>
+    <p class="caption">Celebration (first bake, mastered)</p>
+    <main class="phone celebrate">
+      <div class="stage" aria-hidden="true">
+        <span class="confetti" style="left: 30px; top: 30px; width: 10px; height: 10px; background: var(--butter); transform: rotate(20deg)"></span>
+        <span class="confetti" style="left: 70px; top: 6px; width: 8px; height: 14px; background: var(--sage); transform: rotate(-30deg)"></span>
+        <span class="confetti" style="left: 236px; top: 18px; width: 10px; height: 10px; background: var(--crust); transform: rotate(45deg)"></span>
+        <span class="confetti" style="left: 262px; top: 64px; width: 8px; height: 14px; background: var(--butter); transform: rotate(30deg)"></span>
+        <span class="confetti" style="left: 14px; top: 92px; width: 8px; height: 12px; background: var(--toast-edge); transform: rotate(-15deg)"></span>
+        <span class="confetti" style="left: 200px; top: 2px; width: 7px; height: 7px; background: var(--sage); border-radius: 50%"></span>
+        <svg width="300" height="210" viewBox="0 0 200 140" fill="none" style="position: absolute; left: 0; top: 20px">
+          <!-- steam -->
+          <path d="M78 54 C74 48 82 44 78 38" stroke="#C9B497" stroke-width="3" stroke-linecap="round"/>
+          <path d="M100 50 C96 44 104 40 100 34" stroke="#C9B497" stroke-width="3" stroke-linecap="round"/>
+          <path d="M122 54 C118 48 126 44 122 38" stroke="#C9B497" stroke-width="3" stroke-linecap="round"/>
+          <!-- baked loaf -->
+          <path d="M24 124 C24 82 60 64 100 64 C140 64 176 82 176 124 Q176 128 171 128 L29 128 Q24 128 24 124 Z" fill="#D9933F" stroke="#8A4B1F" stroke-width="3.5" stroke-linejoin="round"/>
+          <!-- golden finish (mastered only) -->
+          <path d="M40 98 C52 78 74 70 100 70 C126 70 148 78 160 98" stroke="#F6C453" stroke-width="5" stroke-linecap="round" opacity="0.9"/>
+          <!-- scores -->
+          <path d="M62 94 Q72 84 84 86" stroke="#FFF1D6" stroke-width="5" stroke-linecap="round"/>
+          <path d="M92 84 Q102 74 114 76" stroke="#FFF1D6" stroke-width="5" stroke-linecap="round"/>
+          <path d="M122 92 Q132 82 144 84" stroke="#FFF1D6" stroke-width="5" stroke-linecap="round"/>
+          <!-- sparkles (mastered only) -->
+          <path d="M44 66 L46 72 L52 74 L46 76 L44 82 L42 76 L36 74 L42 72 Z" fill="#F6C453"/>
+          <path d="M158 60 L160 65 L165 67 L160 69 L158 74 L156 69 L151 67 L156 65 Z" fill="#F6C453"/>
+          <path d="M14 132 L186 132" stroke="#EADBC4" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h1 class="display">Your loaf is baked!</h1>
+      <p class="body">You saved $1,000 for emergencies. That's a real cushion.</p>
+      <span class="pill" style="background: var(--butter); color: var(--rye)">
+        <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2B1B12" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L19 7"/></svg>
+        Baked with mastered lessons
+      </span>
+      <p class="tagline">Stack that bread.</p>
+      <div class="push">
+        <button type="button" class="loaf-button">
+          <span class="score" aria-hidden="true" style="top: 11px; left: 30%"></span>
+          <span class="score" aria-hidden="true" style="top: 9px; left: 46%"></span>
+          <span class="score" aria-hidden="true" style="top: 11px; left: 62%"></span>
+          Choose my next loaf
+        </button>
+        <button type="button" class="slice-button">See my bread shelf</button>
+      </div>
+    </main>
+  </div>
+
+  <!-- 2. Bread shelf -->
+  <div>
+    <p class="caption">Bread shelf (grown fund)</p>
+    <main class="phone">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <h1 class="display">Your bread shelf</h1>
+        <p class="muted" style="font-size: 15px">Every loaf you've baked, and what's coming next.</p>
+      </div>
+
+      <section class="total" aria-label="Emergency fund total">
+        <span class="label">Emergency fund total</span>
+        <span class="value display">$3,000</span>
+      </section>
+
+      <section class="shelf" aria-label="Baked loaves">
+        <h2>Baked</h2>
+        <div class="row">
+          <div class="slot"><svg aria-hidden="true" width="96" height="67" viewBox="0 0 200 140" fill="none"><path d="M24 124 C24 82 60 64 100 64 C140 64 176 82 176 124 Q176 128 171 128 L29 128 Q24 128 24 124 Z" fill="#D9933F" stroke="#8A4B1F" stroke-width="5" stroke-linejoin="round"/><path d="M40 98 C52 78 74 70 100 70 C126 70 148 78 160 98" stroke="#F6C453" stroke-width="7" stroke-linecap="round" opacity="0.9"/><path d="M62 94 Q72 84 84 86" stroke="#FFF1D6" stroke-width="7" stroke-linecap="round"/><path d="M92 84 Q102 74 114 76" stroke="#FFF1D6" stroke-width="7" stroke-linecap="round"/><path d="M122 92 Q132 82 144 84" stroke="#FFF1D6" stroke-width="7" stroke-linecap="round"/></svg></div>
+          <div class="slot"><svg aria-hidden="true" width="96" height="67" viewBox="0 0 200 140" fill="none"><path d="M24 124 C24 82 60 64 100 64 C140 64 176 82 176 124 Q176 128 171 128 L29 128 Q24 128 24 124 Z" fill="#D9933F" stroke="#8A4B1F" stroke-width="5" stroke-linejoin="round"/><path d="M40 98 C52 78 74 70 100 70 C126 70 148 78 160 98" stroke="#F6C453" stroke-width="7" stroke-linecap="round" opacity="0.9"/><path d="M62 94 Q72 84 84 86" stroke="#FFF1D6" stroke-width="7" stroke-linecap="round"/><path d="M92 84 Q102 74 114 76" stroke="#FFF1D6" stroke-width="7" stroke-linecap="round"/><path d="M122 92 Q132 82 144 84" stroke="#FFF1D6" stroke-width="7" stroke-linecap="round"/></svg></div>
+          <div class="slot"></div>
+        </div>
+        <div class="plank"></div>
+        <div class="labels">
+          <div><span class="name">Emergency fund</span><span class="sub">1 month · Oct 2026</span></div>
+          <div><span class="name">Emergency fund</span><span class="sub">3 months · Jan 2027</span></div>
+          <div></div>
+        </div>
+      </section>
+
+      <section class="shelf" aria-label="Coming soon" style="margin-top: 8px">
+        <h2>Coming soon</h2>
+        <div class="row">
+          <!-- Braided loaf: index funds -->
+          <div class="slot"><svg aria-hidden="true" width="84" height="59" viewBox="0 0 200 140" fill="none"><path d="M24 116 C24 96 44 88 62 92 C70 72 92 66 108 76 C122 64 146 68 152 88 C170 86 182 100 176 116 Q174 124 166 124 L34 124 Q24 124 24 116 Z" stroke="#C9B497" stroke-width="5" stroke-dasharray="12 10" stroke-linejoin="round"/></svg></div>
+          <!-- Rye loaf: bonds -->
+          <div class="slot"><svg aria-hidden="true" width="84" height="59" viewBox="0 0 200 140" fill="none"><path d="M30 120 C30 92 62 82 100 82 C138 82 170 92 170 120 Q170 126 164 126 L36 126 Q30 126 30 120 Z" stroke="#C9B497" stroke-width="5" stroke-dasharray="12 10" stroke-linejoin="round"/><path d="M60 104 L72 100 M92 98 L106 98 M128 100 L140 104" stroke="#C9B497" stroke-width="5" stroke-linecap="round"/></svg></div>
+          <!-- Sourdough: Roth IRA -->
+          <div class="slot"><svg aria-hidden="true" width="84" height="59" viewBox="0 0 200 140" fill="none"><path d="M42 124 C34 84 64 54 100 54 C136 54 166 84 158 124 Z" stroke="#C9B497" stroke-width="5" stroke-dasharray="12 10" stroke-linejoin="round"/><path d="M84 76 L116 102 M116 76 L84 102" stroke="#C9B497" stroke-width="5" stroke-linecap="round"/></svg></div>
+        </div>
+        <div class="plank" style="background: var(--divider); border-bottom-color: #D8C6A8"></div>
+        <div class="labels">
+          <div class="soon"><span class="name">Index funds</span><span class="sub">Coming soon</span></div>
+          <div class="soon"><span class="name">Bonds</span><span class="sub">Coming soon</span></div>
+          <div class="soon"><span class="name">Roth IRA</span><span class="sub">Coming soon</span></div>
+        </div>
+      </section>
+
+      <div class="push">
+        <button type="button" class="slice-button">Back to my loaf</button>
+      </div>
+    </main>
+  </div>
+
+  <!-- 3. Choose your next loaf -->
+  <div>
+    <p class="caption">Choose your next loaf (Grow recommended)</p>
+    <main class="phone">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <h1 class="display">Choose your next loaf</h1>
+        <p class="muted" style="font-size: 15px">Your cushion is built. Here's what we'd suggest next, and you pick.</p>
+      </div>
+
+      <section class="rec" aria-label="Recommended">
+        <span class="pill" style="align-self: flex-start; background: var(--butter); color: var(--rye)">Recommended</span>
+        <div class="rec-top">
+          <svg aria-hidden="true" width="76" height="53" viewBox="0 0 200 140" fill="none" style="flex: none"><path d="M58 128 C58 102 76 92 100 92 C124 92 142 102 142 128 Z" fill="#F7EBD6" stroke="#C9A97C" stroke-width="5" stroke-linejoin="round"/><circle cx="86" cy="110" r="3.5" fill="#E2CBA4"/><circle cx="110" cy="104" r="3.5" fill="#E2CBA4"/><path d="M30 132 L170 132" stroke="#EADBC4" stroke-width="5" stroke-linecap="round"/></svg>
+          <div style="display: flex; flex-direction: column; gap: 3px">
+            <h2 class="display">Grow your cushion to 3 months</h2>
+            <p class="muted" style="font-size: 14px; line-height: 1.4">Go from $1,000 to $3,000, enough for bigger surprises like a gap between jobs.</p>
+          </div>
+        </div>
+        <button type="button" class="loaf-button" style="margin-top: 4px">
+          <span class="score" aria-hidden="true" style="top: 11px; left: 30%"></span>
+          <span class="score" aria-hidden="true" style="top: 9px; left: 46%"></span>
+          <span class="score" aria-hidden="true" style="top: 11px; left: 62%"></span>
+          Grow my cushion
+        </button>
+      </section>
+
+      <section aria-label="More loaves">
+        <h2 style="margin: 4px 0 2px; font-size: 17px">More loaves</h2>
+        <div class="option">
+          <svg aria-hidden="true" width="56" height="39" viewBox="0 0 200 140" fill="none" style="flex: none"><path d="M20 118 C20 106 50 100 100 100 C150 100 180 106 180 118 Q180 124 172 124 L28 124 Q20 124 20 118 Z" stroke="#C9B497" stroke-width="6" stroke-dasharray="12 10" stroke-linejoin="round"/></svg>
+          <div class="text"><span class="title">Debt payoff</span><span class="why">Flatbread. Pay down high-interest credit card debt.</span></div>
+          <span class="pill soon-pill">Coming soon</span>
+        </div>
+        <div class="option">
+          <svg aria-hidden="true" width="56" height="39" viewBox="0 0 200 140" fill="none" style="flex: none"><path d="M24 116 C24 96 44 88 62 92 C70 72 92 66 108 76 C122 64 146 68 152 88 C170 86 182 100 176 116 Q174 124 166 124 L34 124 Q24 124 24 116 Z" stroke="#C9B497" stroke-width="6" stroke-dasharray="12 10" stroke-linejoin="round"/></svg>
+          <div class="text"><span class="title">Index funds</span><span class="why">Braided loaf. Many investments woven into one.</span></div>
+          <span class="pill soon-pill">Coming soon</span>
+        </div>
+        <div class="option">
+          <svg aria-hidden="true" width="56" height="39" viewBox="0 0 200 140" fill="none" style="flex: none"><path d="M30 120 C30 92 62 82 100 82 C138 82 170 92 170 120 Q170 126 164 126 L36 126 Q30 126 30 120 Z" stroke="#C9B497" stroke-width="6" stroke-dasharray="12 10" stroke-linejoin="round"/></svg>
+          <div class="text"><span class="title">Bonds</span><span class="why">Rye loaf. Dense and steady, rises slowly.</span></div>
+          <span class="pill soon-pill">Coming soon</span>
+        </div>
+        <div class="option" style="border-bottom: 0">
+          <svg aria-hidden="true" width="56" height="39" viewBox="0 0 200 140" fill="none" style="flex: none"><path d="M42 124 C34 84 64 54 100 54 C136 54 166 84 158 124 Z" stroke="#C9B497" stroke-width="6" stroke-dasharray="12 10" stroke-linejoin="round"/></svg>
+          <div class="text"><span class="title">Roth IRA</span><span class="why">Sourdough. Long, slow growth over decades.</span></div>
+          <span class="pill soon-pill">Coming soon</span>
+        </div>
+      </section>
+
+      <div class="push">
+        <button type="button" class="slice-button">Not now, back to my loaf</button>
+      </div>
+    </main>
+  </div>
+
+</div>
+</body>
+</html>
