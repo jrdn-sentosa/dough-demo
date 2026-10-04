@@ -2,6 +2,7 @@ import { parseFrontmatter } from '../domain/frontmatter';
 import type { AccountType, LoafId, Stage } from '../domain/types';
 import { ContentError, arr, bool, num, obj, oneOf, optStr, str } from './guards';
 import type {
+  FlowContent,
   Lesson,
   LoafDefinition,
   PlacementContent,
@@ -124,6 +125,35 @@ function parsePlacement(raw: unknown): PlacementContent {
   };
 }
 
+/** Reads every key in `keys` as a non-empty string, so a missing line of screen copy throws at load. */
+function strings<K extends string>(o: Record<string, unknown>, keys: readonly K[], where: string): Record<K, string> {
+  const out = {} as Record<K, string>;
+  for (const key of keys) out[key] = str(o, key, where);
+  return out;
+}
+
+function parseFlow(raw: unknown, file: string): FlowContent {
+  const w = `${file} flow`;
+  const o = obj(raw, w);
+  return {
+    lessons: strings(
+      obj(o.lessons, `${w} lessons`),
+      ['title', 'intro', 'testOutButton', 'quizButton', 'recommended', 'known', 'answeredRight', 'watchAnyway', 'watched', 'reviewTitle', 'reviewIntro', 'allOptionalTitle', 'allOptionalBody', 'continueSaving'] as const,
+      `${w} lessons`,
+    ),
+    lesson: strings(
+      obj(o.lesson, `${w} lesson`),
+      ['videoSoon', 'videoSoonNote', 'markWatched', 'watched', 'next', 'toQuiz', 'back', 'fromQuiz'] as const,
+      `${w} lesson`,
+    ),
+    quiz: strings(
+      obj(o.quiz, `${w} quiz`),
+      ['testOutTitle', 'testOutIntro', 'check', 'next', 'seeScore', 'correct', 'notQuite', 'correctAnswer', 'rewatch', 'readSummary', 'questionOf', 'scoreTitle', 'score', 'reviewMissed', 'tryAgain', 'continueSaving', 'scoreNote', 'testOutPassTitle', 'testOutPassBody', 'testOutFailBody', 'testOutLessons', 'testOutToLessons'] as const,
+      `${w} quiz`,
+    ),
+  };
+}
+
 export function parseLoaf(raw: unknown, file: string): LoafDefinition {
   const o = obj(raw, file);
   const id = oneOf(o, 'id', LOAF_IDS, file);
@@ -171,6 +201,7 @@ export function parseLoaf(raw: unknown, file: string): LoafDefinition {
       return l;
     }),
     quiz: str(o, 'quiz', file),
+    flow: parseFlow(o.flow, file),
     tips,
   };
 }

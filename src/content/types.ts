@@ -95,6 +95,60 @@ export interface GrowOption {
   askEssentials: string;
 }
 
+/** Screen copy for the lessons list, lesson screen and quiz. Tokens: `{score}`, `{total}`, `{n}`, `{answer}`. */
+export interface FlowContent {
+  lessons: {
+    title: string;
+    intro: string;
+    testOutButton: string;
+    quizButton: string;
+    recommended: string;
+    known: string;
+    answeredRight: string;
+    watchAnyway: string;
+    watched: string;
+    reviewTitle: string;
+    reviewIntro: string;
+    allOptionalTitle: string;
+    allOptionalBody: string;
+    continueSaving: string;
+  };
+  lesson: {
+    videoSoon: string;
+    videoSoonNote: string;
+    markWatched: string;
+    watched: string;
+    next: string;
+    toQuiz: string;
+    back: string;
+    fromQuiz: string;
+  };
+  quiz: {
+    testOutTitle: string;
+    testOutIntro: string;
+    check: string;
+    next: string;
+    seeScore: string;
+    correct: string;
+    notQuite: string;
+    correctAnswer: string;
+    rewatch: string;
+    readSummary: string;
+    questionOf: string;
+    scoreTitle: string;
+    score: string;
+    reviewMissed: string;
+    tryAgain: string;
+    continueSaving: string;
+    scoreNote: string;
+    testOutPassTitle: string;
+    testOutPassBody: string;
+    testOutFailBody: string;
+    testOutLessons: string;
+    testOutToLessons: string;
+  };
+}
+
 export interface BuiltLoaf extends LoafBase {
   status: 'built';
   targetMonths: { default: number; choices: number[] };
@@ -102,6 +156,7 @@ export interface BuiltLoaf extends LoafBase {
   /** Lesson ids in the order they're taught. */
   lessons: string[];
   quiz: string;
+  flow: FlowContent;
   tips: Tip[];
 }
 

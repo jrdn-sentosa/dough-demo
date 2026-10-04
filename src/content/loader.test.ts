@@ -34,6 +34,9 @@ function proseOf(loafId: 'emergency-fund'): string[] {
   return [
     loaf.summary,
     ...loaf.tips.flatMap((t) => [t.title, t.body]),
+    ...Object.values(loaf.flow.lessons),
+    ...Object.values(loaf.flow.lesson),
+    ...Object.values(loaf.flow.quiz),
     ...getLessons(loafId).flatMap((l) => [l.title, l.summary]),
     ...getQuiz(loafId).questions.flatMap((q) => [q.question, ...q.choices, q.explain]),
     ...Object.entries(captionFiles).map(([, text]) => text),

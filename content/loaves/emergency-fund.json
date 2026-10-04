@@ -15,6 +15,58 @@
   },
   "lessons": ["ef-what-its-for", "ef-how-much", "ef-where-to-keep"],
   "quiz": "emergency-fund",
+  "flow": {
+    "lessons": {
+      "title": "Your lessons",
+      "intro": "Three short videos, each under 2 minutes. Watch them in order, or see what you already know first.",
+      "testOutButton": "Already know this? Take the quiz first",
+      "quizButton": "Take the quiz",
+      "recommended": "Recommended",
+      "known": "You already know this",
+      "answeredRight": "You got this one right",
+      "watchAnyway": "Watch anyway",
+      "watched": "Watched",
+      "reviewTitle": "Here's what to review",
+      "reviewIntro": "These lessons cover the questions you missed. Watch them, then take the quiz again. This time you'll see the answers and why.",
+      "allOptionalTitle": "You know this. Let's make it happen.",
+      "allOptionalBody": "The videos are optional now. Watch any you like, or go straight to setting up your saving.",
+      "continueSaving": "Continue to saving setup"
+    },
+    "lesson": {
+      "videoSoon": "Video coming soon",
+      "videoSoonNote": "The video for this lesson isn't ready yet. The summary below covers the same ideas.",
+      "markWatched": "Mark as watched",
+      "watched": "Watched",
+      "next": "Next lesson",
+      "toQuiz": "Take the quiz",
+      "back": "Back to lessons",
+      "fromQuiz": "You're here from a quiz question. The summary below covers it."
+    },
+    "quiz": {
+      "testOutTitle": "Quick check",
+      "testOutIntro": "Answer what you can. You'll see how you did at the end, and we'll point you to any lessons worth watching.",
+      "check": "Check answer",
+      "next": "Next question",
+      "seeScore": "See my score",
+      "correct": "Correct",
+      "notQuite": "Not quite",
+      "correctAnswer": "The answer: {answer}",
+      "rewatch": "Rewatch this part",
+      "readSummary": "Read the summary",
+      "questionOf": "Question {n} of {total}",
+      "scoreTitle": "Your score",
+      "score": "{score} of {total} correct",
+      "reviewMissed": "What to know",
+      "tryAgain": "Try again",
+      "continueSaving": "Continue to saving setup",
+      "scoreNote": "There's no passing score here. The goal is to get you saving, and the explanations are there to help.",
+      "testOutPassTitle": "You know this. Let's make it happen.",
+      "testOutPassBody": "The videos are optional now. Next, set up your saving.",
+      "testOutFailBody": "A few of these are worth a look. We picked the lessons that cover them.",
+      "testOutLessons": "Lessons to review",
+      "testOutToLessons": "Go to my lessons"
+    }
+  },
   "tips": [
     {
       "stage": "shape",

@@ -44,6 +44,8 @@ function withDefaults(data: AppData): AppData {
     ...data,
     profile: data.profile ?? null,
     loaves: data.loaves.map(withBakes),
+    lessonProgress: Array.isArray(data.lessonProgress) ? data.lessonProgress : [],
+    quizAttempts: Array.isArray(data.quizAttempts) ? data.quizAttempts : [],
     transactions: data.transactions.map((t) => ({
       ...t,
       source: TRANSACTION_SOURCES.includes(t.source) ? t.source : ('manual' as TransactionSource),

@@ -112,6 +112,18 @@ export function renderContentReview(): string {
     out.push(`Links to: lesson \`${q.lesson}\` at ${q.timestamp}s.`, '');
   });
 
+  out.push('## Lesson and quiz screens', '');
+  const flowGroups: [string, Record<string, string>][] = [
+    ['Lessons list', loaf.flow.lessons],
+    ['Lesson screen', loaf.flow.lesson],
+    ['Quiz screens', loaf.flow.quiz],
+  ];
+  for (const [heading, copy] of flowGroups) {
+    out.push(`### ${heading}`, '');
+    for (const [key, text] of Object.entries(copy)) out.push(`- ${key}: ${text}`);
+    out.push('');
+  }
+
   out.push('## Tips while the loaf rises', '');
   for (const tip of loaf.tips) {
     out.push(`### ${tip.title} (unlocks at ${tip.stage})`, '', tip.body, '');

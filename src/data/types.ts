@@ -54,6 +54,32 @@ export interface LocalUser {
   email: string;
 }
 
+/** One lesson the student has watched: the video reached 90%, or they tapped "Mark as watched". */
+export interface LessonProgress {
+  loafId: LoafId;
+  lessonId: string;
+  /** ISO string in UTC, from the demo clock. */
+  watchedAt: string;
+  how: 'video' | 'manual';
+}
+
+/** `test-out` is "Already know this? Take the quiz first". `lesson` is the normal quiz, with feedback. */
+export type QuizMode = 'test-out' | 'lesson';
+
+export interface QuizAttempt {
+  id: string;
+  loafId: LoafId;
+  mode: QuizMode;
+  score: number;
+  total: number;
+  /** Question id to the index of the choice the student picked. */
+  answers: Record<string, number>;
+  /** Lessons covering the missed questions, in quiz order. Stored so the lessons list doesn't depend on later content changes. */
+  missedLessons: string[];
+  /** ISO string in UTC, from the demo clock. */
+  at: string;
+}
+
 export interface AppData {
   version: 1;
   user: LocalUser | null;
@@ -61,9 +87,20 @@ export interface AppData {
   profile: Profile | null;
   loaves: LoafRecord[];
   transactions: Transaction[];
+  lessonProgress: LessonProgress[];
+  quizAttempts: QuizAttempt[];
   clock: ClockState;
 }
 
 export function emptyData(): AppData {
-  return { version: 1, user: null, profile: null, loaves: [], transactions: [], clock: { offsetDays: 0 } };
+  return {
+    version: 1,
+    user: null,
+    profile: null,
+    loaves: [],
+    transactions: [],
+    lessonProgress: [],
+    quizAttempts: [],
+    clock: { offsetDays: 0 },
+  };
 }
