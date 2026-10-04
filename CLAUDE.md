@@ -23,7 +23,7 @@ This repository is a **tech demo only**. It runs as a progressive web app (PWA) 
 - Native HTML `<video>` with WebVTT captions for lessons
 - `react-router` for routing (so the phone's back button and deep links like `?demo=1` work)
 - `react-markdown` for lesson summaries. Frontmatter is parsed by a small in-house function, not gray-matter.
-- Vitest for unit tests
+- Vitest for unit tests, plus `@testing-library/react`, `@testing-library/user-event`, and `jsdom` (dev dependencies) for screen tests. Screen test files opt in to jsdom with a `// @vitest-environment jsdom` comment at the top and call `cleanup` after each test.
 - Stretch milestone only: Plaid Sandbox through Supabase server functions. The Plaid Link library is not approved yet. Ask before adding it.
 
 Ask before adding any dependency not listed here.
@@ -45,7 +45,8 @@ src/
                 LoafQuiz, SavingSetup, Home, LoafComplete, ChooseLoaf,
                 Shelf, Settings
   components/   LoafButton, SliceButton, LoafIllustration, ProgressBar,
-                VideoPlayer, QuizQuestion, LessonRow
+                ChoiceGroup (radio or checkbox inputs styled as slice buttons,
+                used by placement and the quiz), VideoPlayer, QuizQuestion, LessonRow
   domain/       pure logic: placement scoring, targets, stages,
                 recommendations, quiz grading (no React, no Supabase)
   content/      typed loader for everything in content/ (import.meta.glob),
@@ -121,7 +122,7 @@ Target = midpoint rounded up to the nearest $50.
 | $500–$999 | $500 |
 | $1,000 and up | $1,000 |
 
-When the student chooses to count existing savings, offer an optional exact amount, prefilled with the band's lower bound. If they enter one, use it instead.
+Existing savings count by default for everyone: if the student reported any savings, the "Count the money I already have set aside" box starts checked, whatever their months covered, and they can uncheck it. When counted, offer an optional exact amount, prefilled with the band's lower bound. If they enter one, use it instead.
 
 ### Unknown answers (skipped or "Not sure")
 
@@ -138,7 +139,7 @@ When the student chooses to count existing savings, offer an optional exact amou
 
 | Situation | Start |
 |---|---|
-| Under 1 month | Emergency fund loaf, target 1 month |
+| Under 1 month | Emergency fund loaf, target 1 month, any existing savings counted so it starts partly risen |
 | 1 to under 3 months, no card debt | Emergency fund loaf, target 3 months, existing savings counted so it starts partly risen |
 | 1 to under 3 months, card debt | Emergency fund counts as baked and goes on the shelf. Recommend Debt payoff next |
 | 3+ months | Emergency fund counts as baked and goes on the shelf. ChooseLoaf: card debt → Debt payoff; earned income and no retirement account → Roth IRA; otherwise Index funds |
@@ -285,9 +286,9 @@ The emergency fund loaf is the first loaf for students with under 3 months cover
 
 ## Demo mode
 
-- Turned on with `?demo=1` in the URL or `VITE_DEMO_MODE=true`.
+- Turned on with `?demo=1` in the URL or `VITE_DEMO_MODE=true`. This turns on the demo tools only (the Demo pill, Skip a week, Reset demo).
 - Shows a small "Demo" pill in the top corner.
-- **Continue as demo user** on the login screen signs into a seeded account: Maya. Placement: checking and regular savings, no emergency savings at start, no retirement account. She did not test out. Lessons watched, quiz done, emergency fund loaf at 60% ($240 of $400), with about 6 weeks of past deposits so her history looks real. Earned income: yes. Credit card debt: no. Her target is under 3 months, so when her fund bakes ChooseLoaf recommends "Grow your cushion to 3 months" first; the Roth IRA is the next-best option (it would be the recommendation after the grown fund bakes).
+- **Continue as demo user** is always on the login screen, with or without `?demo=1`, because the whole app is a demo. It is a slice button. Until Maya's seed exists (milestone 9) it signs in a plain demo user (`signInDemo` in `src/data/session.ts`) who starts the placement quiz. Once the seed exists it signs into a seeded account: Maya. Placement: checking and regular savings, no emergency savings at start, no retirement account. She did not test out. Lessons watched, quiz done, emergency fund loaf at 60% ($240 of $400), with about 6 weeks of past deposits so her history looks real. Earned income: yes. Credit card debt: no. Her target is under 3 months, so when her fund bakes ChooseLoaf recommends "Grow your cushion to 3 months" first; the Roth IRA is the next-best option (it would be the recommendation after the grown fund bakes).
 - **Start fresh demo** runs the full first-time flow from the placement quiz.
 - **Skip a week** adds one simulated deposit of the user's habit amount and moves the demo clock forward 7 days.
 - **Reset demo** restores the seed data.
@@ -312,6 +313,7 @@ White background everywhere. Warm bakery palette. Friendly, never childish.
 | `--text-muted` | #6B5446 | Secondary text |
 | `--field-border` | #9C8467 | Input borders |
 | `--divider` | #EADBC4 | Hairlines, progress track |
+| `--placeholder` | #7A6552 | Input placeholder text |
 
 Don't use red as a main color. It reads as loss or debt. For wrong quiz answers, use `--crust` text with an explanation, not red.
 
@@ -325,7 +327,8 @@ Don't use red as a main color. It reads as loss or debt. For wrong quiz answers,
 
 - **Loaf button** (main action, one per screen): background `--crust`, white text 18px bold, height 62px, `border-radius: 70px 70px 16px 16px / 38px 38px 16px 16px`, `border-bottom: 5px solid var(--deep-crust)`, three small slanted cream score marks near the top. Pressed: move down 3px and shrink the bottom border to 2px.
 - **Slice button** (secondary, quiz answer choices): background `--crumb`, 3px `--toast-edge` border, `border-radius: 46px 46px 14px 14px / 32px 32px 14px 14px`.
-- Third-party sign-in buttons must follow Apple's and Google's branding rules. Use their official assets.
+- Third-party sign-in buttons must follow Google's branding rules (Apple sign-in is out of scope). Use Google's official assets. The Google button is not shown at all until the Supabase milestone wires it up: never show a button that does nothing.
+- **Login screen** follows `docs/mockups/login.html` exactly (sizes, colors, button shapes): "Continue with email" loaf button, tagline "Stack that bread.", "Continue as demo user" slice button (`.slice-button--tall`), and the disclaimer at the bottom. Email sign-in is local-only until milestone 10.
 
 ### Illustrations
 
@@ -378,6 +381,7 @@ Content for the Index funds, Bonds, Roth IRA, and Debt payoff loaves (cards only
 - For changes touching more than 3 files, propose a short plan first.
 - Keep `src/domain/` pure and covered by tests. Run `npm run test` and `npm run build` before saying a task is done.
 - Lesson, quiz, and loaf content lives in `content/`, never hardcoded in components.
-- `docs/content-review.md` lists all learner-facing copy on one page. It is generated: after any change to `content/`, run `npm run test -- -u` to regenerate it. A test fails if it is stale.
+- `docs/content-review.md` lists all learner-facing copy on one page. It is generated: after any change to `content/`, run `npx vitest run -u` to regenerate it. A test fails if it is stale.
+- Never edit files with PowerShell Get-Content/Set-Content or other shell redirection. Use the Edit tool, so encoding stays UTF-8.
 - Small, focused commits with clear messages.
 - When a decision changes (stack, rules, flow, design), update this file in the same change.

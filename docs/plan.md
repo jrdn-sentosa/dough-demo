@@ -12,7 +12,7 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
 | 2 | Domain core | Done |
 | 3 | Money layer and local adapter | Done |
 | 4 | Draft content and loader | Done |
-| 5 | First-time flow | To do |
+| 5 | First-time flow | Done |
 | 6 | Lessons and loaf quiz | To do |
 | 7 | Saving setup and Home | To do |
 | 8 | Loaf done and shelf | To do |
@@ -64,6 +64,7 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
    - Branch for students whose emergency fund starts baked: optional "Understand what you've built" review, then ChooseLoaf.
    - Placement Q3 (accounts, multi-select): "None of these" and "Not sure" each clear the other choices when picked. Picking a real account clears them too.
    - Store the student's essentials figure on the profile (cents). The shelf and ChooseLoaf need it to turn a bake's target into months.
+   - Notes (done): `DataProvider` (`src/app/`) loads app data once and exposes `adapter`, `data`, and `refresh()`; tests pass an in-memory adapter. The route guard is a pure function, `guardRedirect` in `src/app/guard.ts`: no user → `/login`, no profile → `/placement`, no loaf → `/placement/result`, otherwise Home; a fund that starts baked goes on to `/choose-loaf` (a placeholder until milestone 8). The guard makes that decision from state, so it doesn't depend on the timing of `refresh()` and `navigate()`. Routes: `/login`, `/placement`, `/placement/result`, `/new-loaf`, `/built-review`, `/choose-loaf`, `/`. Login follows `docs/mockups/login.html`. Google sign-in is not rendered at all until milestone 10 wires it up. "Continue as demo user" is always shown and signs in a plain demo user (`signInDemo`) until Maya's seed exists in milestone 9. `LoafButton`'s score marks and padding now match the mockup everywhere; `.slice-button--tall` is the login-only taller slice. New: `ChoiceGroup` (radios or checkboxes styled as slice buttons, reused by the quiz in milestone 6) and `ProgressBar`. New pure code: `src/domain/placementInput.ts` (`toggleAccount`, `answersFromSelections`, `bakedStartTargetCents`), `src/money/parse.ts` (dollars to cents), and `src/money/newLoaf.ts` (`createFirstLoaf` checks everything first, so an unconfirmed over-$10,000 entry writes nothing). Screen copy for the result and new-loaf screens is in `content/placement.json` (`result` and `newLoaf`, covered by `docs/content-review.md`). A fund that starts baked is recorded with its target at the biggest of 1 or 3 months the savings cover (the starter goal when essentials are unknown), as an "Already built" bake. Typed exact essentials or savings are kept on the profile. Screen tests (`@testing-library/react`, `user-event`, `jsdom`) cover the guard, skip with answers kept, Q3's clearing rules, and the over-$10,000 confirmation. Follow-up: existing savings now count by default for everyone (`countSavingsByDefault` is true whenever the fund isn't baked and any savings were reported, whatever the months covered), and the student can uncheck the box. The content-review snapshot is regenerated with `npx vitest run -u` (`npm run test -- -u` doesn't work in PowerShell). Not checked in a real browser yet: the screens are covered by tests only.
 6. **Lessons and loaf quiz**
    - VideoPlayer: `playsinline`, captions, "watched" at 90% or via "Mark as watched".
    - "Video coming soon" poster when the video file is missing.
@@ -96,7 +97,7 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
 10. **Supabase**
     - Schema for `profiles`, `placement_results`, `loaves`, `transactions`, `lesson_progress`, and `quiz_attempts`, with RLS on every table.
     - Supabase adapter behind the same `DataAdapter` interface, plus email and Google auth.
-    - Remove the fake local sign-in.
+    - Remove the fake local sign-in. Wire up the Google button (official asset) and show it only then, when Supabase is configured. Until now it is not rendered.
     - Add `.env.example` values and update CLAUDE.md.
     - The `transactions` table includes the `source` column (`manual`, `plaid`, `seed`).
 11. **Plaid Sandbox bank linking (stretch, after Supabase)**
