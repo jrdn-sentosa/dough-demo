@@ -205,15 +205,19 @@ The emergency fund loaf is the first loaf for students with under 3 months cover
 
 - Lessons are videos with captions (WebVTT) and a short text summary below. Track "watched" when the student reaches 90% of the video or taps "Mark as watched."
 - **Missing video:** no fake video files. If a lesson's video file is missing, show a "Video coming soon" poster with the lesson summary and a "Mark as watched" button. Real videos are added later by filename in `public/videos/<loaf>/`.
-- Each loaf quiz question has 3–4 choices, one correct answer, an explanation, and a link back to the lesson and timestamp that covers it.
+- Each loaf quiz question has 3–4 choices, each with a fixed string `id` (like `car-repair`), one correct answer given by choice id, an explanation, and a link back to the lesson and timestamp that covers it.
 - Quiz format in `content/quizzes/<loaf>.json`:
 
 ```
 {
   "id": "ef-q1",
   "question": "What is an emergency fund for?",
-  "choices": ["A spring break trip", "A surprise car repair", "New textbooks"],
-  "answer": 1,
+  "choices": [
+    { "id": "spring-break", "label": "A spring break trip" },
+    { "id": "car-repair", "label": "A surprise car repair" },
+    { "id": "textbooks", "label": "New textbooks" }
+  ],
+  "answer": "car-repair",
   "explain": "It's for urgent costs you couldn't plan for.",
   "lesson": "ef-what-its-for",
   "timestamp": 34
@@ -221,7 +225,7 @@ The emergency fund loaf is the first loaf for students with under 3 months cover
 ```
 
 - **Quiz screens:** one question per screen with a progress bar. In the normal quiz the student picks a choice (and can change it), then taps "Check answer"; feedback appears and the choices lock only after Check. Right answers are sage, wrong picks are crust, each with the explanation, and a wrong pick gets "Rewatch this part" (a link to the lesson at its timestamp, or "Read the summary" when the video file doesn't exist).
-- **Shuffling:** question order and choice order are shuffled on every attempt, in both normal and test-out modes (`src/domain/shuffle.ts`). A choice's id is its index in the content file, and answers, saved attempts, grading, and lesson links all use that id, never the position on screen.
+- **Shuffling:** question order and choice order are shuffled on every attempt, in both normal and test-out modes (`src/domain/shuffle.ts`). Answers, saved attempts, grading, and lesson links all use the choice's fixed string id from the content file, never its position on screen or its wording. Ids are unique within a question and the `answer` must be one of them (the loader throws otherwise, and a test checks the content). Quiz attempts saved with positions before this change are dropped on load, since this is demo data.
 - **Mastery:** a loaf's lessons are "Mastered" once the best normal-quiz score is 4 out of 5 (80%) or more. It is worked out from saved attempts (`bestScore`, `isMastered` in `src/domain/mastery.ts`), not stored, and a later lower score never takes it away. Test-out attempts don't count. The lessons list shows a "Mastered" badge, and the quiz end screen says "You mastered this loaf's lessons." Below 4 it keeps the missed-question explanations and adds "Get 4 out of 5 to master these lessons. You can try again anytime." Retries have no limit and no cooldown.
 - **Emergency fund quiz:** completing it unlocks Saving setup. It does not require a passing score, because the real goal is getting the student to save. Show the score, explain every wrong answer, and allow retries.
 - **Investment loaves (future):** require 80% (4 out of 5) to start, since understanding risk protects new investors. This check applies to everyone, including students who test out of the videos. No cooldown: students can retry right away, as many times as they like.
