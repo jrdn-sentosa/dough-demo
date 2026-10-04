@@ -204,6 +204,7 @@ export function renderContentReview(): string {
   for (const [heading, copy] of [
     ['Welcome notice and Settings, "About this preview"', preview.about],
     ['Welcome notice buttons', preview.notice],
+    ['Feedback form, hint under the text box (only for the bug category)', { bugHint: preview.bugHint }],
     ['Settings, Privacy', preview.privacy],
   ] as const) {
     out.push(`### ${heading}`, '');

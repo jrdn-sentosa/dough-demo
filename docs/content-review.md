@@ -717,6 +717,8 @@ Unlocks are measured in weeks of saving. Ladder: baguette 2, bagel 4, focaccia 6
 - title: Welcome to the Dough! preview
 - settingsTitle: About this preview
 - body: This is an early version of Dough!. Some features are still being built, things may change, and we may need to reset data while we improve it. Your feedback helps shape what comes next.
+- bugTitle: Found a bug?
+- bugBody: You'll probably run into a few. If something looks wrong or gets stuck, try closing and reopening the app. Then tell us what happened with Send feedback in Settings. We automatically include your app version and screen, so just describe what you were doing and what went wrong.
 - notHereTitle: Not here yet:
 - notHere: Lesson videos / Investing loaves / Bank linking
 
@@ -725,6 +727,10 @@ Unlocks are measured in weeks of saving. Ladder: baguette 2, bagel 4, focaccia 6
 - gotIt: Got it
 - sendFeedback: Send feedback
 - feedbackSubject: Dough! preview feedback
+
+### Feedback form, hint under the text box (only for the bug category)
+
+- bugHint: What were you doing, and what happened? What did you expect instead?
 
 ### Settings, Privacy
 

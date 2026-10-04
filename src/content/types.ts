@@ -387,7 +387,9 @@ export interface RiskContent {
 export interface PreviewContent {
   draft: boolean;
   label: string;
-  about: Record<'title' | 'settingsTitle' | 'body' | 'notHereTitle', string> & { notHere: string[] };
+  about: Record<'title' | 'settingsTitle' | 'body' | 'bugTitle' | 'bugBody' | 'notHereTitle', string> & { notHere: string[] };
+  /** Shown under the feedback text box while the "bug" category is selected. */
+  bugHint: string;
   notice: Record<'gotIt' | 'sendFeedback' | 'feedbackSubject', string>;
   privacy: Record<'title' | 'body', string>;
 }

@@ -12,6 +12,8 @@ export function PreviewAbout() {
           <li key={item}>{item}</li>
         ))}
       </ul>
+      <p className="settings__text preview-list__title">{about.bugTitle}</p>
+      <p className="settings__text">{about.bugBody}</p>
     </>
   );
 }

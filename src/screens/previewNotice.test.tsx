@@ -71,6 +71,8 @@ describe('the early-preview welcome notice', () => {
     expect(within(dialog).getByText(copy.about.notHereTitle)).toBeTruthy();
     const items = within(dialog).getAllByRole('listitem').map((li) => li.textContent);
     expect(items).toEqual(['Lesson videos', 'Investing loaves', 'Bank linking']);
+    expect(within(dialog).getByText('Found a bug?')).toBeTruthy();
+    expect(within(dialog).getByText(copy.about.bugBody)).toBeTruthy();
     expect(within(dialog).getByRole('button', { name: 'Got it' })).toBeTruthy();
   });
 
@@ -179,6 +181,26 @@ describe('Settings: About this preview and Privacy', () => {
     expect(within(section).getByText(copy.about.body)).toBeTruthy();
     expect(within(section).getByText('Not here yet:')).toBeTruthy();
     expect(within(section).getAllByRole('listitem').map((li) => li.textContent)).toEqual(copy.about.notHere);
+  });
+
+  it('has "Found a bug?" in the About section', async () => {
+    await settings();
+    const section = screen.getByRole('heading', { name: 'About this preview' }).closest('section')!;
+    expect(within(section).getByText('Found a bug?')).toBeTruthy();
+    expect(within(section).getByText(copy.about.bugBody)).toBeTruthy();
+  });
+
+  it('shows the bug hint under the feedback box only for the bug category', async () => {
+    const user = userEvent.setup({ delay: null });
+    await settings();
+    expect(screen.queryByText(copy.bugHint)).toBeNull();
+    await user.click(screen.getByRole('radio', { name: "Something's not working" }));
+    expect(screen.getByText(copy.bugHint)).toBeTruthy();
+    expect(screen.getByRole('textbox', { name: 'Your feedback' }).getAttribute('aria-describedby')).toBe('feedback-bug-hint');
+    await user.click(screen.getByRole('radio', { name: 'An idea' }));
+    expect(screen.queryByText(copy.bugHint)).toBeNull();
+    await user.click(screen.getByRole('radio', { name: 'Something else' }));
+    expect(screen.queryByText(copy.bugHint)).toBeNull();
   });
 
   it('has a Privacy section that says what is stored and how to delete an account', async () => {

@@ -5,6 +5,8 @@
     "title": "Welcome to the Dough! preview",
     "settingsTitle": "About this preview",
     "body": "This is an early version of Dough!. Some features are still being built, things may change, and we may need to reset data while we improve it. Your feedback helps shape what comes next.",
+    "bugTitle": "Found a bug?",
+    "bugBody": "You'll probably run into a few. If something looks wrong or gets stuck, try closing and reopening the app. Then tell us what happened with Send feedback in Settings. We automatically include your app version and screen, so just describe what you were doing and what went wrong.",
     "notHereTitle": "Not here yet:",
     "notHere": ["Lesson videos", "Investing loaves", "Bank linking"]
   },
@@ -13,6 +15,7 @@
     "sendFeedback": "Send feedback",
     "feedbackSubject": "Dough! preview feedback"
   },
+  "bugHint": "What were you doing, and what happened? What did you expect instead?",
   "privacy": {
     "title": "Privacy",
     "body": "What we store: your email, your quiz answers, the amounts you enter, your progress, and any feedback you send. It's stored with our database provider and never sold. To delete your account and data, email originaldoughmoney@gmail.com and we'll remove it."

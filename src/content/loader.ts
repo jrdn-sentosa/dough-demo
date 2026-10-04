@@ -502,7 +502,8 @@ export function parsePreview(raw: unknown, where = 'content/preview.json'): Prev
   return {
     draft: bool(o, 'draft', where),
     label: str(o, 'label', where),
-    about: { ...strings(about, ['title', 'settingsTitle', 'body', 'notHereTitle'] as const, `${where} about`), notHere },
+    about: { ...strings(about, ['title', 'settingsTitle', 'body', 'bugTitle', 'bugBody', 'notHereTitle'] as const, `${where} about`), notHere },
+    bugHint: str(o, 'bugHint', where),
     notice: record(o.notice, ['gotIt', 'sendFeedback', 'feedbackSubject'] as const, `${where} notice`),
     privacy: record(o.privacy, ['title', 'body'] as const, `${where} privacy`),
   };
