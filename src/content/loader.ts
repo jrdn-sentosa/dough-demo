@@ -72,6 +72,10 @@ function parsePlacement(raw: unknown): PlacementContent {
   });
   const skip = obj(o.skip, `${where} skip`);
   const retake = obj(o.retake, `${where} retake`);
+  const rw = `${where} result`;
+  const result = obj(o.result, rw);
+  const nw = `${where} newLoaf`;
+  const newLoaf = obj(o.newLoaf, nw);
   return {
     draft: bool(o, 'draft', where),
     title: str(o, 'title', where),
@@ -85,6 +89,37 @@ function parsePlacement(raw: unknown): PlacementContent {
     resultSkipped: str(o, 'resultSkipped', where),
     retake: { updateGoal: str(retake, 'updateGoal', `${where} retake`) },
     personalizePrompt: str(o, 'personalizePrompt', where),
+    result: {
+      title: str(result, 'title', rw),
+      firstLoaf: str(result, 'firstLoaf', rw),
+      goalMonths: str(result, 'goalMonths', rw),
+      goalDefault: str(result, 'goalDefault', rw),
+      headStart: str(result, 'headStart', rw),
+      noHeadStart: str(result, 'noHeadStart', rw),
+      investmentNote: str(result, 'investmentNote', rw),
+      baked: str(result, 'baked', rw),
+      continue: str(result, 'continue', rw),
+    },
+    newLoaf: {
+      title: str(newLoaf, 'title', nw),
+      goalLabel: str(newLoaf, 'goalLabel', nw),
+      starterNote: str(newLoaf, 'starterNote', nw),
+      needsExact: str(newLoaf, 'needsExact', nw),
+      exactEssentialsLabel: str(newLoaf, 'exactEssentialsLabel', nw),
+      customLabel: str(newLoaf, 'customLabel', nw),
+      countSavings: str(newLoaf, 'countSavings', nw),
+      exactSavingsLabel: str(newLoaf, 'exactSavingsLabel', nw),
+      biggerTarget: str(newLoaf, 'biggerTarget', nw),
+      start: str(newLoaf, 'start', nw),
+      confirmYes: str(newLoaf, 'confirmYes', nw),
+      confirmFix: str(newLoaf, 'confirmFix', nw),
+      builtTitle: str(newLoaf, 'builtTitle', nw),
+      builtBody: str(newLoaf, 'builtBody', nw),
+      reviewButton: str(newLoaf, 'reviewButton', nw),
+      chooseNext: str(newLoaf, 'chooseNext', nw),
+      reviewTitle: str(newLoaf, 'reviewTitle', nw),
+      reviewBack: str(newLoaf, 'reviewBack', nw),
+    },
     questions,
   };
 }

@@ -43,6 +43,17 @@ describe('startingPoint: loaf and target', () => {
     expect(s.monthsCovered).toBeLessThan(1);
   });
 
+  it('under 1 month: any reported savings are still counted by default', () => {
+    const s = startingPoint(answers({ essentials: '500-749', savings: '500-999' })); // $500 of $650
+    expect(s.countSavingsByDefault).toBe(true);
+    expect(s.startPercent).toBe(76);
+    expect(s.startStage).toBe('bake');
+  });
+
+  it('no savings means nothing to count', () => {
+    expect(startingPoint(answers({ essentials: '500-749', savings: 'none' })).countSavingsByDefault).toBe(false);
+  });
+
   it('exactly 1 month moves to the 3 month target, savings counted', () => {
     const s = startingPoint(answers({ essentials: '500-749', savings: '500-999', savingsExactCents: 65_000 }));
     expect(s.monthsCovered).toBe(1);

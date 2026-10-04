@@ -1,6 +1,6 @@
 # Content review
 
-Generated from `content/` and `public/videos/`. Do not edit by hand: change the content, then run `npm run test -- -u` to regenerate. Items marked _(draft)_ are waiting for review.
+Generated from `content/` and `public/videos/`. Do not edit by hand: change the content, then run `npx vitest run -u` to regenerate. Items marked _(draft)_ are waiting for review.
 
 ## Placement: Let's get to know your money _(draft)_
 
@@ -13,6 +13,29 @@ Result screen when skipped: Your first loaf: Emergency fund. Starting goal: $1,0
 Settings, retake: Update your goal to $X?
 
 ChooseLoaf when an answer is unknown: Answer a few quick questions for a personalized pick.
+
+### Result screen: Here's where you'll start
+
+- Your first loaf: Emergency fund
+- Goal: $1,000, about 3 months of your monthly essentials.
+- Goal: $1,000, a starter goal you can change anytime. It isn't a guess at what you spend.
+- Head start: the $X you already have set aside puts you N% of the way there.
+- You're starting from a dough ball, and that's a fine place to start.
+- Investment note: You already invest, which is great. A cushion means you never have to sell investments at a loss when something urgent comes up.
+- Already built: Your emergency fund is already built. Nice work. It goes on your bread shelf as "Already built."
+- Button: "Continue"
+
+### Screen: Your new loaf
+
+- $1,000 is a starter goal because we don't know your monthly essentials yet. It isn't an estimate of what you spend. You can change it here or in Settings.
+- Your essentials are in the top range. Type your exact monthly amount to size your goal. This is optional.
+- Your savings already cover this goal. Pick a bigger one so you have something to build toward.
+- Labels: "Your goal", "A different amount", "Count the money I already have set aside", "Exact amount (optional)", "Exact monthly essentials". Buttons: "Start my loaf", "Yes, that's right", "Let me fix it".
+
+### Screen: Your emergency fund is already built
+
+- You've set aside enough to cover your goal, so this loaf goes straight to your shelf. Want to see what you've built, or move on?
+- Buttons: "Understand what you've built", "Choose your next loaf", "Back". The review page shows the lesson summaries.
 
 ### 1. About how much do you need each month to cover your essentials?
 

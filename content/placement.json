@@ -13,6 +13,37 @@
     "updateGoal": "Update your goal to {amount}?"
   },
   "personalizePrompt": "Answer a few quick questions for a personalized pick",
+  "result": {
+    "title": "Here's where you'll start",
+    "firstLoaf": "Your first loaf: Emergency fund",
+    "goalMonths": "Goal: {goal}, about {months} of your monthly essentials.",
+    "goalDefault": "Goal: {goal}, a starter goal you can change anytime. It isn't a guess at what you spend.",
+    "headStart": "Head start: the {saved} you already have set aside puts you {percent}% of the way there.",
+    "noHeadStart": "You're starting from a dough ball, and that's a fine place to start.",
+    "investmentNote": "You already invest, which is great. A cushion means you never have to sell investments at a loss when something urgent comes up.",
+    "baked": "Your emergency fund is already built. Nice work. It goes on your bread shelf as \"Already built.\"",
+    "continue": "Continue"
+  },
+  "newLoaf": {
+    "title": "Your new loaf",
+    "goalLabel": "Your goal",
+    "starterNote": "{goal} is a starter goal because we don't know your monthly essentials yet. It isn't an estimate of what you spend. You can change it here or in Settings.",
+    "needsExact": "Your essentials are in the top range. Type your exact monthly amount to size your goal. This is optional.",
+    "exactEssentialsLabel": "Exact monthly essentials",
+    "customLabel": "A different amount",
+    "countSavings": "Count the money I already have set aside",
+    "exactSavingsLabel": "Exact amount (optional)",
+    "biggerTarget": "Your savings already cover this goal. Pick a bigger one so you have something to build toward.",
+    "start": "Start my loaf",
+    "confirmYes": "Yes, that's right",
+    "confirmFix": "Let me fix it",
+    "builtTitle": "Your emergency fund is already built",
+    "builtBody": "You've set aside enough to cover your goal, so this loaf goes straight to your shelf. Want to see what you've built, or move on?",
+    "reviewButton": "Understand what you've built",
+    "chooseNext": "Choose your next loaf",
+    "reviewTitle": "Understand what you've built",
+    "reviewBack": "Back"
+  },
   "questions": [
     {
       "id": "essentials",

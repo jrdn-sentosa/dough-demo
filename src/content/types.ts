@@ -32,6 +32,42 @@ export interface PlacementContent {
   retake: { updateGoal: string };
   /** ChooseLoaf when an unknown answer blocks a recommendation. Opens placement. */
   personalizePrompt: string;
+  /**
+   * "Here's where you'll start". Tokens: `{goal}`, `{months}` (e.g. "3 months"),
+   * `{saved}` (existing savings), `{percent}`.
+   */
+  result: {
+    title: string;
+    firstLoaf: string;
+    goalMonths: string;
+    goalDefault: string;
+    headStart: string;
+    noHeadStart: string;
+    investmentNote: string;
+    baked: string;
+    continue: string;
+  };
+  /** "Your new loaf" and the review page for a fund that starts baked. `{goal}` is the starter goal. */
+  newLoaf: {
+    title: string;
+    goalLabel: string;
+    starterNote: string;
+    needsExact: string;
+    exactEssentialsLabel: string;
+    customLabel: string;
+    countSavings: string;
+    exactSavingsLabel: string;
+    biggerTarget: string;
+    start: string;
+    confirmYes: string;
+    confirmFix: string;
+    builtTitle: string;
+    builtBody: string;
+    reviewButton: string;
+    chooseNext: string;
+    reviewTitle: string;
+    reviewBack: string;
+  };
   questions: PlacementQuestion[];
 }
 

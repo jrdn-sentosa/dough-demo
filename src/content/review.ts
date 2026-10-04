@@ -17,7 +17,7 @@ function fill(text: string, extra: Record<string, string> = {}): string {
 /**
  * One readable page of all learner-facing copy, for review.
  * `docs/content-review.md` is checked against this by a test.
- * Regenerate it with `npm run test -- -u`.
+ * Regenerate it with `npx vitest run -u`.
  */
 export function renderContentReview(): string {
   const out: string[] = [];
@@ -28,7 +28,7 @@ export function renderContentReview(): string {
   out.push(
     '# Content review',
     '',
-    'Generated from `content/` and `public/videos/`. Do not edit by hand: change the content, then run `npm run test -- -u` to regenerate. Items marked _(draft)_ are waiting for review.',
+    'Generated from `content/` and `public/videos/`. Do not edit by hand: change the content, then run `npx vitest run -u` to regenerate. Items marked _(draft)_ are waiting for review.',
     '',
     `## Placement: ${placement.title}${draftTag(placement.draft)}`,
     '',
@@ -41,6 +41,29 @@ export function renderContentReview(): string {
     `Settings, retake: ${fill(placement.retake.updateGoal, { amount: '$X' })}`,
     '',
     `ChooseLoaf when an answer is unknown: ${placement.personalizePrompt}.`,
+    '',
+    `### Result screen: ${placement.result.title}`,
+    '',
+    `- ${placement.result.firstLoaf}`,
+    `- ${fill(placement.result.goalMonths, { months: '3 months' })}`,
+    `- ${fill(placement.result.goalDefault)}`,
+    `- ${fill(placement.result.headStart, { saved: '$X', percent: 'N' })}`,
+    `- ${placement.result.noHeadStart}`,
+    `- Investment note: ${placement.result.investmentNote}`,
+    `- Already built: ${placement.result.baked}`,
+    `- Button: "${placement.result.continue}"`,
+    '',
+    `### Screen: ${placement.newLoaf.title}`,
+    '',
+    `- ${fill(placement.newLoaf.starterNote)}`,
+    `- ${placement.newLoaf.needsExact}`,
+    `- ${placement.newLoaf.biggerTarget}`,
+    `- Labels: "${placement.newLoaf.goalLabel}", "${placement.newLoaf.customLabel}", "${placement.newLoaf.countSavings}", "${placement.newLoaf.exactSavingsLabel}", "${placement.newLoaf.exactEssentialsLabel}". Buttons: "${placement.newLoaf.start}", "${placement.newLoaf.confirmYes}", "${placement.newLoaf.confirmFix}".`,
+    '',
+    `### Screen: ${placement.newLoaf.builtTitle}`,
+    '',
+    `- ${placement.newLoaf.builtBody}`,
+    `- Buttons: "${placement.newLoaf.reviewButton}", "${placement.newLoaf.chooseNext}", "${placement.newLoaf.reviewBack}". The review page shows the lesson summaries.`,
     '',
   );
 

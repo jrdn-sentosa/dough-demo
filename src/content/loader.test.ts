@@ -326,7 +326,7 @@ describe('malformed content throws', () => {
 });
 
 describe('docs/content-review.md', () => {
-  it('matches the content. Run `npm run test -- -u` to regenerate it', async () => {
+  it('matches the content. Run `npx vitest run -u` to regenerate it', async () => {
     await expect(renderContentReview()).toMatchFileSnapshot('../../docs/content-review.md');
   });
 });

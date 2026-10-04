@@ -119,7 +119,8 @@ export function startingPoint(answers: PlacementAnswers): StartingPoint {
   const baked = !underOne && (!underThree || hasDebt);
   const targetMonths: TargetMonths | null = baked ? null : underOne ? 1 : 3;
   const targetCents = targetMonths ? targetForMonths(essentials.cents, targetMonths) : null;
-  const countSavingsByDefault = !baked && !underOne;
+  // Any reported savings count by default, whatever the months covered. The student can uncheck it.
+  const countSavingsByDefault = !baked && savings > 0;
   const startPercent =
     targetCents && countSavingsByDefault ? progressPercent(savings, targetCents) : 0;
 
