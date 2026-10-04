@@ -1596,3 +1596,14 @@ input:focus-visible {
   display: inline-flex;
   gap: var(--space-3);
 }
+
+.demo-tools__ask {
+  display: grid;
+  gap: 8px;
+}
+
+.demo-tools__note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}

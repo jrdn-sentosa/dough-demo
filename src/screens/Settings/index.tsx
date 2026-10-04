@@ -3,7 +3,9 @@ import { Link } from 'react-router';
 import { useAuth } from '../../app/AuthProvider';
 import type { Account } from '../../app/AuthProvider';
 import { useData } from '../../app/DataProvider';
+import { DemoActions } from '../../components/DemoActions';
 import { SliceButton } from '../../components/SliceButton';
+import { isDemoMode } from '../../app/demoFlag';
 import { signOutAccount } from '../../data/auth';
 import { signOutLocal } from '../../data/session';
 import { clearCache } from '../../data/supabaseAdapter';
@@ -76,6 +78,12 @@ export function SettingsView({ account, onSignOut }: { account: Account | null; 
           </h2>
           <p className="settings__text">You're using the demo on this device. Your demo loaf is kept for when you come back.</p>
           <SliceButton onClick={() => void exitDemo()}>Exit demo</SliceButton>
+        </section>
+      )}
+
+      {!account && data.user && isDemoMode() && (
+        <section className="settings__section">
+          <DemoActions actions={['reset', 'fresh']} />
         </section>
       )}
 

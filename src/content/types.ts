@@ -420,5 +420,15 @@ export interface BreadsContent {
     back: string;
     groupLabel: string;
   };
-  demo: { heading: string; skipWeek: string; skipWeekWithoutSaving: string };
+  demo: {
+    heading: string;
+    skipWeek: string;
+    skipWeekWithoutSaving: string;
+    resetDemo: string;
+    resetDemoNote: string;
+    startFresh: string;
+    startFreshNote: string;
+    confirm: string;
+    cancel: string;
+  };
 }

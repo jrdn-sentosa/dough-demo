@@ -29,11 +29,25 @@ const signedIn: AppData = { ...emptyData(), user: { email: 'a@b.co' } };
 const withAnswers = (answers: PlacementAnswers): AppData => ({ ...signedIn, profile: profileFromAnswers(answers) });
 
 describe('sign in', () => {
-  it('"Continue as demo user" signs in a plain demo user who starts placement', async () => {
+  it('"Continue as demo user" signs in Maya, who lands on Home with her loaf', async () => {
     const user = userEvent.setup();
-    const { pathname } = mount('/login', emptyData());
+    const { adapter, pathname } = mount('/login', emptyData());
     await user.click(await screen.findByRole('button', { name: 'Continue as demo user' }));
-    await waitFor(() => expect(pathname()).toBe('/placement'));
+    await waitFor(() => expect(pathname()).toBe('/'));
+    expect((await adapter.load()).loaves).toHaveLength(1);
+  });
+
+  it('"Start fresh demo" (demo mode only) starts a plain demo user at the placement quiz', async () => {
+    const user = userEvent.setup();
+    sessionStorage.setItem('dough.demo', '1');
+    try {
+      const { pathname } = mount('/login', emptyData());
+      await user.click(await screen.findByRole('button', { name: 'Start fresh demo' }));
+      await user.click(await screen.findByRole('button', { name: 'Yes, do it' }));
+      await waitFor(() => expect(pathname()).toBe('/placement'));
+    } finally {
+      sessionStorage.removeItem('dough.demo');
+    }
   });
 });
 

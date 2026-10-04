@@ -577,6 +577,12 @@ Unlocks are measured in weeks of saving. Ladder: baguette 2, bagel 4, focaccia 6
 - heading: Demo tools
 - skipWeek: Skip a week
 - skipWeekWithoutSaving: Skip a week without saving
+- resetDemo: Reset demo
+- resetDemoNote: Puts Maya back as she started, with her saving history and clock. Only this device is affected.
+- startFresh: Start fresh demo
+- startFreshNote: Clears the demo on this device and starts from the placement quiz, like a first-time student.
+- confirm: Yes, do it
+- cancel: Cancel
 
 ## Tips while the loaf rises
 

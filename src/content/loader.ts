@@ -382,7 +382,7 @@ export function parseBreads(raw: unknown, where = 'content/breads.json'): Breads
     ),
     unlock: record(o.unlock, ['title', 'body', 'dismiss'] as const, `${where} unlock`),
     picker: record(o.picker, ['title', 'intro', 'defaultTag', 'unlockedTag', 'lockedOne', 'locked', 'button', 'back', 'groupLabel'] as const, `${where} picker`),
-    demo: strings(demo, ['heading', 'skipWeek', 'skipWeekWithoutSaving'] as const, `${where} demo`),
+    demo: strings(demo, ['heading', 'skipWeek', 'skipWeekWithoutSaving', 'resetDemo', 'resetDemoNote', 'startFresh', 'startFreshNote', 'confirm', 'cancel'] as const, `${where} demo`),
   };
 }
 

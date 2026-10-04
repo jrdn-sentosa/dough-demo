@@ -19,7 +19,8 @@ export type MoneyErrorCode =
   | 'grow-not-ready'
   | 'grow-not-bigger'
   | 'bread-locked'
-  | 'no-habit';
+  | 'no-habit'
+  | 'not-demo';
 
 export interface MoneyFailure {
   ok: false;
