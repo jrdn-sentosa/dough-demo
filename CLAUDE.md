@@ -180,7 +180,7 @@ Each loaf is a topic, a goal, a bread type, a set of video lessons, a quiz, and 
 
 The emergency fund loaf is the first loaf for students with under 3 months covered. Students who already have 3+ months (or 1 to 3 months with card debt) start with it on the shelf. In the demo, ChooseLoaf offers two paths, "Keep saving" and "Start investing" (see "Save or invest"), and lists the other four loaves as "Coming soon" rows that are not buttons. At most one path is tagged "Recommended," and both paths stay choosable.
 
-Each topic keeps its bread above as the default. From milestone 9, a student can also pick any bread they have unlocked with a saving streak for the next loaf (see "Streaks and bread unlocks").
+Each topic keeps its bread above as the default. A student can also pick any bread they have unlocked with a saving streak for the next loaf (see "Streaks and bread unlocks").
 
 ### Emergency fund loaf
 
@@ -311,16 +311,20 @@ The result is a pure function in `src/domain/risk.ts` with unit tests:
 - **One gate.** Every premium check goes through one pure function (`src/domain/entitlements.ts`), so real billing can replace the flag later. No other code reads the flag.
 - **Later, not now:** charging real money needs Vercel's paid plan and clear renewal and cancellation terms. A payment provider in test mode would be its own milestone.
 
-## Streaks and bread unlocks (milestone 9, planned, not built)
+## Streaks and bread unlocks (milestone 9)
 
-- **Streak** = consecutive habit periods with a deposit. A period is the habit's period (week, or the paycheck period); for "it varies" it is a month (30 days). A period with no deposit yet only ends the streak once that period is over. Counted from deposits only: a withdrawal never breaks a streak.
-- **Unlocks are permanent.** The current streak can reset, with no-guilt copy ("New streak starts now"). Never "lost," "broke," or "failed."
-- **Ladder** (streak length in periods): baguette 2, bagel 4, focaccia 6, pretzel 8, brioche 12, croissant 16.
+- **Streak** = consecutive habit periods with a deposit. A period is the habit's period (week, or the paycheck period); for "it varies" it is a month (30 days). A period with no deposit yet only ends the streak once that period is over. Counted from deposits only: a withdrawal never breaks a streak. Logic is in `src/domain/streaks.ts`; `src/data/streaks.ts` works the streak out from `AppData` (`streakFromData`) and saves unlocks (`syncStreaks`, which Home runs on load and after a deposit).
+- **Unlocks are permanent.** The current streak can reset, with no-guilt copy ("New streak starts now"). Never "lost," "broke," or "failed." A test checks `content/breads.json` for guilt words.
+- **Ladder** (weeks of consistent saving, so weekly, paycheck and monthly savers climb it the same way): baguette 2, bagel 4, focaccia 6, pretzel 8, brioche 12, croissant 16. Weeks covered = streak periods x period days / 7, and a bread unlocks once the weeks covered reach its rung. A monthly saver therefore unlocks at the first whole month that covers it, never earlier. The ladder lives in `src/domain/breads.ts`.
+- **Changing the habit:** a new amount never touches the streak. Changing how often the student is paid restarts the streak whenever it changes the period length (7, 14, 15 or 30 days), because the old windows no longer fit: the habit's `startedAt` moves to now. Frequencies that share a period length (weekly and every week; monthly and "it varies") keep it. Unlocks and the best streak always stay (`startFor` in `src/data/habit.ts`).
 - Each topic keeps its bread as the default (see "Loaves"). Any unlocked bread can be chosen for the next loaf. A bread is a look, never a different loaf rule: goals, stages, and baking work the same.
-- **Art:** all breads share the Mix and Shape dough ball. Each bread needs its own Proof, Bake, and Baked SVGs.
-- Home shows the current streak and the next unlock.
+- **Where a bread is chosen:** a bread picker step (`BreadPicker`, `BreadSheet`, copy in `content/breads.json` under `picker`) appears only when a bread beyond the default is unlocked: before "Grow my cushion" on ChooseLoaf and the risk result (both through `useGrowCushion`), and on "Your new loaf". With nothing unlocked there is no extra step. Locked breads are shown but not selectable, with the weeks left. The money layer checks it too: `startLoaf` and `setTarget(..., { grow: true, bread })` return `bread-locked` for a bread that is not the default or unlocked.
+- **Bread on the records:** each loaf has a `bread` (the look it rises in now), and each bake stores the bread it was baked as, so a grown fund's shelf shows each bake in its own bread. Loaves and bakes saved before breads existed load as `sandwich`. Growing without choosing keeps the loaf's current bread.
+- **Art:** all breads share the Mix and Shape dough ball (kept in `design/loaves/sandwich/`, the default bread's folder). Each bread has its own Proof, Bake, and Baked SVGs in `design/loaves/<bread>/`, and a test checks every bread and stage exists.
+- Home shows the current streak and the next unlock, and a small unlock moment (dismissable, no confetti) when a new bread is earned. Dismissing it is stored (`seen`).
+- **Demo tools** (behind `?demo=1`, on Home): "Skip a week" and "Skip a week without saving" (only the clock moves, so a missed week can be tried). Skipped deposits are saved with `source: 'seed'`. The code is in `src/money/demo.ts`.
 - Streaks are personal. No sharing, no leaderboards, no comparing with friends.
-- Unlocks and best streak are stored (the current streak is worked out from the habit and deposit rows).
+- Unlocks and best streak (`AppData.streaks`: `unlocked` and `bestDays`) are stored (the current streak is worked out from the habit and deposit rows). Supabase needs a table or columns for them in milestone 12.
 
 ## Money and data rules
 
@@ -390,7 +394,7 @@ Don't use red as a main color. It reads as loss or debt. For wrong quiz answers,
 
 ### Illustrations
 
-Use the SVGs in `design/loaves/`. Each bread type gets its own five stages (from milestone 9, the dough-ball Mix and Shape are shared by every bread, and each bread has its own Proof, Bake, and Baked). A baked loaf whose lessons are mastered gets a golden finish and sparkles on the celebration, shelf, and Home. Animate stage changes gently (scale and crossfade, under 400ms). Respect `prefers-reduced-motion`.
+Use the SVGs in `design/loaves/<bread>/` (the sandwich loaf's folder is `sandwich`, not `emergency-fund`). The dough-ball Mix and Shape are shared by every bread, and each bread has its own Proof, Bake, and Baked. A baked loaf whose lessons are mastered gets a golden finish and sparkles on the celebration, shelf, and Home. Animate stage changes gently (scale and crossfade, under 400ms). Respect `prefers-reduced-motion`.
 
 ### Voice
 
