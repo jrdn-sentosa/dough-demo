@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Dough! Icon Preview</title>
+<style>
+  /* Layout: a header, a backdrop and safe-zone control bar, then one table per icon (columns are the crop shapes, rows are sizes). */
+  :root {
+    --ground: #FFFFFF;
+    --ink: #2B1B12;
+    --muted: #6B5446;
+    --card: #FFF6E6;
+    --line: #EADBC4;
+    --accent: #8A4B1F;
+    --focus: #B9773A;
+    --stage-white: #FFFFFF;
+    --stage-crumb: #FFF6E6;
+    --stage-dark: #1E1511;
+    --stage-grey: #D9D4CE;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --display: Georgia, "Times New Roman", serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #17110D; --ink: #F5E9D8; --muted: #BBA88F; --card: #251A14; --line: #3A2B21;
+      --accent: #E0A266; --focus: #E0A266; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #17110D; --ink: #F5E9D8; --muted: #BBA88F; --card: #251A14; --line: #3A2B21;
+    --accent: #E0A266; --focus: #E0A266; color-scheme: dark;
+  }
+  body { background: var(--ground); color: var(--ink); font-family: var(--font); line-height: 1.5; padding-inline: 16px; padding-block: 24px 48px; }
+  .page { max-width: 880px; margin-inline: auto; display: grid; gap: 28px; }
+  h1 { font-family: var(--display); font-size: 1.9rem; line-height: 1.15; margin: 0; text-wrap: balance; }
+  h2 { font-family: var(--display); font-size: 1.25rem; margin: 0; text-wrap: balance; }
+  p { margin: 0; max-width: 65ch; }
+  .muted { color: var(--muted); }
+  .controls { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; padding: 12px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+  .controls fieldset { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-width: 0; }
+  .controls legend { float: left; margin-right: 8px; font-weight: 600; padding: 0; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; cursor: pointer; background: var(--ground); }
+  .chip input { accent-color: var(--accent); }
+  .swatch { width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--muted); }
+  .block { display: grid; gap: 14px; }
+  .scroller { overflow-x: auto; }
+  table { border-collapse: collapse; min-width: 560px; width: 100%; }
+  th { text-align: left; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 0 12px 8px 0; }
+  td { padding: 12px 16px 12px 0; vertical-align: middle; border-top: 1px solid var(--line); }
+  td.size { font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; width: 1%; }
+  .stage { display: inline-grid; place-items: center; padding: 14px; border-radius: 12px; background: var(--stage-white); border: 1px solid var(--line); }
+  .stage[data-bg="crumb"] { background: var(--stage-crumb); }
+  .stage[data-bg="grey"] { background: var(--stage-grey); }
+  .stage[data-bg="dark"] { background: var(--stage-dark); }
+  .crop { position: relative; width: var(--s); height: var(--s); overflow: hidden; background: #8A4B1F; }
+  .crop img { display: block; width: 100%; height: 100%; object-fit: cover; max-width: none; }
+  .crop--circle { border-radius: 50%; }
+  .crop--round { border-radius: 22.37%; }
+  .crop--square { border-radius: 0; }
+  .zone { position: absolute; inset: 10%; border-radius: 50%; border: 1.5px dashed #FFFFFF; box-shadow: 0 0 0 1px #000000; pointer-events: none; display: none; }
+  .zones-on .zone { display: block; }
+  .small .zone { border-width: 1px; }
+  .note { font-size: 0.9rem; }
+  input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  @media (max-width: 520px) { h1 { font-size: 1.5rem; } }
+</style>
+</head>
+<body>
+<div class="page" id="page">
+  <header class="block">
+    <h1>Dough! app icon</h1>
+    <p class="muted">The new square icon, cropped the ways phones and browsers crop it, at large and small sizes. The dashed ring marks the middle 80% that all of the artwork has to stay inside.</p>
+  </header>
+
+  <div class="controls">
+    <fieldset>
+      <legend>Behind the icon</legend>
+      <label class="chip"><input type="radio" name="bg" value="white" checked><span class="swatch" style="background:#FFFFFF"></span>White</label>
+      <label class="chip"><input type="radio" name="bg" value="crumb"><span class="swatch" style="background:#FFF6E6"></span>Cream</label>
+      <label class="chip"><input type="radio" name="bg" value="grey"><span class="swatch" style="background:#D9D4CE"></span>Grey</label>
+      <label class="chip"><input type="radio" name="bg" value="dark"><span class="swatch" style="background:#1E1511"></span>Dark</label>
+    </fieldset>
+    <label class="chip"><input type="checkbox" id="zones">Show the middle 80%</label>
+  </div>
+
+  <section class="block" aria-labelledby="new-h">
+    <h2 id="new-h">New icon</h2>
+    <div class="scroller">
+      <table>
+        <thead><tr><th scope="col">Size</th><th scope="col">Circle</th><th scope="col">Rounded square</th><th scope="col">Square</th></tr></thead>
+        <tbody id="new-rows"></tbody>
+      </table>
+    </div>
+    <p class="muted note">Rounded square uses a corner radius of about 22% of the width, like the iPhone home screen. Android adaptive icons crop to a circle or a similar shape, so the circle column is the strictest one.</p>
+  </section>
+
+  <section class="block" aria-labelledby="old-h">
+    <h2 id="old-h">Original, for comparison</h2>
+    <p class="muted note">The original file is 872 by 816 and not square. Centered in a square crop, its edges are cut off by every shape.</p>
+    <div class="scroller">
+      <table>
+        <thead><tr><th scope="col">Size</th><th scope="col">Circle</th><th scope="col">Rounded square</th><th scope="col">Square</th></tr></thead>
+        <tbody id="old-rows"></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+<script>
+  var NEW_SRC = "icon.svg";
+  var OLD_SRC = "icon-original.svg";
+  var SIZES = [192, 96, 48, 29];
+  var SHAPES = ["circle", "round", "square"];
+  var SHAPE_NAMES = { circle: "circle", round: "rounded square", square: "square" };
+  function build(id, src, label) {
+    var body = document.getElementById(id);
+    SIZES.forEach(function (s) {
+      var tr = document.createElement("tr");
+      var size = document.createElement("td");
+      size.className = "size";
+      size.textContent = s + " px";
+      tr.appendChild(size);
+      SHAPES.forEach(function (shape) {
+        var td = document.createElement("td");
+        var stage = document.createElement("div");
+        stage.className = "stage";
+        stage.setAttribute("data-bg", "white");
+        var crop = document.createElement("div");
+        crop.className = "crop crop--" + shape + (s <= 48 ? " small" : "");
+        crop.style.setProperty("--s", s + "px");
+        var img = document.createElement("img");
+        img.src = src;
+        img.alt = label + ", " + SHAPE_NAMES[shape] + " crop, " + s + " pixels";
+        var zone = document.createElement("span");
+        zone.className = "zone";
+        zone.setAttribute("aria-hidden", "true");
+        crop.appendChild(img);
+        crop.appendChild(zone);
+        stage.appendChild(crop);
+        td.appendChild(stage);
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+  }
+  build("new-rows", NEW_SRC, "New icon");
+  build("old-rows", OLD_SRC, "Original icon");
+  document.querySelectorAll('input[name="bg"]').forEach(function (r) {
+    r.addEventListener("change", function () {
+      document.querySelectorAll(".stage").forEach(function (el) { el.setAttribute("data-bg", r.value); });
+    });
+  });
+  document.getElementById("zones").addEventListener("change", function (e) {
+    document.getElementById("page").classList.toggle("zones-on", e.target.checked);
+  });
+</script>
+</body>
+</html>
