@@ -72,8 +72,8 @@ export interface QuizAttempt {
   mode: QuizMode;
   score: number;
   total: number;
-  /** Question id to the index of the choice the student picked. */
-  answers: Record<string, number>;
+  /** Question id to the id of the choice the student picked. */
+  answers: Record<string, string>;
   /** Lessons covering the missed questions, in quiz order. Stored so the lessons list doesn't depend on later content changes. */
   missedLessons: string[];
   /** ISO string in UTC, from the demo clock. */

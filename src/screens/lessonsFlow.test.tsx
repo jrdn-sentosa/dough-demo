@@ -43,8 +43,10 @@ function mount(path: string, data: AppData): { adapter: DataAdapter; pathname: (
   return { adapter, pathname: () => router.state.location.pathname, search: () => router.state.location.search };
 }
 
-const correct = (i: number) => quiz.questions[i].choices[quiz.questions[i].answer];
-const wrong = (i: number) => quiz.questions[i].choices[(quiz.questions[i].answer + 1) % quiz.questions[i].choices.length];
+const labelOf = (i: number, id: string) => quiz.questions[i].choices.find((c) => c.id === id)?.label ?? '';
+const correct = (i: number) => labelOf(i, quiz.questions[i].answer);
+const wrongId = (i: number) => quiz.questions[i].choices.find((c) => c.id !== quiz.questions[i].answer)?.id ?? '';
+const wrong = (i: number) => labelOf(i, wrongId(i));
 
 type User = ReturnType<typeof userEvent.setup>;
 
@@ -356,7 +358,7 @@ describe('shuffling on the quiz screens', () => {
     await screen.findByRole('button', { name: 'Check answer' });
     expect(shownIndex()).toBe(0);
     const firstChoices = screen.getAllByRole('radio').map((r) => r.closest('label')?.textContent);
-    expect(firstChoices).toEqual(quiz.questions[0].choices);
+    expect(firstChoices).toEqual(quiz.questions[0].choices.map((c) => c.label));
 
     const order1 = await answerNormal(user, all);
     expect(order1).toEqual(all);
@@ -367,19 +369,19 @@ describe('shuffling on the quiz screens', () => {
     await screen.findByRole('button', { name: 'Check answer' });
     expect(shownIndex()).not.toBe(0);
     const rotated = screen.getAllByRole('radio').map((r) => r.closest('label')?.textContent);
-    expect(rotated).not.toEqual(quiz.questions[shownIndex()].choices);
+    expect(rotated).not.toEqual(quiz.questions[shownIndex()].choices.map((c) => c.label));
 
     const order2 = await answerNormal(user, [0, 1, 2]);
     expect(order2).not.toEqual(order1);
     expect([...order2].sort()).toEqual(all);
     await screen.findByText('3 of 5 correct');
 
-    // Saved answers are choice ids (content indexes), whatever order they were shown in.
+    // Saved answers are the fixed choice ids from the content, whatever order they were shown in.
     const [first, second] = (await adapter.load()).quizAttempts;
     expect(first.answers).toEqual(Object.fromEntries(quiz.questions.map((q) => [q.id, q.answer])));
     expect(second.score).toBe(3);
     for (const q of quiz.questions.slice(0, 3)) expect(second.answers[q.id]).toBe(q.answer);
-    for (const q of quiz.questions.slice(3)) expect(second.answers[q.id]).not.toBe(q.answer);
+    for (const q of quiz.questions.slice(3)) expect(second.answers[q.id]).toBe(q.choices.find((c) => c.id !== q.answer)?.id);
     expect([...second.missedLessons].sort()).toEqual([...new Set(quiz.questions.slice(3).map((q) => q.lesson))].sort());
   });
 
@@ -459,7 +461,7 @@ describe('test-out quiz', () => {
     for (const q of quiz.questions) {
       expect(body).not.toContain(q.explain);
       expect(body).not.toContain(q.question);
-      expect(body).not.toContain(q.choices[q.answer]);
+      expect(body).not.toContain(q.choices.find((c) => c.id === q.answer)?.label);
     }
     expect(body).not.toContain('The answer:');
     expect(screen.queryByRole('link', { name: /Rewatch|Read the summary/ })).toBeNull();

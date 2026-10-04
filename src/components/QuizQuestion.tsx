@@ -17,22 +17,22 @@ export interface QuestionReveal {
 
 interface QuizQuestionProps {
   question: QuizQuestionContent;
-  /** The choices in the order shown. Each id is the choice's index in the content, so answers don't depend on order. */
+  /** The choices in the order shown. Each has a fixed id from the content, so answers don't depend on order. */
   choices: readonly ShuffledChoice[];
   /** Id of the picked choice, or null. */
-  picked: number | null;
-  onPick: (choiceId: number) => void;
+  picked: string | null;
+  onPick: (choiceId: string) => void;
   /** Set after "Check answer". Locks the choices and shows feedback. Null while answering, and always null in a test-out. */
   reveal: QuestionReveal | null;
 }
 
 /** One question: choices as radio inputs styled as slice buttons, then feedback once checked. */
 export function QuizQuestion({ question, choices, picked, onPick, reveal }: QuizQuestionProps) {
-  const options = choices.map((c) => ({ id: String(c.id), label: c.label }));
+  const options = choices;
   const status: Record<string, ChoiceStatus> = {};
   if (reveal) {
-    status[String(question.answer)] = 'correct';
-    if (picked !== null && picked !== question.answer) status[String(picked)] = 'incorrect';
+    status[question.answer] = 'correct';
+    if (picked !== null && picked !== question.answer) status[picked] = 'incorrect';
   }
   return (
     <>
@@ -42,8 +42,8 @@ export function QuizQuestion({ question, choices, picked, onPick, reveal }: Quiz
         options={options}
         kind="single"
         name={`quiz-${question.id}`}
-        value={picked === null ? [] : [String(picked)]}
-        onChange={(id) => onPick(Number(id))}
+        value={picked === null ? [] : [picked]}
+        onChange={onPick}
         disabled={reveal !== null}
         status={reveal ? status : undefined}
         statusText={reveal?.statusText}

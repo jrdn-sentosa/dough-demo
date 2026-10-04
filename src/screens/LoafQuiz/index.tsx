@@ -19,6 +19,11 @@ import { SliceButton } from '../../components/SliceButton';
 import { useLessonFlow } from '../useLessonFlow';
 import { useVideoAvailable } from '../videoAvailable';
 
+/** The text of the correct choice, found by its id. */
+function correctLabel(question: QuizQuestionContent): string {
+  return question.choices.find((c) => c.id === question.answer)?.label ?? '';
+}
+
 /** "Rewatch this part" with a video, "Read the summary" without one. Both open the lesson. */
 function RewatchLink({ lesson, timestamp, rewatch, readSummary }: { lesson: Lesson; timestamp: number; rewatch: string; readSummary: string }) {
   const hasVideo = useVideoAvailable(lesson.videoUrl);
@@ -48,7 +53,7 @@ export function LoafQuiz() {
   // A fresh order for the questions and their choices on every attempt. Answers are kept by choice id.
   const [shown, setShown] = useState(() => shuffleQuiz(questions));
   const [index, setIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [answers, setAnswers] = useState<Record<string, string>>({});
   const [checked, setChecked] = useState(false);
   const [grade, setGrade] = useState<QuizGrade | null>(null);
   const [masteredBefore, setMasteredBefore] = useState(false);
@@ -95,7 +100,7 @@ export function LoafQuiz() {
       ? {
           correct: picked === question.answer,
           heading: picked === question.answer ? t.correct : t.notQuite,
-          answerLine: fillTemplate(t.correctAnswer, { answer: question.choices[question.answer] }),
+          answerLine: fillTemplate(t.correctAnswer, { answer: correctLabel(question) }),
           explain: question.explain,
           rewatch: <QuestionLink question={question} lessons={lessons} flow={flow} />,
           statusText: { correct: t.correct, incorrect: t.notQuite },
@@ -175,7 +180,7 @@ function LessonEnd({ grade, masteredBefore, questions, lessons, flow, draft, onR
             return (
               <div key={r.id} className="card">
                 <p><strong>{q.question}</strong></p>
-                <p>{fillTemplate(t.correctAnswer, { answer: q.choices[q.answer] })}</p>
+                <p>{fillTemplate(t.correctAnswer, { answer: correctLabel(q) })}</p>
                 <p>{q.explain}</p>
                 <p><QuestionLink question={q} lessons={lessons} flow={flow} /></p>
               </div>

@@ -38,6 +38,15 @@ function withBakes(loaf: LoafRecord): LoafRecord {
   return { ...rest, bakes, growFromCents: typeof rest.growFromCents === 'number' ? rest.growFromCents : null };
 }
 
+/**
+ * Quiz answers used to be saved as choice positions (numbers). They are choice ids (text) now.
+ * This is demo data, so attempts saved the old way are dropped instead of converted.
+ */
+function hasChoiceIds(attempt: { answers?: unknown }): boolean {
+  const answers = attempt.answers;
+  return typeof answers === 'object' && answers !== null && Object.values(answers).every((v) => typeof v === 'string');
+}
+
 /** Fills in fields that older saved data didn't have. Rows saved before `source` existed (or with a bad value) count as manual. */
 function withDefaults(data: AppData): AppData {
   return {
@@ -45,7 +54,7 @@ function withDefaults(data: AppData): AppData {
     profile: data.profile ?? null,
     loaves: data.loaves.map(withBakes),
     lessonProgress: Array.isArray(data.lessonProgress) ? data.lessonProgress : [],
-    quizAttempts: Array.isArray(data.quizAttempts) ? data.quizAttempts : [],
+    quizAttempts: Array.isArray(data.quizAttempts) ? data.quizAttempts.filter(hasChoiceIds) : [],
     transactions: data.transactions.map((t) => ({
       ...t,
       source: TRANSACTION_SOURCES.includes(t.source) ? t.source : ('manual' as TransactionSource),

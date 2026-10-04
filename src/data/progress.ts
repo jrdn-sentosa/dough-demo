@@ -23,10 +23,10 @@ export async function recordQuizAttempt(
   loafId: LoafId,
   mode: QuizMode,
   grade: QuizGrade,
-  answers: Readonly<Record<string, number | undefined>>,
+  answers: Readonly<Record<string, string | undefined>>,
 ): Promise<QuizAttempt> {
   const data = await adapter.load();
-  const picked: Record<string, number> = {};
+  const picked: Record<string, string> = {};
   for (const [id, choice] of Object.entries(answers)) if (choice !== undefined) picked[id] = choice;
   const attempt: QuizAttempt = {
     id: `quiz-${data.quizAttempts.length + 1}`,

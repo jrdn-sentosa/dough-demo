@@ -6,9 +6,9 @@ import { createMemoryAdapter } from './memoryAdapter';
 import { markLessonWatched, recordQuizAttempt } from './progress';
 
 const questions = [
-  { id: 'q1', answer: 1, explain: 'e1', lesson: 'l1', timestamp: 5 },
-  { id: 'q2', answer: 0, explain: 'e2', lesson: 'l2', timestamp: 6 },
-  { id: 'q3', answer: 2, explain: 'e3', lesson: 'l2', timestamp: 7 },
+  { id: 'q1', answer: 'q1-right', explain: 'e1', lesson: 'l1', timestamp: 5 },
+  { id: 'q2', answer: 'q2-right', explain: 'e2', lesson: 'l2', timestamp: 6 },
+  { id: 'q3', answer: 'q3-right', explain: 'e3', lesson: 'l2', timestamp: 7 },
 ];
 
 describe('markLessonWatched', () => {
@@ -36,9 +36,9 @@ describe('markLessonWatched', () => {
 describe('recordQuizAttempt', () => {
   it('keeps every attempt, with the answers and the lessons for missed questions', async () => {
     const adapter = createMemoryAdapter();
-    const first = { q1: 0, q2: 1, q3: 0 };
+    const first = { q1: 'q1-wrong', q2: 'q2-wrong', q3: 'q3-wrong' };
     await recordQuizAttempt(adapter, 'emergency-fund', 'test-out', gradeQuiz(questions, first), first);
-    const second = { q1: 1, q2: 0, q3: 2 };
+    const second = { q1: 'q1-right', q2: 'q2-right', q3: 'q3-right' };
     await recordQuizAttempt(adapter, 'emergency-fund', 'lesson', gradeQuiz(questions, second), second);
 
     const attempts = (await adapter.load()).quizAttempts;
@@ -50,6 +50,18 @@ describe('recordQuizAttempt', () => {
 });
 
 describe('older saved data', () => {
+  it('drops quiz attempts saved with choice positions instead of choice ids', async () => {
+    const attempt = (id: string, answers: Record<string, unknown>) => ({ id, loafId: 'emergency-fund', mode: 'lesson', score: 1, total: 5, answers, missedLessons: [], at: '2026-01-01T00:00:00.000Z' });
+    const old = {
+      version: 1, user: null, profile: null, loaves: [], transactions: [], lessonProgress: [], clock: { offsetDays: 0 },
+      quizAttempts: [attempt('quiz-1', { q1: 1, q2: 0 }), attempt('quiz-2', { q1: 'car-repair' })],
+    };
+    const store = new Map<string, string>([['dough:v1', JSON.stringify(old)]]);
+    const storage: StorageLike = { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => void store.set(k, v) };
+    const data = await createLocalAdapter(storage).load();
+    expect(data.quizAttempts.map((a) => a.id)).toEqual(['quiz-2']);
+  });
+
   it('loads with empty progress when it was saved before progress existed', async () => {
     const old = { version: 1, user: null, profile: null, loaves: [], transactions: [], clock: { offsetDays: 0 } };
     const store = new Map<string, string>([['dough:v1', JSON.stringify(old)]]);
