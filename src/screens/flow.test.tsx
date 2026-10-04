@@ -29,23 +29,6 @@ const signedIn: AppData = { ...emptyData(), user: { email: 'a@b.co' } };
 const withAnswers = (answers: PlacementAnswers): AppData => ({ ...signedIn, profile: profileFromAnswers(answers) });
 
 describe('sign in', () => {
-  it('signs in with an email and moves on to placement', async () => {
-    const user = userEvent.setup();
-    const { adapter, pathname } = mount('/login', emptyData());
-    await user.type(await screen.findByLabelText('Email'), 'sam@school.edu');
-    await user.click(screen.getByRole('button', { name: 'Continue with email' }));
-    await waitFor(() => expect(pathname()).toBe('/placement'));
-    expect((await adapter.load()).user).toEqual({ email: 'sam@school.edu' });
-  });
-
-  it('asks for a real email', async () => {
-    const user = userEvent.setup();
-    mount('/login', emptyData());
-    await user.type(await screen.findByLabelText('Email'), 'nope');
-    await user.click(screen.getByRole('button', { name: 'Continue with email' }));
-    expect((await screen.findByRole('alert')).textContent).toContain('valid email');
-  });
-
   it('"Continue as demo user" signs in a plain demo user who starts placement', async () => {
     const user = userEvent.setup();
     const { pathname } = mount('/login', emptyData());

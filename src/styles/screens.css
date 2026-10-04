@@ -1500,3 +1500,99 @@ input:focus-visible {
   margin-top: auto;
   padding-top: var(--space-4);
 }
+
+/* Sign in with a code and with Google */
+.login__links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.login__link {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--crust);
+  text-decoration: underline;
+  touch-action: manipulation;
+}
+
+.login__link:disabled {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+/* Google's light "Continue with Google" button: white, 1px #747775 border, Google's G, #1F1F1F text. */
+.google-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 1px solid #747775;
+  border-radius: 24px;
+  background: #ffffff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  color: #1f1f1f;
+  touch-action: manipulation;
+}
+
+/* Settings and the connection banner */
+.settings {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.settings__section {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.settings__heading {
+  margin: 0;
+  font-size: 18px;
+}
+
+.settings__text {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.settings a.slice-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  text-decoration: none;
+}
+
+.connection-banner {
+  margin: 0 0 var(--space-3);
+  padding: 10px 14px;
+  border: 1.5px solid var(--divider);
+  border-radius: 14px;
+  background: var(--crumb);
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--rye);
+}
+
+.home__links {
+  display: inline-flex;
+  gap: var(--space-3);
+}

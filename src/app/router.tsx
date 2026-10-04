@@ -16,6 +16,7 @@ import { LoafComplete } from '../screens/LoafComplete';
 import { RiskQuiz } from '../screens/RiskQuiz';
 import { RiskResult } from '../screens/RiskResult';
 import { Shelf } from '../screens/Shelf';
+import { Settings } from '../screens/Settings';
 
 /** Exported so tests can mount the same routes in a memory router. */
 export const routes: RouteObject[] = [
@@ -37,6 +38,7 @@ export const routes: RouteObject[] = [
       { path: '/shelf', element: <Shelf /> },
       { path: '/risk-quiz', element: <RiskQuiz /> },
       { path: '/risk-result', element: <RiskResult /> },
+      { path: '/settings', element: <Settings /> },
     ],
   },
 ];

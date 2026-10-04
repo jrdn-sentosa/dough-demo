@@ -29,7 +29,7 @@ export async function recordQuizAttempt(
   const picked: Record<string, string> = {};
   for (const [id, choice] of Object.entries(answers)) if (choice !== undefined) picked[id] = choice;
   const attempt: QuizAttempt = {
-    id: `quiz-${data.quizAttempts.length + 1}`,
+    id: crypto.randomUUID(),
     loafId,
     mode,
     score: grade.score,

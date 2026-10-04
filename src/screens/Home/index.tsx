@@ -218,9 +218,14 @@ export function Home() {
       <div className="home__header">
         <div className="home__top">
           <span className="home__eyebrow">{copy.eyebrow}</span>
-          <Link className="home__shelf-link" to="/shelf">
-            {copy.shelfLink}
-          </Link>
+          <span className="home__links">
+            <Link className="home__shelf-link" to="/shelf">
+              {copy.shelfLink}
+            </Link>
+            <Link className="home__shelf-link" to="/settings">
+              Settings
+            </Link>
+          </span>
         </div>
         <h1 className="home__title">{loaf.title}</h1>
         <DraftNote draft={loaf.draft} />

@@ -1,31 +1,92 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { LoafButton } from '../../components/LoafButton';
 import { SliceButton } from '../../components/SliceButton';
+import { useAuth } from '../../app/AuthProvider';
 import { useData } from '../../app/DataProvider';
-import { signInDemo, signInLocal } from '../../data/session';
+import { CODE_LENGTH, sendEmailCode, signInWithGoogle, verifyEmailCode } from '../../data/auth';
+import type { AuthClient } from '../../data/auth';
+import { signInDemo } from '../../data/session';
+import { getSupabase } from '../../data/supabaseClient';
 
 export const DISCLAIMER_LINES = ['Educational demo. Not financial advice.', 'No real money moves.'] as const;
 
+const RESEND_SECONDS = 60;
+
+/** Google's four-color "G", from Google's sign-in branding assets. */
+function GoogleG() {
+  return (
+    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 48 48">
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+    </svg>
+  );
+}
+
 /**
- * Sign in. Email sign-in is LOCAL-ONLY (see `session.ts`). Google sign-in is left out
- * until the Supabase milestone wires it up, rather than showing a button that does nothing.
+ * Sign in. Real accounts use Supabase: a 6-digit code emailed to the student, or Google. The email form and the
+ * Google button are not rendered at all unless Supabase is configured, rather than showing buttons that do nothing.
+ * The Google button also needs `VITE_GOOGLE_SIGNIN=true`, set once Google is enabled in Supabase.
+ * "Continue as demo user" is always there and stays on this device (no account, no connection needed).
  * Once someone is signed in, the route guard moves them on.
  */
 export function Login() {
-  const { adapter, refresh } = useData();
-  const [email, setEmail] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const { configured } = useAuth();
+  return <LoginView auth={configured ? (getSupabase()?.auth ?? null) : null} google={import.meta.env.VITE_GOOGLE_SIGNIN === 'true'} />;
+}
 
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault();
-    const user = await signInLocal(adapter, email);
-    if (!user) {
-      setError('Please enter a valid email, like you@email.com.');
+/** `auth` is null when real accounts are not available; `google` turns on the Google button. Exported so tests can pass a fake. */
+export function LoginView({ auth, google = false }: { auth: AuthClient | null; google?: boolean }) {
+  const { adapter, refresh } = useData();
+  const [step, setStep] = useState<'email' | 'code'>('email');
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [wait, setWait] = useState(0);
+
+  useEffect(() => {
+    if (wait <= 0) return;
+    const timer = window.setTimeout(() => setWait((w) => w - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [wait]);
+
+  async function send() {
+    if (!auth) return;
+    setBusy(true);
+    const result = await sendEmailCode(auth, email);
+    setBusy(false);
+    if (!result.ok) {
+      setError(result.message);
       return;
     }
     setError(null);
-    await refresh();
+    setCode('');
+    setWait(RESEND_SECONDS);
+    setStep('code');
+  }
+
+  async function onEmail(e: FormEvent) {
+    e.preventDefault();
+    await send();
+  }
+
+  async function onCode(e: FormEvent) {
+    e.preventDefault();
+    if (!auth) return;
+    setBusy(true);
+    const result = await verifyEmailCode(auth, email, code);
+    setBusy(false);
+    // On success Supabase starts the session and the app moves on by itself.
+    setError(result.ok ? null : result.message);
+  }
+
+  async function onGoogle() {
+    if (!auth) return;
+    const result = await signInWithGoogle(auth, window.location.origin);
+    if (!result.ok) setError(result.message);
   }
 
   async function onDemo() {
@@ -55,39 +116,95 @@ export function Login() {
         <p className="login__tagline">Stack that bread.</p>
       </div>
 
-      <form className="login__form" onSubmit={(e) => void onSubmit(e)} noValidate>
-        <label htmlFor="email">Email</label>
-        <input
-          id="email"
-          type="email"
-          autoComplete="email"
-          placeholder="you@email.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          aria-invalid={error ? true : undefined}
-          aria-describedby={error ? 'email-error' : undefined}
-        />
-        {error && (
-          <p id="email-error" className="login__error" role="alert">
-            {error}
-          </p>
-        )}
-        <p className="login__local-note">Local-only for this demo. Nothing leaves this device.</p>
-        <LoafButton type="submit" className="login__loaf">
-          Continue with email
-        </LoafButton>
-      </form>
+      {auth && step === 'email' && (
+        <form className="login__form" onSubmit={(e) => void onEmail(e)} noValidate>
+          <label htmlFor="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? 'login-error' : undefined}
+          />
+          {error && (
+            <p id="login-error" className="login__error" role="alert">
+              {error}
+            </p>
+          )}
+          <p className="login__local-note">We'll email you a 6-digit code. No password to remember.</p>
+          <LoafButton type="submit" className="login__loaf" disabled={busy}>
+            Continue with email
+          </LoafButton>
+        </form>
+      )}
 
-      <div className="login__divider" aria-hidden="true">
-        <span className="login__line" />
-        <span className="login__or">or</span>
-        <span className="login__line" />
-      </div>
+      {auth && step === 'code' && (
+        <form className="login__form" onSubmit={(e) => void onCode(e)} noValidate>
+          <label htmlFor="code">Enter your code</label>
+          <p className="login__local-note" id="code-help">
+            We sent a {CODE_LENGTH}-digit code to {email.trim()}.
+          </p>
+          <input
+            id="code"
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            maxLength={CODE_LENGTH + 1}
+            placeholder="123456"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? 'login-error code-help' : 'code-help'}
+          />
+          {error && (
+            <p id="login-error" className="login__error" role="alert">
+              {error}
+            </p>
+          )}
+          <LoafButton type="submit" className="login__loaf" disabled={busy}>
+            Sign in
+          </LoafButton>
+          <div className="login__links">
+            <button type="button" className="login__link" disabled={wait > 0 || busy} onClick={() => void send()}>
+              {wait > 0 ? `Send a new code (${wait}s)` : 'Send a new code'}
+            </button>
+            <button
+              type="button"
+              className="login__link"
+              onClick={() => {
+                setStep('email');
+                setError(null);
+              }}
+            >
+              Use a different email
+            </button>
+          </div>
+        </form>
+      )}
+
+      {auth && step === 'email' && (
+        <div className="login__divider" aria-hidden="true">
+          <span className="login__line" />
+          <span className="login__or">or</span>
+          <span className="login__line" />
+        </div>
+      )}
 
       <div className="login__alt">
-        <SliceButton className="slice-button--tall" onClick={() => void onDemo()}>
-          Continue as demo user
-        </SliceButton>
+        {auth && google && step === 'email' && (
+          <button type="button" className="google-button" onClick={() => void onGoogle()}>
+            <GoogleG />
+            <span>Continue with Google</span>
+          </button>
+        )}
+        {step === 'email' && (
+          <SliceButton className="slice-button--tall" onClick={() => void onDemo()}>
+            Continue as demo user
+          </SliceButton>
+        )}
       </div>
 
       <p className="login__disclaimer">

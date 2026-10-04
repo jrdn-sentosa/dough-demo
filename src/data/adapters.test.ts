@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import type { DataAdapter } from './adapter';
 import { STORAGE_KEY, createLocalAdapter, type StorageLike } from './localAdapter';
 import { createMemoryAdapter } from './memoryAdapter';
-import { emptyData } from './types';
+import { createFakeDb } from './fakeDb';
+import { createSupabaseAdapter } from './supabaseAdapter';
+import { emptyData, type AppData } from './types';
 
 function fakeStorage(initial: Record<string, string> = {}): StorageLike & { map: Map<string, string> } {
   const map = new Map(Object.entries(initial));
@@ -22,10 +24,11 @@ const throwingStorage: StorageLike = {
   },
 };
 
-function contract(name: string, make: () => DataAdapter) {
+/** `user` is who the adapter reports on load: nobody for the local adapters, the signed-in account for Supabase. */
+function contract(name: string, make: () => DataAdapter, user: AppData['user'] = null) {
   describe(`${name} adapter contract`, () => {
     it('starts fresh when nothing is saved', async () => {
-      expect(await make().load()).toEqual(emptyData());
+      expect(await make().load()).toEqual({ ...emptyData(), user });
     });
 
     it('returns what was saved', async () => {
@@ -41,7 +44,15 @@ function contract(name: string, make: () => DataAdapter) {
         at: '2026-01-01T00:00:00.000Z',
       });
       await adapter.save(data);
-      expect(await adapter.load()).toEqual(data);
+      expect(await adapter.load()).toEqual({ ...data, user });
+    });
+
+    it('returns a full set of saved data, rows in order', async () => {
+      const adapter = make();
+      await adapter.load();
+      const data = fullData();
+      await adapter.save(data);
+      expect(await adapter.load()).toEqual({ ...data, user });
     });
 
     it('does not let callers change stored data without saving', async () => {
@@ -54,8 +65,61 @@ function contract(name: string, make: () => DataAdapter) {
   });
 }
 
+/** One of everything the app can save, so every table and column round-trips. */
+function fullData(): AppData {
+  const data = emptyData();
+  data.profile = {
+    placementStatus: 'partial',
+    essentials: 'e-500-749',
+    essentialsExactCents: null,
+    essentialsCents: 62_500,
+    savings: 's-100-249',
+    savingsExactCents: 12_300,
+    accounts: ['checking', 'regular-savings'],
+    cardDebt: 'no',
+    earnedIncome: null,
+    monthsCovered: 0.2,
+    risk: null,
+  };
+  data.loaves.push({
+    loafId: 'emergency-fund',
+    targetCents: 65_000,
+    startedAt: '2026-01-01T00:00:00.000Z',
+    bread: 'sandwich',
+    bakes: [{ targetCents: 40_000, at: '2026-02-01T00:00:00.000Z', bread: 'sandwich' }],
+    growFromCents: 40_000,
+  });
+  data.transactions.push(
+    { id: 'tx-1', loafId: 'emergency-fund', type: 'starting', source: 'manual', amountCents: 12_300, at: '2026-01-01T00:00:00.000Z' },
+    { id: '5b5f3a52-7d3c-4a1e-9c47-0f6a1d2e8b11', loafId: 'emergency-fund', type: 'deposit', source: 'seed', amountCents: 2_500, at: '2026-01-08T10:30:15.250Z' },
+    { id: 'tx-3', loafId: 'emergency-fund', type: 'withdrawal', source: 'manual', amountCents: 1_000, at: '2026-01-09T00:00:00.000Z' },
+  );
+  data.lessonProgress.push({ loafId: 'emergency-fund', lessonId: 'ef-what-its-for', watchedAt: '2026-01-02T00:00:00.000Z', how: 'video' });
+  data.quizAttempts.push({
+    id: 'quiz-1',
+    loafId: 'emergency-fund',
+    mode: 'lesson',
+    score: 4,
+    total: 5,
+    answers: { 'ef-q1': 'car-repair' },
+    missedLessons: ['ef-where-to-keep'],
+    at: '2026-01-03T00:00:00.000Z',
+  });
+  data.habit = { kind: 'weekly', amountCents: 2_500, paycheckCents: null, frequency: null, startedAt: '2026-01-01T00:00:00.000Z' };
+  data.tipsSeen = ['emergency-fund:shape'];
+  data.hysaCard = 'pending';
+  data.streaks = { unlocked: [{ bread: 'baguette', at: '2026-01-15T00:00:00.000Z', seen: true }], bestDays: 14 };
+  data.clock.offsetDays = 3;
+  return data;
+}
+
 contract('memory', () => createMemoryAdapter());
 contract('local', () => createLocalAdapter(fakeStorage()));
+contract(
+  'supabase',
+  () => createSupabaseAdapter(createFakeDb({ id: 'user-1', email: 'student@example.com' }), fakeStorage()),
+  { email: 'student@example.com' },
+);
 
 describe('local adapter safety', () => {
   it('uses the single versioned key', async () => {

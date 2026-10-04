@@ -18,7 +18,7 @@ This repository is a **tech demo only**. It runs as a progressive web app (PWA) 
 
 - React + TypeScript (strict mode) + Vite
 - `vite-plugin-pwa` for the manifest and service worker
-- Supabase for auth (email and Google) and the database
+- Supabase for auth (email one-time code and Google) and the database, through `@supabase/supabase-js`. The Supabase CLI is run with `npx supabase ...` and is not a dependency.
 - Plain CSS with CSS variables for design tokens (no UI kit)
 - Fonts self-hosted with `@fontsource-variable/fraunces` and `@fontsource-variable/dm-sans` so the app works offline
 - Native HTML `<video>` with WebVTT captions for lessons
@@ -55,7 +55,7 @@ src/
                 throws on malformed content; review-page renderer
   money/        simulated deposits and withdrawals, demo clock
   data/         the only code that talks to storage: DataAdapter interface,
-                localStorage and in-memory adapters, Supabase later
+                localStorage (demo user), in-memory (tests) and Supabase (real accounts) adapters
   styles/       tokens.css, global.css
 content/
   placement.json            placement quiz questions and scoring
@@ -158,6 +158,8 @@ Existing savings count by default for everyone: if the student reported any savi
 Titled "Here's where you'll start." Shows the first loaf, the goal in dollars and months, and how far along existing savings put them. When placement was skipped, it says "Your first loaf: Emergency fund. Starting goal: $1,000, a default you can change in Settings."
 
 ### Retaking placement and changing the goal (Settings)
+
+Settings (`/settings`, linked from Home) exists in a bare form since milestone 12: the signed-in email and **Sign out** (real accounts) or **Exit demo** (the demo user, who has no account; it uses `signOutLocal` and keeps the local demo data, so "Continue as demo user" picks up where they left off), **Retake the quiz** (`/placement?retake=1&return=/settings`) and the disclaimer. Changing the goal and the habit, the demo tools and Reset demo come with milestone 11.
 
 - **Retake the quiz** reruns placement with current answers prefilled. New answers update the profile, account steps, and recommendations. It never deletes or changes transactions.
 - If the new answers suggest a different goal, ask "Update your goal to $X?" instead of changing it silently. If the current target is the $1,000 starter goal and the student now gives essentials, suggest 1 month of essentials. If the target was months-based (1, 3, or 6 months), re-price the same number of months. A custom amount is left alone. Nothing is suggested unless the essentials or savings answer changed.
@@ -301,7 +303,7 @@ The result is a pure function in `src/domain/risk.ts` with unit tests:
 - The result shows which loaf fits (Coming soon) and is saved to the profile (`profile.risk`: status, answers, result). Retaking placement never clears it.
 - The 4-out-of-5 knowledge check still applies before any investing loaf starts, once that content exists.
 
-## Dough! Plus (simulated, milestone 10, planned, not built)
+## Dough! Plus (simulated, milestone 14, planned, not built)
 
 - **Always free:** the emergency fund loaf and everything about it (saving, withdrawing, rebuilding, growing to 3 or 6 months), the placement quiz, the risk quiz and its result, and streak breads.
 - **Plus:** the investing loaves (lessons, quizzes, loaves), a set of exclusive breads that streaks can't unlock, and bank linking once Plaid exists.
@@ -324,7 +326,7 @@ The result is a pure function in `src/domain/risk.ts` with unit tests:
 - Home shows the current streak and the next unlock, and a small unlock moment (dismissable, no confetti) when a new bread is earned. Dismissing it is stored (`seen`).
 - **Demo tools** (behind `?demo=1`, on Home): "Skip a week" and "Skip a week without saving" (only the clock moves, so a missed week can be tried). Skipped deposits are saved with `source: 'seed'`. The code is in `src/money/demo.ts`.
 - Streaks are personal. No sharing, no leaderboards, no comparing with friends.
-- Unlocks and best streak (`AppData.streaks`: `unlocked` and `bestDays`) are stored (the current streak is worked out from the habit and deposit rows). Supabase needs a table or columns for them in milestone 12.
+- Unlocks and best streak (`AppData.streaks`: `unlocked` and `bestDays`) are stored (the current streak is worked out from the habit and deposit rows). They are stored in `user_state.streaks`.
 
 ## Money and data rules
 
@@ -338,13 +340,16 @@ The result is a pure function in `src/domain/risk.ts` with unit tests:
 - **Rebuild mode:** withdrawing from a baked emergency fund (including one baked at start) brings the loaf back to Home as `rebuilding`, at the stage matching its balance, with "You used your fund for what it's for. Let's rebuild." Bakes are never removed, so the shelf keeps every earlier bake. When a rebuild reaches the target again, the result has `baked: true` and `rebuilt: true`. A fund that is growing (see "Grow your cushion") is not `rebuilding`.
 - **Bakes and growing on the loaf record:** `bakes` (list of `{ targetCents, at }`, `at` null for "Already built") and `growFromCents` (null unless growing) are stored on the loaf, not derived, and old saved data is converted on load. Withdrawals clear `growFromCents`. Raising the target of a loaf that is only "Already built" (without `grow`) undoes that bake, because the student is still choosing a goal.
 - **Demo clock** (`src/money/clock.ts`): `now()`, `advance(days)`, `reset()`. It is saved as part of the data so it survives a reload. Every transaction's date comes from it. Only this file reads the real time.
+- **Accounts and the two stores (milestone 12):** "Continue as demo user" stays on the local adapter: no account, works without Supabase or a connection. Real accounts (email code or Google OAuth) use the Supabase adapter, which implements the same `DataAdapter` and passes the same contract tests. The two stores never mix: signing in does not import local demo data. `AuthProvider` (`src/app/`) decides which adapter `DataProvider` uses. Only the project URL and the publishable key (`sb_publishable_...`) are used by the app.
+- **Ids:** new transaction and quiz-attempt ids are `crypto.randomUUID()`, so rows made on two devices never collide. Older ids like `tx-3` stay valid. Primary keys in Supabase are composite with `user_id`.
+- **Offline and two devices (real accounts only):** if the connection drops, the loaf stays readable (the adapter keeps a read-only copy under `dough:cache:<user id>`, removed on sign out) and a banner says changes can't be saved. There is no offline syncing: a change made offline is not kept. The adapter never writes before it has read, so an empty screen from a failed load can't overwrite saved rows. Using two devices at the same time is "last save wins" for loaf and `user_state` rows. Transactions are insert-only with random ids, so deposits are never lost. Fine for the demo.
 - **Local storage:** one versioned key, `dough:v1`. If saved data is missing, unreadable, or the wrong version, start fresh instead of crashing. Every read and write is wrapped in try/catch because some browsers block storage in private mode. If writes are blocked, the app keeps working from memory.
 - **Tests** use an in-memory adapter that implements the same `DataAdapter` interface, so they never touch real browser storage.
-- Supabase tables: `profiles` (`placementStatus`, essentials range and figure, existing savings range, `accounts`, `cardDebt`, `earnedIncome`, `monthsCovered`, and the risk quiz `risk` status, answers and result; any of these can be null when unknown), `placement_results`, `loaves`, `transactions` (with a `type` of `starting`, `deposit`, or `withdrawal`, and a `source` of `manual`, `plaid`, or `seed`), `lesson_progress`, `quiz_attempts`.
+- Supabase tables: `profiles` (`placementStatus`, essentials range and figure, existing savings range, `accounts`, `cardDebt`, `earnedIncome`, `monthsCovered`, and the risk quiz `risk` status, answers and result; any of these can be null when unknown), `loaves`, `transactions` (with a `type` of `starting`, `deposit`, or `withdrawal`, and a `source` of `manual`, `plaid`, or `seed`), `lesson_progress`, `quiz_attempts`, and `user_state` (one row per user: `habit`, `tips_seen`, `hysa_card`, `streaks`, and the demo clock offset). There is no `placement_results` table: placement results are derived from `profiles` (the starting point is recomputed from the answers). The schema is in `supabase/migrations/`, and a test checks that every table has Row Level Security and an own-rows policy.
 - **Transaction source:** every row records where it came from: `manual` (the student typed it, the default), `plaid` (read from a linked sandbox account), or `seed` (demo seed data such as Maya's history). Source never changes how balances, stages, or baking work. Rows saved before `source` existed load as `manual`.
-- Saving habit, opened tips and the high-yield reminder (`habit`, `tipsSeen`, `hysaCard` on `AppData`) are plans and flags, not money. They live in `src/data/` (`habit.ts`, `profile.ts`) and need a table or columns in milestone 12. Old saved data without them loads with no habit, no seen tips and no reminder.
+- Saving habit, opened tips and the high-yield reminder (`habit`, `tipsSeen`, `hysaCard` on `AppData`) are plans and flags, not money. They live in `src/data/` (`habit.ts`, `profile.ts`) and are stored in `user_state`. Old saved data without them loads with no habit, no seen tips and no reminder.
 - Row Level Security is on for every table. Users can only read and write their own rows.
-- Env vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` in `.env.local`.
+- Env vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` (the `sb_publishable_...` key) in `.env.local`. The app uses only these two. Secret keys never go in the app, never get a `VITE_` prefix, and never go in git.
 
 ## Demo mode
 
@@ -390,7 +395,7 @@ Don't use red as a main color. It reads as loss or debt. For wrong quiz answers,
 - **Loaf button** (main action, one per screen): background `--crust`, white text 18px bold, height 62px, `border-radius: 70px 70px 16px 16px / 38px 38px 16px 16px`, `border-bottom: 5px solid var(--deep-crust)`, three small slanted cream score marks near the top. Pressed: move down 3px and shrink the bottom border to 2px.
 - **Slice button** (secondary, quiz answer choices): background `--crumb`, 3px `--toast-edge` border, `border-radius: 46px 46px 14px 14px / 32px 32px 14px 14px`.
 - Third-party sign-in buttons must follow Google's branding rules (Apple sign-in is out of scope). Use Google's official assets. The Google button is not shown at all until the Supabase milestone wires it up: never show a button that does nothing.
-- **Login screen** follows `docs/mockups/login.html` exactly (sizes, colors, button shapes): "Continue with email" loaf button, tagline "Stack that bread.", "Continue as demo user" slice button (`.slice-button--tall`), and the disclaimer at the bottom. Email sign-in is local-only until milestone 12.
+- **Login screen** follows `docs/mockups/login.html` exactly (sizes, colors, button shapes): "Continue with email" loaf button, tagline "Stack that bread.", "Continue as demo user" slice button (`.slice-button--tall`), and the disclaimer at the bottom. Email sign-in is a 6-digit one-time code (Supabase), not a magic link. The email form and the Google button render only when Supabase is configured (never a button that does nothing); without it, only "Continue as demo user" and the disclaimer show.
 
 ### Illustrations
 
@@ -440,7 +445,7 @@ Content for the Index funds, Bonds, Roth IRA, and Debt payoff loaves (cards only
 
 - The app is hosted on Vercel. Pushes to `main` deploy to production automatically, and every other branch gets its own preview link.
 - `vercel.json` rewrites page routes only to `index.html`, so refreshing or opening a link like `/placement` works. `react-router` handles routing in the browser. Paths under `assets/`, `videos/`, `icons/`, and any path ending in a file extension are not rewritten, so a missing video, image, or icon returns a real 404. (The video player still has an `onError` poster as a backup, because the dev and preview servers answer a missing file with the app's index page.)
-- Environment variables (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_DEMO_MODE`) are set in the Vercel dashboard, never committed. Only `.env.example` (with empty values) is in git.
+- Environment variables (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_DEMO_MODE`) are set in the Vercel dashboard, never committed. Only `.env.example` (with empty values) is in git.
 
 ## How to work in this repo
 

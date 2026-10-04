@@ -2,23 +2,17 @@ import type { DataAdapter } from './adapter';
 import type { LocalUser } from './types';
 
 /**
- * LOCAL-ONLY fake sign-in for the demo. There is no password and nothing
- * leaves this device. Replaced by Supabase auth in milestone 10.
+ * "Continue as demo user". The demo user has no account: it lives only in this browser's local data, works
+ * without Supabase or a connection, and nothing leaves the device. Until Maya's seed exists (milestone 11)
+ * this is a plain demo user who starts placement. Real accounts sign in through Supabase (`auth.ts`).
  */
-export async function signInLocal(adapter: DataAdapter, email: string): Promise<LocalUser | null> {
-  const trimmed = email.trim();
-  if (!/^\S+@\S+\.\S+$/.test(trimmed)) return null;
-  const data = await adapter.load();
-  data.user = { email: trimmed };
-  await adapter.save(data);
-  return data.user;
-}
-
-/** "Continue as demo user". Until Maya's seed exists (milestone 9) this is a plain demo user who starts placement. */
 export const DEMO_EMAIL = 'demo@dough.local';
 
-export function signInDemo(adapter: DataAdapter): Promise<LocalUser | null> {
-  return signInLocal(adapter, DEMO_EMAIL);
+export async function signInDemo(adapter: DataAdapter): Promise<LocalUser> {
+  const data = await adapter.load();
+  data.user = { email: DEMO_EMAIL };
+  await adapter.save(data);
+  return data.user;
 }
 
 export async function signOutLocal(adapter: DataAdapter): Promise<void> {

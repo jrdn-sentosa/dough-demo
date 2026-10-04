@@ -175,7 +175,7 @@ function renderAt(path: string, data: AppData) {
 describe('route guard in the app', () => {
   it('shows login to a signed-out student', async () => {
     const router = renderAt('/', signedOut);
-    expect(await screen.findByRole('button', { name: 'Continue with email' })).toBeTruthy();
+    expect(await screen.findByRole('button', { name: 'Continue as demo user' })).toBeTruthy();
     expect(router.state.location.pathname).toBe('/login');
   });
 
@@ -199,10 +199,11 @@ describe('route guard in the app', () => {
 });
 
 describe('login screen', () => {
-  it('has no Google, Apple, or School button, and shows the demo option and disclaimer', async () => {
+  it('without Supabase shows only the demo option and the disclaimer: no email form, no Google, Apple, or School', async () => {
     renderAt('/login', signedOut);
-    await screen.findByRole('button', { name: 'Continue with email' });
-    expect(screen.getByRole('button', { name: 'Continue as demo user' })).toBeTruthy();
+    await screen.findByRole('button', { name: 'Continue as demo user' });
+    expect(screen.queryByRole('button', { name: 'Continue with email' })).toBeNull();
+    expect(screen.queryByLabelText('Email')).toBeNull();
     expect(screen.queryByRole('button', { name: /google|apple|school/i })).toBeNull();
     expect(document.body.textContent).toContain('Educational demo. Not financial advice.');
     expect(document.body.textContent).toContain('No real money moves.');
