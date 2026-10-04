@@ -18,7 +18,7 @@ This repository is a **tech demo only**. It runs as a progressive web app (PWA) 
 
 - React + TypeScript (strict mode) + Vite
 - `vite-plugin-pwa` for the manifest and service worker
-- Supabase for auth (email and Google) and the database
+- Supabase for auth (email one-time code and Google) and the database, through `@supabase/supabase-js`. The Supabase CLI is run with `npx supabase ...` and is not a dependency.
 - Plain CSS with CSS variables for design tokens (no UI kit)
 - Fonts self-hosted with `@fontsource-variable/fraunces` and `@fontsource-variable/dm-sans` so the app works offline
 - Native HTML `<video>` with WebVTT captions for lessons
@@ -301,7 +301,7 @@ The result is a pure function in `src/domain/risk.ts` with unit tests:
 - The result shows which loaf fits (Coming soon) and is saved to the profile (`profile.risk`: status, answers, result). Retaking placement never clears it.
 - The 4-out-of-5 knowledge check still applies before any investing loaf starts, once that content exists.
 
-## Dough! Plus (simulated, milestone 10, planned, not built)
+## Dough! Plus (simulated, milestone 14, planned, not built)
 
 - **Always free:** the emergency fund loaf and everything about it (saving, withdrawing, rebuilding, growing to 3 or 6 months), the placement quiz, the risk quiz and its result, and streak breads.
 - **Plus:** the investing loaves (lessons, quizzes, loaves), a set of exclusive breads that streaks can't unlock, and bank linking once Plaid exists.
@@ -344,7 +344,7 @@ The result is a pure function in `src/domain/risk.ts` with unit tests:
 - **Transaction source:** every row records where it came from: `manual` (the student typed it, the default), `plaid` (read from a linked sandbox account), or `seed` (demo seed data such as Maya's history). Source never changes how balances, stages, or baking work. Rows saved before `source` existed load as `manual`.
 - Saving habit, opened tips and the high-yield reminder (`habit`, `tipsSeen`, `hysaCard` on `AppData`) are plans and flags, not money. They live in `src/data/` (`habit.ts`, `profile.ts`) and need a table or columns in milestone 12. Old saved data without them loads with no habit, no seen tips and no reminder.
 - Row Level Security is on for every table. Users can only read and write their own rows.
-- Env vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` in `.env.local`.
+- Env vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` (the `sb_publishable_...` key) in `.env.local`. The app uses only these two. Secret keys never go in the app, never get a `VITE_` prefix, and never go in git.
 
 ## Demo mode
 
@@ -440,7 +440,7 @@ Content for the Index funds, Bonds, Roth IRA, and Debt payoff loaves (cards only
 
 - The app is hosted on Vercel. Pushes to `main` deploy to production automatically, and every other branch gets its own preview link.
 - `vercel.json` rewrites page routes only to `index.html`, so refreshing or opening a link like `/placement` works. `react-router` handles routing in the browser. Paths under `assets/`, `videos/`, `icons/`, and any path ending in a file extension are not rewritten, so a missing video, image, or icon returns a real 404. (The video player still has an `onError` poster as a backup, because the dev and preview servers answer a missing file with the app's index page.)
-- Environment variables (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_DEMO_MODE`) are set in the Vercel dashboard, never committed. Only `.env.example` (with empty values) is in git.
+- Environment variables (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_DEMO_MODE`) are set in the Vercel dashboard, never committed. Only `.env.example` (with empty values) is in git.
 
 ## How to work in this repo
 

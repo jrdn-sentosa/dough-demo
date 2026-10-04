@@ -17,10 +17,10 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
 | 7 | Saving setup and Home | Done (on branch `milestone-7-saving-setup-home`, pending preview check) |
 | 8 | Celebration, bread shelf, save-or-invest choice, and risk quiz | Done (on branch `milestone-8-celebration-invest`, pending preview check) |
 | 9 | Streaks and bread unlocks | Done (on branch `milestone-9-streaks-breads`, pending preview check) |
-| 10 | Dough! Plus (simulated) | To do (plan only) |
-| 11 | Demo mode, Settings, and PWA | To do |
-| 12 | Supabase | To do |
+| 11 | Demo mode, Settings, and PWA | To do (runs after 12) |
+| 12 | Supabase | In progress (on branch `milestone-12-supabase`, worked next, ahead of 11) |
 | 13 | Plaid Sandbox bank linking (stretch) | To do |
+| 14 | Dough! Plus (simulated) | To do (plan only, moved after Plaid) |
 
 ## Milestones
 
@@ -97,7 +97,7 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
    - Golden crust (decision): the "Lessons mastered" badge on the loaf card is the Home treatment for now. A golden-crust version of the loaf art should wait for milestone 8, when the celebration art and shelf outlines are designed, so they share one look.
    - Copy is under `flow.savingSetup` and `flow.home` in `content/loaves/emergency-fund.json` and in `docs/content-review.md`. Tests cover the habit week logic, tips and stage changes, the data functions, Home (deposit and withdrawal flows, stage messages, tips, growing, rebuilding, the reminder card), Saving setup, and the guard. Not checked in a real browser yet: covered by tests only.
 8. **Celebration, bread shelf, save-or-invest choice, and risk quiz** (mockup: `docs/mockups/milestone-8.html`; plan approved with these answers)
-   - Decisions: the "Recommended" pill rules are in CLAUDE.md ("Save or invest"). Keep saving offers "Grow your cushion to 3 months" when the baked fund covered under 3 months, and a non-recommended "Grow to 6 months" at 3 months or more but under 6. A Roth IRA is suggested only with earned income and a horizon over 5 years; 3 to 5 years gets a regular investment account. Home gets a "Bread shelf" link and a "Choose my next loaf" button when the loaf is baked. Reloading `/loaf-complete` falls back to the "baked" copy (a rebuild can't be recovered), which is fine for the demo. The investing loaves are plain "Coming soon" rows, with no Plus label until milestone 10.
+   - Decisions: the "Recommended" pill rules are in CLAUDE.md ("Save or invest"). Keep saving offers "Grow your cushion to 3 months" when the baked fund covered under 3 months, and a non-recommended "Grow to 6 months" at 3 months or more but under 6. A Roth IRA is suggested only with earned income and a horizon over 5 years; 3 to 5 years gets a regular investment account. Home gets a "Bread shelf" link and a "Choose my next loaf" button when the loaf is baked. Reloading `/loaf-complete` falls back to the "baked" copy (a rebuild can't be recovered), which is fine for the demo. The investing loaves are plain "Coming soon" rows, with no Plus label until milestone 14.
    - LoafComplete celebration (replaces the `/loaf-complete` placeholder). When `baked: true` comes with `rebuilt: true` (a rebuild, not the first bake), use different copy: "You rebuilt your fund". When `grown: true` (a fund reaching its grown target), use "Your cushion is at 3 months" copy. Golden finish and sparkles when lessons are mastered.
    - Shelf: the loaf's bakes, newest last, a grown fund shows "1 month" and "3 months", "Already built" with no date, and dashed "Coming soon" outlines.
    - ChooseLoaf is a save-or-invest choice. Keep saving is "Grow your cushion to 3 months" (content in `emergency-fund.json` `growOption`; it calls `setTarget` with `grow: true`; with `growNeedsEssentials` it first asks `growOption.askEssentials`, then calls `changeGoal` with `growGoal(...)`). Start investing shows the debt note first when card debt is yes ("Continue anyway", Debt payoff Coming soon), then the risk quiz. `recommendNext` decides which path gets the "Recommended" pill. When it returns `needsPersonalization`, ChooseLoaf shows `personalizePrompt` (opens placement) instead of a recommendation, and both paths stay choosable.
@@ -117,14 +117,6 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
    - Notes (done): `LoafRecord.bread` and `Bake.bread` store the look (old data loads as `sandwich`). `AppData.streaks` holds `unlocked` (with `seen`) and `bestDays`. `syncStreaks` runs on Home load and after a deposit. The bread picker (`BreadPicker`, `BreadSheet`) shows only when a bread beyond the default is unlocked: before growing on ChooseLoaf and the risk result (through `useGrowCushion`) and on "Your new loaf" (`createFirstLoaf` takes a `bread`). `startLoaf` and `setTarget` refuse a locked bread with `bread-locked`. Editing the habit: a new amount never affects the streak; a change of pay frequency restarts it when it changes the period length (7, 14, 15 or 30 days), and keeps it between frequencies that share a period length (weekly and every week; monthly and "it varies"). Unlocks and the best streak always stay. Demo tools behind `?demo=1`: "Skip a week" and "Skip a week without saving" (`src/money/demo.ts`; skipped deposits are `source: 'seed'`). Copy is in `content/breads.json` and `docs/content-review.md`; a content test checks bread ids, placeholders and the no-guilt wording.
    - Tests: streak sync and the unlock moment, the habit-edit rule, bread on grown bakes, `skipWeek` and `skipWeekWithoutSaving`, art coverage for every bread and stage, and screens for Home (streak card, unlock moment, demo tools), the picker, and the bread step on ChooseLoaf, the risk result and NewLoaf.
    - Not checked in a real browser yet: covered by tests only.
-10. **Dough! Plus (simulated)** (plan only, see "Dough! Plus" in CLAUDE.md; sub-plan first when it starts)
-   - `src/domain/entitlements.ts`: one pure function (for example `hasAccess(feature, flags)`) that every premium check goes through, so real billing can replace the flag later. Unit tests for every feature.
-   - Always free: the emergency fund loaf and everything about it (saving, withdrawing, rebuilding, growing to 3 or 6 months), the placement quiz, the risk quiz and its result, and streak breads.
-   - Plus: the investing loaves (lessons, quizzes, loaves), a set of exclusive breads that streaks can't unlock, and bank linking once Plaid exists.
-   - Where it appears: after the emergency fund bakes, Plus options on "Choose your next loaf" show an "Included with Plus" label, and tapping one opens the Plus screen. Plus never interrupts saving or withdrawing. In milestone 8 the investing loaves are plain "Coming soon" rows with no label.
-   - Plus screen: what's included, what stays free, "Start free trial" and "Maybe later" with equal visibility, the price shown as a placeholder from content. No countdowns or pressure copy.
-   - Demo: no payments. "Start free trial" sets a premium flag in saved data, and a demo tool behind `?demo=1` turns it off.
-   - Later (not now): charging real money needs Vercel's paid plan and clear renewal and cancellation terms. A payment provider, in test mode only, would be its own milestone.
 11. **Demo mode, Settings, and PWA**
    - Demo pill, Maya seed (weekly habit and about 6 weeks of deposits, which should also give a 6-week streak once milestone 9 exists), Start fresh, Skip a week, and Reset.
    - Settings also gets "Retake the risk quiz".
@@ -135,7 +127,7 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
    - Verify offline via `npm run preview`.
    - Accessibility and contrast pass.
 12. **Supabase**
-    - Schema for `profiles` (including the risk quiz result), `placement_results`, `loaves`, `transactions`, `lesson_progress`, and `quiz_attempts`, plus the habit, seen tips, (from milestone 9) streak unlocks, and (from milestone 10) the Plus flag, with RLS on every table.
+    - Schema for `profiles` (including the risk quiz result), `placement_results`, `loaves`, `transactions`, `lesson_progress`, and `quiz_attempts`, plus the habit, seen tips, (from milestone 9) streak unlocks, and (from milestone 14) the Plus flag, with RLS on every table.
     - Supabase adapter behind the same `DataAdapter` interface, plus email and Google auth.
     - Remove the fake local sign-in. Wire up the Google button (official asset) and show it only then, when Supabase is configured. Until now it is not rendered.
     - Add `.env.example` values and update CLAUDE.md.
@@ -149,6 +141,14 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
     - Manual "I moved money" logging stays. Linking is optional.
     - UI states: "New deposits can take a day to appear" and "Reconnect your bank."
     - Sub-plan first (it touches many files). Update CLAUDE.md as decisions firm up.
+14. **Dough! Plus (simulated)** (plan only, moved after Plaid; see "Dough! Plus" in CLAUDE.md; sub-plan first when it starts)
+   - `src/domain/entitlements.ts`: one pure function (for example `hasAccess(feature, flags)`) that every premium check goes through, so real billing can replace the flag later. Unit tests for every feature.
+   - Always free: the emergency fund loaf and everything about it (saving, withdrawing, rebuilding, growing to 3 or 6 months), the placement quiz, the risk quiz and its result, and streak breads.
+   - Plus: the investing loaves (lessons, quizzes, loaves), a set of exclusive breads that streaks can't unlock, and bank linking (Plaid exists by then).
+   - Where it appears: after the emergency fund bakes, Plus options on "Choose your next loaf" show an "Included with Plus" label, and tapping one opens the Plus screen. Plus never interrupts saving or withdrawing. Until then the investing loaves are plain "Coming soon" rows with no label.
+   - Plus screen: what's included, what stays free, "Start free trial" and "Maybe later" with equal visibility, the price shown as a placeholder from content. No countdowns or pressure copy.
+   - Demo: no payments. "Start free trial" sets a premium flag in saved data (a column on `user_state` once Supabase exists), and a demo tool behind `?demo=1` turns it off.
+   - Later (not now): charging real money needs Vercel's paid plan and clear renewal and cancellation terms. A payment provider, in test mode only, would be its own milestone.
 
 ## Decisions
 
@@ -167,5 +167,5 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
 - **Local auth.** Email-only fake sign-in, clearly local-only, replaced in milestone 12.
 - **Save or invest.** After the emergency fund bakes, ChooseLoaf offers two paths: Keep saving (Grow your cushion) and Start investing (debt check, then the risk quiz). `recommendNext` decides which path gets the "Recommended" pill. The investing loaves stay "Coming soon", so the invest path ends in a saved result.
 - **Risk quiz.** Four questions with no right answers, skippable like placement. The result is a pure function with tests. Educational wording only: no percentages, allocations, or fund names. Saved on the profile as `profile.risk`.
-- **Dough! Plus (milestone 10, plan only).** Simulated: no payments, a premium flag in saved data, every check through one pure function. Always free: the emergency fund loaf and everything about it, placement, the risk quiz and result, and streak breads. Plus: investing loaves, exclusive breads, and bank linking once Plaid exists. No pressure copy. Real charging needs Vercel's paid plan and clear renewal and cancellation terms.
+- **Dough! Plus (milestone 14, plan only).** Simulated: no payments, a premium flag in saved data, every check through one pure function. Always free: the emergency fund loaf and everything about it, placement, the risk quiz and result, and streak breads. Plus: investing loaves, exclusive breads, and bank linking once Plaid exists. No pressure copy. Real charging needs Vercel's paid plan and clear renewal and cancellation terms.
 - **Streaks and bread unlocks (milestone 9).** Streak = consecutive habit periods with a deposit. Unlocks are permanent, the current streak can reset with no-guilt copy, and withdrawals never break a streak. Ladder in weeks of saving: baguette 2, bagel 4, focaccia 6, pretzel 8, brioche 12, croissant 16. Each topic keeps its bread as the default and any unlocked bread can be chosen for the next loaf.
