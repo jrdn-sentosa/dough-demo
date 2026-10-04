@@ -432,6 +432,11 @@ export function parseSettings(raw: unknown, where = 'content/settings.json'): Se
       ] as const,
       `${where} feedback`,
     ),
+    clearData: record(
+      o.clearData,
+      ['title', 'intro', 'button', 'askDemo', 'askAccount', 'confirm', 'cancel', 'working', 'failed'] as const,
+      `${where} clearData`,
+    ),
   };
 }
 

@@ -696,6 +696,18 @@ Unlocks are measured in weeks of saving. Ladder: baguette 2, bagel 4, focaccia 6
 - emailKind: Kind: {category}
 - version: Version {version}
 
+### Clear app data (only with ?demo=1)
+
+- title: Clear app data
+- intro: For testing: wipe what Dough! has saved on this device.
+- button: Clear app data
+- askDemo: This clears everything Dough! has saved on this device: your demo loaf and answers, the app's saved files, and its offline copy. It can't be undone. Then the app starts over at the login screen.
+- askAccount: This clears everything Dough! has saved on this device, including the offline copy of your account, and signs you out here only. Your account and your loaf stay safe online, and you stay signed in on your other devices. Then the app starts over at the login screen.
+- confirm: Yes, clear it
+- cancel: Cancel
+- working: Clearing…
+- failed: Some of it couldn't be cleared on this device. Close the app and try again.
+
 ## Dough points and the daily quiz _(draft)_
 
 Points: fund-day 1, video 1, mastery 5, bake 10, quiz 1. The numbers come from the app, not from this copy.

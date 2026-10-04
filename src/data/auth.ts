@@ -66,6 +66,16 @@ export async function signInWithGoogle(auth: AuthClient, origin: string): Promis
   }
 }
 
+/**
+ * Ends the session on this device only (`scope: 'local'`): the student's other devices stay signed in, and nothing
+ * in their account is changed. "Clear app data" uses this. A failure (offline) is reported to the caller, who
+ * still removes the saved session from storage.
+ */
+export async function signOutThisDevice(auth: AuthClient): Promise<void> {
+  const { error } = await auth.signOut({ scope: 'local' });
+  if (error) throw error;
+}
+
 export async function signOutAccount(auth: AuthClient): Promise<void> {
   try {
     await auth.signOut();

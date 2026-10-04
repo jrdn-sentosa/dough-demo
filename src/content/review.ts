@@ -189,7 +189,9 @@ export function renderContentReview(): string {
     ['Your goal', settings.goal],
     ['Your saving habit', settings.habit],
     ['Retake the risk quiz', settings.risk],
-    ['Send feedback', settings.feedback],  ] as const) {
+    ['Send feedback', settings.feedback],
+    ['Clear app data (only with ?demo=1)', settings.clearData],
+  ] as const) {
     out.push(`### ${heading}`, '');
     for (const [key, text] of flattenCopy(copy)) out.push(`- ${key}: ${text}`);
     out.push('');

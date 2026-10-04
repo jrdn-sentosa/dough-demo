@@ -414,6 +414,8 @@ export interface SettingsContent {
     | 'version',
     string
   >;
+  /** "Clear app data", a demo-mode tool in Settings. `askDemo` is for the demo user, `askAccount` for a signed-in account. */
+  clearData: Record<'title' | 'intro' | 'button' | 'askDemo' | 'askAccount' | 'confirm' | 'cancel' | 'working' | 'failed', string>;
 }
 
 /** Dough points, the points history and the daily quiz. Never mentions a day without a point. */

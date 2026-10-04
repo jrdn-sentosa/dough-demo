@@ -15,6 +15,8 @@ import { DraftNote } from '../../components/DraftNote';
 import { getSettings } from '../../content/loader';
 import { DISCLAIMER_LINES } from '../Login';
 import { GoalSection } from './GoalSection';
+import { ClearDataSection } from './ClearDataSection';
+import type { ClearActions } from './ClearDataSection';
 import { FeedbackSection } from './FeedbackSection';
 import type { FeedbackSender } from './FeedbackSection';
 import { HabitSection } from './HabitSection';
@@ -48,10 +50,13 @@ export function SettingsView({
   account,
   onSignOut,
   sendFeedback = sendToSupabase,
+  clearActions,
 }: {
   account: Account | null;
   onSignOut: (account: Account) => Promise<void>;
   sendFeedback?: FeedbackSender;
+  /** Tests pass fakes for clearing the device and reloading. */
+  clearActions?: ClearActions;
 }) {
   const { adapter, data, refresh } = useData();
   const [busy, setBusy] = useState(false);
@@ -112,6 +117,8 @@ export function SettingsView({
           <DemoActions actions={['reset', 'fresh']} />
         </section>
       )}
+
+      {isDemoMode() && <ClearDataSection account={account} actions={clearActions} />}
 
       {data.profile && (
         <section className="settings__section" aria-labelledby="settings-placement">
