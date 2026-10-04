@@ -261,6 +261,23 @@ export async function setTarget(
 }
 
 /**
+ * Settings, "Change your goal". Uses `setTarget`, so its rules apply: at or
+ * below the balance bakes the loaf. A higher target on a baked fund that is at
+ * 100% (or already growing) starts growing. While the fund is rebuilding, or
+ * has never baked, a higher target just edits the goal.
+ */
+export async function changeGoal(
+  adapter: DataAdapter,
+  loafId: LoafId,
+  targetCents: number,
+): Promise<SetTargetResult | MoneyFailure> {
+  const status = await getLoafStatus(adapter, loafId);
+  if (!status) return fail('no-loaf', NO_LOAF);
+  const grow = status.baked && !status.rebuilding && targetCents > status.targetCents;
+  return setTarget(adapter, loafId, targetCents, { grow });
+}
+
+/**
  * Savings the student already had ("Savings you already had"). Must be the
  * loaf's first row. Up to $10,000 goes straight in; above that, up to $100,000,
  * the caller gets `needsConfirmation` and calls again with `confirmed: true`.

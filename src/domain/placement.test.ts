@@ -71,7 +71,7 @@ describe('startingPoint: loaf and target', () => {
     expect(s.targetMonths).toBeNull();
     expect(s.targetCents).toBeNull();
     expect(s.emergencyFundBaked).toBe(true);
-    expect(s.nextLoaf).toEqual({ loaf: 'debt-payoff', debtNote: true, growTargetMonths: null });
+    expect(s.nextLoaf).toMatchObject({ loaf: 'debt-payoff', debtNote: true, growTargetMonths: null });
   });
 
   it('"no credit card" is not card debt', () => {
@@ -103,10 +103,16 @@ describe('startingPoint: loaf and target', () => {
 });
 
 describe('startingPoint: essentials figures', () => {
-  it('"Not sure" is a $500 estimate', () => {
+  it('"Not sure" starts at the $1,000 default goal, flagged isDefault, with essentials unknown', () => {
     const s = startingPoint(answers({ essentials: 'not-sure' }));
-    expect(s.isEstimate).toBe(true);
-    expect(s.targetCents).toBe(50_000);
+    expect(s.isDefault).toBe(true);
+    expect(s.targetCents).toBe(100_000);
+    expect(s.essentialsCents).toBeNull();
+    expect(s.targetMonths).toBeNull();
+  });
+
+  it('a known essentials band is not a default', () => {
+    expect(startingPoint(maya).isDefault).toBe(false);
   });
 
   it('open-ended band asks for an exact number until one is typed', () => {
@@ -117,8 +123,13 @@ describe('startingPoint: essentials figures', () => {
   });
 
   it('monthsCovered uses the target-sizing essentials figure', () => {
-    const s = startingPoint(answers({ essentials: 'not-sure', savings: '250-499' }));
-    expect(s.monthsCovered).toBe(0.5); // $250 / $500
+    const s = startingPoint(answers({ essentials: '500-749', savings: '250-499' }));
+    expect(s.monthsCovered).toBeCloseTo(0.385, 2); // $250 / $650
+  });
+
+  it('does not compute monthsCovered when essentials are unknown', () => {
+    expect(startingPoint(answers({ essentials: 'not-sure', savings: '250-499' })).monthsCovered).toBeNull();
+    expect(startingPoint({}).monthsCovered).toBeNull();
   });
 });
 

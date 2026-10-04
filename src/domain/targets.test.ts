@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   creditedSavings,
   essentialsFigure,
+  growGoal,
   monthsForTarget,
   roundUpToFifty,
   savingsMeetTarget,
@@ -16,14 +17,13 @@ describe('essentialsFigure', () => {
     ['750-999', 90_000],
     ['1000-1499', 125_000],
   ])('%s uses the midpoint rounded up to $50', (id, cents) => {
-    expect(essentialsFigure(id)).toEqual({ cents, needsExactInput: false, isEstimate: false });
+    expect(essentialsFigure(id)).toEqual({ cents, needsExactInput: false });
   });
 
   it('open-ended band uses its lower bound and asks for an exact number', () => {
     expect(essentialsFigure('1500-plus')).toEqual({
       cents: 150_000,
       needsExactInput: true,
-      isEstimate: false,
     });
   });
 
@@ -31,20 +31,25 @@ describe('essentialsFigure', () => {
     expect(essentialsFigure('1500-plus', 183_210)).toEqual({
       cents: 185_000,
       needsExactInput: false,
-      isEstimate: false,
     });
   });
 
-  it('"Not sure" gives a $500 estimate', () => {
-    expect(essentialsFigure('not-sure')).toEqual({
-      cents: 50_000,
-      needsExactInput: false,
-      isEstimate: true,
-    });
+  it('"Not sure" leaves essentials unknown instead of guessing a figure', () => {
+    expect(essentialsFigure('not-sure')).toEqual({ cents: null, needsExactInput: false });
   });
 
   it('throws on an unknown band', () => {
     expect(() => essentialsFigure('nope')).toThrow();
+  });
+});
+
+describe('growGoal', () => {
+  it('is 3 months of essentials when essentials are known', () => {
+    expect(growGoal(40_000)).toEqual({ needsEssentials: false, targetCents: 120_000 });
+  });
+
+  it('asks for essentials first when they are unknown', () => {
+    expect(growGoal(null)).toEqual({ needsEssentials: true, targetCents: null });
   });
 });
 

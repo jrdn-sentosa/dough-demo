@@ -1,3 +1,4 @@
+import type { Profile } from '../domain/profile';
 import type { LoafId } from '../domain/types';
 
 /** `starting` is savings the student already had when they began the loaf. */
@@ -56,11 +57,13 @@ export interface LocalUser {
 export interface AppData {
   version: 1;
   user: LocalUser | null;
+  /** What placement stored. Null until placement is answered or skipped. */
+  profile: Profile | null;
   loaves: LoafRecord[];
   transactions: Transaction[];
   clock: ClockState;
 }
 
 export function emptyData(): AppData {
-  return { version: 1, user: null, loaves: [], transactions: [], clock: { offsetDays: 0 } };
+  return { version: 1, user: null, profile: null, loaves: [], transactions: [], clock: { offsetDays: 0 } };
 }

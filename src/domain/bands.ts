@@ -1,5 +1,12 @@
 import type { EssentialsBand, SavingsBand } from './types';
 
+/**
+ * The starter goal when essentials are skipped or "Not sure": $1,000. It is a
+ * default goal, not an estimate of the student's monthly essentials. Those stay
+ * unknown until the student answers.
+ */
+export const DEFAULT_GOAL_CENTS = 100_000;
+
 /** Monthly essentials. Content refers to these by id. */
 export const ESSENTIALS_BANDS: readonly EssentialsBand[] = [
   { id: 'under-250', kind: 'range', minCents: 0, maxCents: 24_999 },
@@ -8,8 +15,8 @@ export const ESSENTIALS_BANDS: readonly EssentialsBand[] = [
   { id: '750-999', kind: 'range', minCents: 75_000, maxCents: 99_999 },
   { id: '1000-1499', kind: 'range', minCents: 100_000, maxCents: 149_999 },
   { id: '1500-plus', kind: 'open', minCents: 150_000, maxCents: null },
-  // Starter target of $500, shown as an estimate the student can change.
-  { id: 'not-sure', kind: 'unsure', minCents: 50_000, maxCents: 50_000 },
+  // Essentials unknown: the figures below are unused. The goal is DEFAULT_GOAL_CENTS.
+  { id: 'not-sure', kind: 'unsure', minCents: 0, maxCents: null },
 ];
 
 /** Existing emergency savings. Credited at the lower bound. */

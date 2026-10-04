@@ -42,6 +42,7 @@ function withBakes(loaf: LoafRecord): LoafRecord {
 function withDefaults(data: AppData): AppData {
   return {
     ...data,
+    profile: data.profile ?? null,
     loaves: data.loaves.map(withBakes),
     transactions: data.transactions.map((t) => ({
       ...t,
