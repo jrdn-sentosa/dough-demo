@@ -2,7 +2,9 @@
 
 Real accounts use Supabase (sign-in and the database). The demo user ("Continue as demo user") never touches Supabase: it works without a project, keys, or a connection, and nothing leaves the device. Until the keys below are set, the login screen shows only the demo option.
 
-These are the steps only you can do, in order. Your project URLs used below:
+These are the steps only you can do, in order.
+
+**Status:** steps 1 to 5, 7 and 8 are done and checked on the Vercel preview (email codes through Gmail SMTP, the environment variables, and the two-account security check). **Step 6 (Google sign-in) is postponed:** `VITE_GOOGLE_SIGNIN` stays off, so the Google button is hidden. Your project URLs used below:
 
 - Production: `https://dough-demo.vercel.app`
 - Preview links: `https://dough-demo-<something>-jrdn4.vercel.app` (for example the branch link `https://dough-demo-git-milestone-12-supabase-jrdn4.vercel.app`)
@@ -65,7 +67,7 @@ In the dashboard, **Authentication**:
 
    Google sign-in sends the student back to the page they started on. If that address is not in this list, Supabase sends them to the Site URL instead, so a preview link would bounce to production.
 
-## 5. The email code template
+## 5. The email code template (done)
 
 The login screen asks for a 6-digit code, not a link. Supabase sends one of two emails depending on whether the address already has an account, so change **both** templates under **Authentication → Email Templates**:
 
@@ -93,7 +95,9 @@ Supabase's built-in email sender is for trying things out: it **only delivers to
 
 > **Current setup:** Currently using Gmail SMTP with an app password (testing only, daily sending limit). Switch to an email service with a verified domain before launch: only the Supabase SMTP settings change.
 
-## 6. Google sign-in
+## 6. Google sign-in (postponed)
+
+> **Postponed.** Not set up yet. `VITE_GOOGLE_SIGNIN` is off, so the login screen shows no Google button. Do this step whenever you want Google sign-in, then turn the flag on as described at the end.
 
 1. Open <https://console.cloud.google.com/>, create a project (or pick one), then go to **APIs & Services → OAuth consent screen** (shown as **Google Auth Platform** in newer consoles).
 2. **Branding / App information**: app name `Dough!`, your support email.
@@ -109,7 +113,7 @@ Supabase's built-in email sender is for trying things out: it **only delivers to
 
 The Google button uses Google's four-color "G" and a white button with a thin grey border, as in Google's sign-in branding guidelines. If you later publish the app, give it a quick look against <https://developers.google.com/identity/branding-guidelines>.
 
-## 7. Vercel environment variables
+## 7. Vercel environment variables (done)
 
 In the Vercel dashboard, open the `dough-demo` project → **Settings → Environment Variables**:
 
@@ -117,7 +121,7 @@ In the Vercel dashboard, open the `dough-demo` project → **Settings → Enviro
 2. If `VITE_SUPABASE_ANON_KEY` exists, delete it.
 3. **Redeploy.** Vite bakes these values in when it builds, so a deployment made before you added them still shows only the demo option. Use **Deployments → ⋯ → Redeploy** on the branch you want to test, or push a new commit.
 
-## 8. Check Row Level Security (once)
+## 8. Check Row Level Security (once, done)
 
 Row Level Security makes sure one student can never see or change another student's rows. Tests can't check this, so do it by hand once after the first push.
 
