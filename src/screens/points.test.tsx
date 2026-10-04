@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -56,17 +56,28 @@ const SLOW = { timeout: 5000 };
 const pointsLink = (n: number | RegExp) =>
   screen.findByRole('link', { name: typeof n === 'number' ? new RegExp(`^${n} Dough points`) : n }, SLOW);
 
-/** The daily quiz card, and the content question it is showing (the choices are shuffled, so find it by its text). */
-async function dailyCard() {
-  const card = await screen.findByRole('region', { name: 'Daily quiz' }, SLOW);
-  const text = card.querySelector('legend')?.textContent;
-  const question = quiz.questions.find((q) => q.question === text);
-  if (!question) throw new Error(`no quiz question in the card: ${text}`);
-  return { card, question };
+/**
+ * The question on screen and the content question it is (the choices are shuffled, so find it by its text).
+ * `scope` is the whole screen: the quiz is one question per screen, with no region around it.
+ */
+async function shownQuestion() {
+  const legend = await screen.findByText((_, el) => el?.tagName === 'LEGEND', {}, SLOW);
+  const question = quiz.questions.find((q) => q.question === legend.textContent);
+  if (!question) throw new Error(`no quiz question on screen: ${legend.textContent}`);
+  return question;
 }
 
 const labelOf = (q: (typeof quiz.questions)[number], id: string) => q.choices.find((c) => c.id === id)?.label ?? '';
 const startsWith = (text: string) => new RegExp(`^${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`);
+
+/** Answers the question on screen with its right answer (or a wrong one) and checks it. */
+async function answerShown(user: ReturnType<typeof userEvent.setup>, right: boolean) {
+  const question = await shownQuestion();
+  const id = right ? question.answer : question.choices.find((c) => c.id !== question.answer)!.id;
+  await user.click(screen.getByRole('radio', { name: startsWith(labelOf(question, id)) }));
+  await user.click(screen.getByRole('button', { name: 'Check answer' }));
+  return question;
+}
 
 describe('Dough points on Home', () => {
   it('shows the total and links to the history', async () => {
@@ -95,75 +106,190 @@ describe('Dough points on Home', () => {
   });
 });
 
-describe('the daily quiz card', () => {
+describe('the daily quiz waiting dot on Home', () => {
   it('stays away until a module is mastered', async () => {
     mount(await homeAdapter(3));
-    await pointsLink(0);
-    expect(screen.queryByRole('region', { name: 'Daily quiz' })).toBeNull();
+    const link = await pointsLink(0);
+    expect(link.getAttribute('aria-label')).not.toMatch(/daily quiz/i);
+    expect(link.querySelector('.home__points-dot')).toBeNull();
   });
 
-  it('asks one question, and a right answer earns a point and shows the explanation', async () => {
-    const user = userEvent.setup({ delay: null });
-    const adapter = await homeAdapter(4);
-    mount(adapter);
-    const { card, question } = await dailyCard();
-
-    expect(within(card).getByRole('button', { name: 'Check answer' }).hasAttribute('disabled')).toBe(true);
-    await user.click(within(card).getByRole('radio', { name: startsWith(labelOf(question, question.answer)) }));
-    await user.click(within(card).getByRole('button', { name: 'Check answer' }));
-
-    expect(await within(card).findByText("That's right. +1 point.", {}, SLOW)).toBeTruthy();
-    expect(within(card).getByText(question.explain)).toBeTruthy();
-    expect(within(card).getByText(/A new one is waiting tomorrow/)).toBeTruthy();
-    expect(within(card).queryByRole('button', { name: 'Check answer' })).toBeNull();
-    // Mastery 5 + the quiz point 1.
-    await pointsLink(6);
-    expect((await adapter.load()).points.map((p) => p.kind)).toContain('quiz');
+  it("shows on the points total while today's quiz is waiting, with a label that isn't just a colour", async () => {
+    mount(await homeAdapter(4));
+    const link = await pointsLink(/Daily quiz/i);
+    expect(link.getAttribute('aria-label')).toMatch(/Today's daily quiz is waiting/);
+    expect(link.querySelector('.home__points-dot')).not.toBeNull();
   });
 
-  it('shows the explanation for a wrong answer too, with no point', async () => {
+  it('goes away once today\'s quiz is finished, and comes back the next day', async () => {
     const user = userEvent.setup({ delay: null });
     const adapter = await homeAdapter(4);
+    mount(adapter, '/daily-quiz');
+    for (let i = 0; i < 3; i++) {
+      await answerShown(user, true);
+      await user.click(await screen.findByRole('button', { name: i < 2 ? 'Next question' : 'See how it went' }, SLOW));
+    }
+    cleanup();
     mount(adapter);
-    const { card, question } = await dailyCard();
+    const link = await pointsLink(/Dough points/);
+    expect(link.getAttribute('aria-label')).not.toMatch(/daily quiz/i);
+    expect(link.querySelector('.home__points-dot')).toBeNull();
+    cleanup();
+    await advance(adapter, 1);
+    mount(adapter);
+    expect((await pointsLink(/Dough points/)).querySelector('.home__points-dot')).not.toBeNull();
+  });
+});
 
-    const wrongId = question.choices.find((c) => c.id !== question.answer)!.id;
-    await user.click(within(card).getByRole('radio', { name: startsWith(labelOf(question, wrongId)) }));
-    await user.click(within(card).getByRole('button', { name: 'Check answer' }));
-
-    expect(await within(card).findByText("Not quite. Here's the idea:", {}, SLOW)).toBeTruthy();
-    expect(within(card).getByText(question.explain)).toBeTruthy();
-    expect(within(card).getByText(`The answer: ${labelOf(question, question.answer)}`)).toBeTruthy();
-    await pointsLink(5);
-    expect((await adapter.load()).points.map((p) => p.kind)).not.toContain('quiz');
+describe('the Points screen button', () => {
+  it("has a \"Take today's quiz\" button at the top while the quiz is waiting", async () => {
+    const user = userEvent.setup({ delay: null });
+    const { pathname } = mount(await homeAdapter(4), '/points');
+    const button = await screen.findByRole('button', { name: "Take today's quiz" }, SLOW);
+    // It comes before the title's text and the history.
+    const heading = screen.getByRole('heading', { name: 'Your Dough points' });
+    expect(heading.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(button.compareDocumentPosition(screen.getByText(/in all/)) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    await user.click(button);
+    await waitFor(() => expect(pathname()).toBe('/daily-quiz'));
   });
 
-  it('keeps the same question on a reload, and the answered state', async () => {
+  it('is not there before a module is mastered', async () => {
+    mount(await homeAdapter(3), '/points');
+    await screen.findByRole('heading', { name: 'Your Dough points' }, SLOW);
+    expect(screen.queryByRole('button', { name: "Take today's quiz" })).toBeNull();
+  });
+
+  it('is not there once today\'s quiz is finished', async () => {
+    const adapter = await homeAdapter(4);
+    const user = userEvent.setup({ delay: null });
+    mount(adapter, '/daily-quiz');
+    for (let i = 0; i < 3; i++) {
+      await answerShown(user, false);
+      await user.click(await screen.findByRole('button', { name: i < 2 ? 'Next question' : 'See how it went' }, SLOW));
+    }
+    cleanup();
+    mount(adapter, '/points');
+    await screen.findByRole('heading', { name: 'Your Dough points' }, SLOW);
+    expect(screen.queryByRole('button', { name: "Take today's quiz" })).toBeNull();
+  });
+});
+
+describe('the daily quiz screen', () => {
+  it('needs a signed-in student with a loaf', () => {
+    expect(guardRedirect('/daily-quiz', emptyData())).toBe('/login');
+    expect(guardRedirect('/daily-quiz', { ...emptyData(), user: { email: 'a@b.co' } })).toBe('/placement');
+  });
+
+  it('says it opens once a module is mastered, when none is', async () => {
+    mount(await homeAdapter(3), '/daily-quiz');
+    expect(await screen.findByText(/opens once you've mastered/, {}, SLOW)).toBeTruthy();
+  });
+
+  it('asks 3 questions one at a time, with the explanation after each answer', async () => {
     const user = userEvent.setup({ delay: null });
     const adapter = await homeAdapter(4);
-    mount(adapter);
-    const first = await dailyCard();
-    await user.click(within(first.card).getAllByRole('radio')[0]);
-    await user.click(within(first.card).getByRole('button', { name: 'Check answer' }));
-    await within(first.card).findByText(/A new one is waiting tomorrow/, {}, SLOW);
+    mount(adapter, '/daily-quiz');
+
+    const seen = new Set<string>();
+    for (let i = 0; i < 3; i++) {
+      expect(await screen.findByText(`Question ${i + 1} of 3`, { selector: 'p' }, SLOW)).toBeTruthy();
+      expect(screen.getByRole('progressbar')).toBeTruthy();
+      const checkButton = screen.getByRole('button', { name: 'Check answer' });
+      expect(checkButton.hasAttribute('disabled')).toBe(true);
+      const question = await answerShown(user, i !== 1);
+      seen.add(question.id);
+      expect(await screen.findByText(question.explain, {}, SLOW)).toBeTruthy();
+      expect(screen.queryByRole('button', { name: 'Check answer' })).toBeNull();
+      await user.click(screen.getByRole('button', { name: i < 2 ? 'Next question' : 'See how it went' }));
+    }
+    expect(seen.size).toBe(3);
+    expect(await screen.findByText('You got 2 of 3 right.', {}, SLOW)).toBeTruthy();
+  });
+
+  it('shows "That\'s right." for a right answer and the answer for a wrong one', async () => {
+    const user = userEvent.setup({ delay: null });
+    mount(await homeAdapter(4), '/daily-quiz');
+    const question = await answerShown(user, false);
+    expect(await screen.findByText("Not quite. Here's the idea:", {}, SLOW)).toBeTruthy();
+    expect(screen.getByText(`The answer: ${labelOf(question, question.answer)}`)).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Next question' }));
+    await answerShown(user, true);
+    expect(await screen.findByText("That's right.", {}, SLOW)).toBeTruthy();
+  });
+
+  it('gives 1 point for finishing, and 1 more for all 3 right', async () => {
+    const user = userEvent.setup({ delay: null });
+    const adapter = await homeAdapter(4);
+    mount(adapter, '/daily-quiz');
+    for (let i = 0; i < 3; i++) {
+      await answerShown(user, true);
+      await user.click(await screen.findByRole('button', { name: i < 2 ? 'Next question' : 'See how it went' }, SLOW));
+    }
+    expect(await screen.findByText('You got 3 of 3 right.', {}, SLOW)).toBeTruthy();
+    expect(screen.getByText('+1 point for finishing.')).toBeTruthy();
+    expect(screen.getByText('+1 extra point for getting every question right.')).toBeTruthy();
+    const kinds = (await adapter.load()).points.map((p) => p.kind);
+    expect(kinds).toContain('quiz');
+    expect(kinds).toContain('quiz-bonus');
+  });
+
+  it('gives only the finishing point with a wrong answer, and says nothing guilty', async () => {
+    const user = userEvent.setup({ delay: null });
+    const adapter = await homeAdapter(4);
+    mount(adapter, '/daily-quiz');
+    for (let i = 0; i < 3; i++) {
+      await answerShown(user, i !== 0);
+      await user.click(await screen.findByRole('button', { name: i < 2 ? 'Next question' : 'See how it went' }, SLOW));
+    }
+    expect(await screen.findByText('+1 point for finishing.', {}, SLOW)).toBeTruthy();
+    expect(screen.queryByText(/extra point/)).toBeNull();
+    expect((await adapter.load()).points.map((p) => p.kind)).not.toContain('quiz-bonus');
+  });
+
+  it('keeps the same questions on a reload, and picks up at the first one not answered', async () => {
+    const user = userEvent.setup({ delay: null });
+    const adapter = await homeAdapter(4);
+    mount(adapter, '/daily-quiz');
+    const firstQuestion = await answerShown(user, true);
+    await screen.findByRole('button', { name: 'Next question' }, SLOW);
+    const asked = (await adapter.load()).dailyQuizzes[0].questions.map((q) => q.questionId);
     cleanup();
 
-    mount(adapter);
-    const again = await dailyCard();
-    expect(again.question.id).toBe(first.question.id);
-    expect(within(again.card).getByText(/A new one is waiting tomorrow/)).toBeTruthy();
+    mount(adapter, '/daily-quiz');
+    expect(await screen.findByText('Question 2 of 3', { selector: 'p' }, SLOW)).toBeTruthy();
+    expect((await shownQuestion()).id).toBe(asked[1]);
+    expect(asked[0]).toBe(firstQuestion.id);
+    expect((await adapter.load()).dailyQuizzes[0].questions.map((q) => q.questionId)).toEqual(asked);
   });
 
-  it('asks a new question the next day, not one of the last three', async () => {
+  it("is a calm 'already done' page after today's quiz, and never asks again", async () => {
+    const user = userEvent.setup({ delay: null });
     const adapter = await homeAdapter(4);
-    const seen: string[] = [];
-    for (let day = 0; day < 4; day++) {
-      mount(adapter);
-      seen.push((await dailyCard()).question.id);
+    mount(adapter, '/daily-quiz');
+    for (let i = 0; i < 3; i++) {
+      await answerShown(user, true);
+      await user.click(await screen.findByRole('button', { name: i < 2 ? 'Next question' : 'See how it went' }, SLOW));
+    }
+    cleanup();
+    mount(adapter, '/daily-quiz');
+    expect(await screen.findByText(/You've finished today's quiz/, {}, SLOW)).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Check answer' })).toBeNull();
+    expect((await adapter.load()).points.filter((p) => p.kind === 'quiz' || p.kind === 'quiz-bonus')).toHaveLength(2);
+  });
+
+  it('asks new questions the next day, not the ones from the previous 2 days', async () => {
+    const adapter = await homeAdapter(4);
+    const days: string[][] = [];
+    for (let day = 0; day < 3; day++) {
+      mount(adapter, '/daily-quiz');
+      await screen.findByText('Question 1 of 3', { selector: 'p' }, SLOW);
       cleanup();
+      const entries = (await adapter.load()).dailyQuizzes;
+      days.push(entries[entries.length - 1].questions.map((q) => q.questionId));
       await advance(adapter, 1);
     }
-    expect(new Set(seen).size).toBe(4);
+    expect(new Set(days.flat()).size).toBe(9);
   });
 });
 

@@ -27,6 +27,7 @@ export function reasonLabel(event: PointEvent, copy: PointsContent['history']): 
     case 'bake':
       return fillTemplate(text, { loaf: getLoaf(event.ref as LoafId).title });
     case 'quiz':
+    case 'quiz-bonus':
       return text;
   }
 }

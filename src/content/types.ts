@@ -424,9 +424,40 @@ export interface PointsContent {
   home: Record<'label' | 'linkLabel', string>;
   history: Record<'title' | 'intro' | 'total' | 'totalOne' | 'empty' | 'earned' | 'showMore' | 'back' | 'demoNote', string> & {
     /** What earned a point, by kind. Tokens: `{date}`, `{lesson}`, `{loaf}`. */
-    reasons: Record<'fund-day' | 'video' | 'mastery' | 'bake' | 'quiz', string>;
+    reasons: Record<'fund-day' | 'video' | 'mastery' | 'bake' | 'quiz' | 'quiz-bonus', string>;
   };
-  daily: Record<'title' | 'intro' | 'check' | 'right' | 'wrong' | 'done', string>;
+  /**
+   * The daily quiz: its popup, the quiz screen, the result and the Settings switch. Tokens: `{count}`, `{points}`,
+   * `{bonus}` (from `DAILY_QUESTIONS` and `POINT_VALUES`), `{current}`, `{total}`, `{right}`.
+   */
+  daily: Record<
+    | 'title'
+    | 'popupBody'
+    | 'start'
+    | 'notNow'
+    | 'hideToday'
+    | 'dontShowAgain'
+    | 'dotLabel'
+    | 'takeQuiz'
+    | 'progress'
+    | 'check'
+    | 'next'
+    | 'finish'
+    | 'right'
+    | 'wrong'
+    | 'resultTitle'
+    | 'resultScore'
+    | 'resultFinished'
+    | 'resultBonus'
+    | 'resultNext'
+    | 'backHome'
+    | 'alreadyDone'
+    | 'unavailable'
+    | 'settingsTitle'
+    | 'settingsIntro'
+    | 'settingsLabel',
+    string
+  >;
 }
 
 /**

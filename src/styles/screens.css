@@ -1783,3 +1783,34 @@ input:focus-visible {
   border-color: var(--deep-crust);
   color: #fff;
 }
+
+/* Daily quiz: the dot on the points total, the popup, the quiz screen and the Settings switch */
+.home__points-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--butter);
+  border: 2px solid var(--crust);
+}
+
+.daily-popup__hide,
+.settings__switch {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 44px;
+  font-size: 16px;
+}
+
+.daily-popup__hide input,
+.settings__switch input {
+  width: 24px;
+  height: 24px;
+  accent-color: var(--crust);
+}
+
+.daily-quiz__note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 15px;
+}

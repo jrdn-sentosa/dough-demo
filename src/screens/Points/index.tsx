@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useData } from '../../app/DataProvider';
 import { DraftNote } from '../../components/DraftNote';
+import { LoafButton } from '../../components/LoafButton';
 import { SliceButton } from '../../components/SliceButton';
 import { getPoints } from '../../content/loader';
 import { fillTemplate } from '../../content/template';
 import { historyNewestFirst, pointsTotal } from '../../domain/points';
+import { dailyQuizWaiting } from '../Home/dailyQuiz';
 import { earnedOn, reasonLabel } from './labels';
 
 const PAGE = 30;
@@ -29,6 +31,7 @@ export function Points() {
       </button>
       <h1 className="screen-title">{t.title}</h1>
       <DraftNote draft={copy.draft} />
+      {dailyQuizWaiting(data) && <LoafButton onClick={() => navigate('/daily-quiz')}>{copy.daily.takeQuiz}</LoafButton>}
       <p className="points__total">{total === 1 ? t.totalOne : fillTemplate(t.total, { points: String(total) })}</p>
       <p>{t.intro}</p>
 

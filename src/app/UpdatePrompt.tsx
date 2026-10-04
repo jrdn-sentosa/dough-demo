@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useAppOpen } from './AppOpen';
 import { registerServiceWorker } from './serviceWorker';
 
 export const UPDATE_TITLE = 'New version available';
@@ -29,6 +30,13 @@ export function UpdatePromptView({ onRefresh, onLater }: { onRefresh: () => void
 export function UpdatePrompt() {
   const [waiting, setWaiting] = useState(false);
   const apply = useRef<() => void>(() => undefined);
+  const { setUpdateShowing } = useAppOpen();
+
+  // Once-per-open moments (the daily quiz popup) wait while this message is on screen.
+  useEffect(() => {
+    setUpdateShowing(waiting);
+    return () => setUpdateShowing(false);
+  }, [waiting, setUpdateShowing]);
 
   useEffect(() => {
     let live = true;

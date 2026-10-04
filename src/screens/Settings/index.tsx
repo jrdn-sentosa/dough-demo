@@ -14,6 +14,7 @@ import { feedbackSender, getSupabase } from '../../data/supabaseClient';
 import { DraftNote } from '../../components/DraftNote';
 import { getSettings } from '../../content/loader';
 import { DISCLAIMER_LINES } from '../Login';
+import { DailyQuizSection } from './DailyQuizSection';
 import { GoalSection } from './GoalSection';
 import { ClearDataSection } from './ClearDataSection';
 import type { ClearActions } from './ClearDataSection';
@@ -143,6 +144,8 @@ export function SettingsView({
           </Link>
         </section>
       )}
+
+      <DailyQuizSection />
 
       <FeedbackSection account={account} send={sendFeedback} />
 
