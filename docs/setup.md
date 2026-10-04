@@ -91,6 +91,8 @@ Supabase's built-in email sender is for trying things out: it **only delivers to
 2. **Authentication → Emails → SMTP Settings** (or **Project Settings → Auth**, depending on the dashboard version): turn on **Enable custom SMTP** and enter the host, port, username, password, and sender address from your provider.
 3. Send yourself a code from the app to check.
 
+> **Current setup:** Currently using Gmail SMTP with an app password (testing only, daily sending limit). Switch to an email service with a verified domain before launch: only the Supabase SMTP settings change.
+
 ## 6. Google sign-in
 
 1. Open <https://console.cloud.google.com/>, create a project (or pick one), then go to **APIs & Services → OAuth consent screen** (shown as **Google Auth Platform** in newer consoles).
