@@ -2,7 +2,7 @@ import { DEFAULT_GOAL_CENTS } from '../domain/bands';
 import { formatCents } from '../money/format';
 import { MASTERY_PERCENT } from '../domain/mastery';
 import { POINT_KINDS, POINT_VALUES } from '../domain/points';
-import { getBreads, getLessons, getLoaf, getLoaves, getPlacement, getPoints, getQuiz, getRisk, getSettings } from './loader';
+import { getBreads, getLessons, getLoaf, getLoaves, getPlacement, getPoints, getQuiz, getRisk, getSettings, getShare } from './loader';
 import { fillTemplate } from './template';
 
 const LETTERS = 'ABCD';
@@ -207,6 +207,18 @@ export function renderContentReview(): string {
     ['Home', points.home],
     ['Points history', points.history],
     ['Daily quiz card', points.daily],
+  ] as const) {
+    out.push(`### ${heading}`, '');
+    for (const [key, text] of flattenCopy(copy)) out.push(`- ${key}: ${text}`);
+    out.push('');
+  }
+
+  const share = getShare();
+  out.push(`## Sharing${draftTag(share.draft)}`, '', 'The picture never shows an amount, a goal or a balance.', '');
+  for (const [heading, copy] of [
+    ['Share button', share.button],
+    ['Share sheet', share.sheet],
+    ['Lines on the picture', share.card],
   ] as const) {
     out.push(`### ${heading}`, '');
     for (const [key, text] of flattenCopy(copy)) out.push(`- ${key}: ${text}`);

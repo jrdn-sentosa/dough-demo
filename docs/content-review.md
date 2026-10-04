@@ -743,6 +743,37 @@ Points: fund-day 1, video 1, mastery 5, bake 10, quiz 1. The numbers come from t
 - wrong: Not quite. Here's the idea:
 - done: That's today's question. A new one is waiting tomorrow.
 
+## Sharing _(draft)_
+
+The picture never shows an amount, a goal or a balance.
+
+### Share button
+
+- label: Share
+
+### Share sheet
+
+- title: Share your win
+- intro: This makes a picture of your loaf. It never shows anything about your money.
+- sizeLegend: Picture shape
+- story: Story (tall)
+- post: Post (square)
+- preparing: Getting your picture ready...
+- previewAlt: A preview of your share picture
+- shareImage: Share picture
+- copyText: Copy text
+- close: Close
+- downloaded: Your picture was saved to this device. You can post it from there.
+- copied: Copied. You can paste it anywhere.
+- copyFailed: Couldn't copy. You can select the text and copy it yourself.
+- failed: Couldn't make the picture this time. You can still copy the text.
+
+### Lines on the picture
+
+- baked: I just baked my emergency fund loaf
+- mastered: I mastered the emergency fund lessons
+- tagline: Stack that bread.
+
 ## Tips while the loaf rises
 
 ### Why small deposits add up (unlocks at shape)

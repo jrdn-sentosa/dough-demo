@@ -429,6 +429,34 @@ export interface PointsContent {
   daily: Record<'title' | 'intro' | 'check' | 'right' | 'wrong' | 'done', string>;
 }
 
+/**
+ * The Share button, its sheet and the lines on the share picture. Never has an amount token: the picture
+ * says nothing about the student's money.
+ */
+export interface ShareContent {
+  draft: boolean;
+  button: Record<'label', string>;
+  sheet: Record<
+    | 'title'
+    | 'intro'
+    | 'sizeLegend'
+    | 'story'
+    | 'post'
+    | 'preparing'
+    | 'previewAlt'
+    | 'shareImage'
+    | 'copyText'
+    | 'close'
+    | 'downloaded'
+    | 'copied'
+    | 'copyFailed'
+    | 'failed',
+    string
+  >;
+  /** The lines drawn on the picture (and used in the copied text). */
+  card: Record<'baked' | 'mastered' | 'tagline', string>;
+}
+
 /** Bread names and the copy for streaks, the unlock moment, the bread picker and the demo tools. */
 export interface BreadsContent {
   draft: boolean;

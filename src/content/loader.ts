@@ -21,6 +21,7 @@ import type {
   PlacementContent,
   PlacementQuestion,
   PointsContent,
+  ShareContent,
   QuizChoice,
   QuizContent,
   Tip,
@@ -77,6 +78,10 @@ const settingsFiles = import.meta.glob<unknown>('../../content/settings.json', {
   import: 'default',
 });
 const pointsFiles = import.meta.glob<unknown>('../../content/points.json', {
+  eager: true,
+  import: 'default',
+});
+const shareFiles = import.meta.glob<unknown>('../../content/share.json', {
   eager: true,
   import: 'default',
 });
@@ -454,6 +459,20 @@ export function parsePoints(raw: unknown, where = 'content/points.json'): Points
   };
 }
 
+export function parseShare(raw: unknown, where = 'content/share.json'): ShareContent {
+  const o = obj(raw, where);
+  return {
+    draft: bool(o, 'draft', where),
+    button: record(o.button, ['label'] as const, `${where} button`),
+    sheet: record(
+      o.sheet,
+      ['title', 'intro', 'sizeLegend', 'story', 'post', 'preparing', 'previewAlt', 'shareImage', 'copyText', 'close', 'downloaded', 'copied', 'copyFailed', 'failed'] as const,
+      `${where} sheet`,
+    ),
+    card: record(o.card, ['baked', 'mastered', 'tagline'] as const, `${where} card`),
+  };
+}
+
 export function parseLesson(source: string, file: string): Lesson {
   const match = /content\/lessons\/([^/]+)\/[^/]+\.md$/.exec(file);
   if (!match) throw new ContentError(file, 'lessons must live in content/lessons/<loaf>/');
@@ -522,6 +541,7 @@ interface Content {
   breads: BreadsContent;
   settings: SettingsContent;
   points: PointsContent;
+  share: ShareContent;
   loaves: LoafDefinition[];
   lessons: Lesson[];
   quizzes: QuizContent[];
@@ -546,6 +566,9 @@ function content(): Content {
   const [pointsRaw] = Object.values(pointsFiles);
   if (pointsRaw === undefined) throw new ContentError('content/', 'points.json is missing');
 
+  const [shareRaw] = Object.values(shareFiles);
+  if (shareRaw === undefined) throw new ContentError('content/', 'share.json is missing');
+
   const loaves = Object.entries(loafFiles).map(([file, raw]) => parseLoaf(raw, file));
   const ids = loaves.map((l) => l.id);
   if (new Set(ids).size !== ids.length) throw new ContentError('content/loaves', 'duplicate loaf id');
@@ -556,6 +579,7 @@ function content(): Content {
     breads: parseBreads(breadsRaw),
     settings: parseSettings(settingsRaw),
     points: parsePoints(pointsRaw),
+    share: parseShare(shareRaw),
     loaves,
     lessons: Object.entries(lessonFiles).map(([file, src]) => parseLesson(src, file)),
     quizzes: Object.entries(quizFiles).map(([file, raw]) => parseQuiz(raw, file)),
@@ -573,6 +597,10 @@ export function getSettings(): SettingsContent {
 
 export function getPoints(): PointsContent {
   return content().points;
+}
+
+export function getShare(): ShareContent {
+  return content().share;
 }
 
 export function getBreads(): BreadsContent {
