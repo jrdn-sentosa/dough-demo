@@ -310,7 +310,7 @@ The result is a pure function in `src/domain/risk.ts` with unit tests:
 - The result shows which loaf fits (Coming soon) and is saved to the profile (`profile.risk`: status, answers, result). Retaking placement never clears it.
 - The 4-out-of-5 knowledge check still applies before any investing loaf starts, once that content exists.
 
-## Dough! Plus (simulated, milestone 14, planned, not built)
+## Dough! Plus (simulated, milestone 16, planned, not built)
 
 - **Always free:** the emergency fund loaf and everything about it (saving, withdrawing, rebuilding, growing to 3 or 6 months), the placement quiz, the risk quiz and its result, and streak breads.
 - **Plus:** the investing loaves (lessons, quizzes, loaves), a set of exclusive breads that streaks can't unlock, and bank linking once Plaid exists.
