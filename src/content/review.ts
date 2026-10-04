@@ -14,6 +14,16 @@ function fill(text: string, extra: Record<string, string> = {}): string {
   return fillTemplate(text, { goal: formatCents(DEFAULT_GOAL_CENTS), ...extra });
 }
 
+/** Nested screen copy as [dotted.key, text] lines. Lists become one line, items separated by " / ". */
+export function flattenCopy(value: unknown, prefix = ''): [string, string][] {
+  if (typeof value === 'string') return [[prefix, value]];
+  if (Array.isArray(value)) return [[prefix, value.join(' / ')]];
+  if (typeof value === 'object' && value !== null) {
+    return Object.entries(value).flatMap(([k, v]) => flattenCopy(v, prefix ? `${prefix}.${k}` : k));
+  }
+  return [];
+}
+
 /**
  * One readable page of all learner-facing copy, for review.
  * `docs/content-review.md` is checked against this by a test.
@@ -121,6 +131,16 @@ export function renderContentReview(): string {
   for (const [heading, copy] of flowGroups) {
     out.push(`### ${heading}`, '');
     for (const [key, text] of Object.entries(copy)) out.push(`- ${key}: ${text}`);
+    out.push('');
+  }
+
+  out.push('## Saving setup and Home screens', '');
+  for (const [heading, copy] of [
+    ['Saving setup', loaf.flow.savingSetup],
+    ['Home', loaf.flow.home],
+  ] as const) {
+    out.push(`### ${heading}`, '');
+    for (const [key, text] of flattenCopy(copy)) out.push(`- ${key}: ${text}`);
     out.push('');
   }
 

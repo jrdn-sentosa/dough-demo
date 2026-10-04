@@ -1,4 +1,5 @@
 import type { DataAdapter } from '../data/adapter';
+import type { AppData } from '../data/types';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -16,6 +17,11 @@ export async function now(adapter: DataAdapter, realNowMs: () => number = Date.n
 
 export async function nowIso(adapter: DataAdapter, realNowMs?: () => number): Promise<string> {
   return (await now(adapter, realNowMs)).toISOString();
+}
+
+/** The same time as `now`, for screens that already hold the loaded data and can't wait on the adapter. */
+export function nowFromData(data: Pick<AppData, 'clock'>, realNowMs: () => number = Date.now): Date {
+  return new Date(realNowMs() + data.clock.offsetDays * DAY_MS);
 }
 
 /** Moves the demo clock forward by a positive whole number of days. */

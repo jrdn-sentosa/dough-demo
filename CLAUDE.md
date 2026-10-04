@@ -46,7 +46,8 @@ src/
                 Shelf, Settings
   components/   LoafButton, SliceButton, LoafIllustration, ProgressBar,
                 ChoiceGroup (radio or checkbox inputs styled as slice buttons,
-                used by placement and the quiz), VideoPlayer, QuizQuestion, LessonRow
+                used by placement and the quiz), VideoPlayer, QuizQuestion, LessonRow,
+                StageBar, HabitCard, TipRow, AmountSheet, HysaPoints (Home and Saving setup)
   domain/       pure logic: placement scoring, targets, stages,
                 recommendations, quiz grading (no React, no Supabase)
   content/      typed loader for everything in content/ (import.meta.glob),
@@ -239,6 +240,9 @@ The emergency fund loaf is the first loaf for students with under 3 months cover
 ## Saving and rising
 
 - **Saving setup:** the student picks a habit and sees both suggestions: **weekly** = target ÷ 12 weeks (about one semester), rounded up to the nearest $5, minimum $5; **per paycheck** = 10% of each paycheck. Placement doesn't ask income type, so the student chooses. They also see the suggested account type (high-yield savings). In the demo there is no real account. Students with no savings account of any kind get an extra step about opening a high-yield savings account; students who already have one skip it.
+- **Saving setup steps:** (1) only when the account rules say so, a "Open a high-yield savings account" step with the "what to look for" points from the lesson, "I have one now" and "I'll do this later". Neither blocks. "I have one now" adds `high-yield-savings` to the profile's accounts (dropping "None" and "Not sure"), so a retake shows it selected and later loaves skip the step. "I'll do this later" puts a small dismissible reminder card on Home with the same points and the same "I have one now". (2) The habit: weekly or 10% of each paycheck, editable. A paycheck habit asks how often they are paid (every week, every two weeks, twice a month, once a month, it varies). "Skip for now" saves the suggested weekly amount and says it can be changed in Settings. (3) "Make it automatic", then Home. Home waits for a habit (the route guard sends a student with none to `/saving-setup`), except for a fund that has baked.
+- **Habit card (Home):** the habit is a plan stored on `AppData.habit`, never a balance. Periods are fixed windows counted from the day the habit started, by the demo clock: 7 days (weekly), 14, 15 (twice a month) or 30 (monthly). The card shows "Logged" when any deposit falls in the current window, otherwise "Not logged yet". For "it varies" the card reads "Each paycheck" with when they last added to their loaf, never a logged status.
+- **Home tips:** unlocked when the loaf reaches the tip's stage, and all stay unlocked once the fund has baked (so a withdrawal never re-locks a tip). A "New" badge shows until the tip is opened (`AppData.tipsSeen`). After a deposit or withdrawal that changes the stage, Home says so and points to a newly unlocked tip.
 - **Adding money:** "I moved money to savings" logs a simulated deposit.
 - **Progress** = this loaf's balance (its `starting`, deposit, and withdrawal rows) ÷ this loaf's target.
 
@@ -290,6 +294,7 @@ The emergency fund loaf is the first loaf for students with under 3 months cover
 - **Tests** use an in-memory adapter that implements the same `DataAdapter` interface, so they never touch real browser storage.
 - Supabase tables: `profiles` (`placementStatus`, essentials range and figure, existing savings range, `accounts`, `cardDebt`, `earnedIncome`, `monthsCovered`; any of these can be null when unknown), `placement_results`, `loaves`, `transactions` (with a `type` of `starting`, `deposit`, or `withdrawal`, and a `source` of `manual`, `plaid`, or `seed`), `lesson_progress`, `quiz_attempts`.
 - **Transaction source:** every row records where it came from: `manual` (the student typed it, the default), `plaid` (read from a linked sandbox account), or `seed` (demo seed data such as Maya's history). Source never changes how balances, stages, or baking work. Rows saved before `source` existed load as `manual`.
+- Saving habit, opened tips and the high-yield reminder (`habit`, `tipsSeen`, `hysaCard` on `AppData`) are plans and flags, not money. They live in `src/data/` (`habit.ts`, `profile.ts`) and need a table or columns in milestone 10. Old saved data without them loads with no habit, no seen tips and no reminder.
 - Row Level Security is on for every table. Users can only read and write their own rows.
 - Env vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` in `.env.local`.
 

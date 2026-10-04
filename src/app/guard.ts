@@ -21,6 +21,14 @@ function needsLessons(data: AppData): boolean {
   );
 }
 
+/**
+ * Lessons are done but no saving habit is picked yet. Home waits for Saving setup (skipping it saves
+ * the suggested weekly amount, so this ends). A fund that has been baked, even at the start, skips it.
+ */
+function needsHabit(data: AppData): boolean {
+  return data.loaves.length > 0 && data.habit === null && !data.loaves.some((l) => l.bakes.length > 0);
+}
+
 /** Where the student goes once their first loaf exists: a fund that starts baked goes on to choose the next loaf, a new one to its lessons. */
 function afterFirstLoaf(data: AppData): string {
   if (data.loaves.some((l) => l.bakes.length > 0)) return '/choose-loaf';
@@ -47,9 +55,11 @@ export function guardRedirect(pathname: string, data: AppData): string | null {
       return hasLoaf ? null : destinationFor(data);
     case '/':
       if (!hasLoaf) return destinationFor(data);
-      return needsLessons(data) ? '/lessons' : null;
+      if (needsLessons(data)) return '/lessons';
+      return needsHabit(data) ? '/saving-setup' : null;
     case '/lessons':
     case '/quiz':
+    case '/loaf-complete':
       return hasLoaf ? null : destinationFor(data);
     case '/saving-setup':
       if (!hasLoaf) return destinationFor(data);

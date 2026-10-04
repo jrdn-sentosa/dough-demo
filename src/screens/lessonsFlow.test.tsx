@@ -564,9 +564,9 @@ describe('mastery', () => {
 });
 
 describe('after the quiz', () => {
-  it('shows the saving setup placeholder once the quiz is done', async () => {
+  it('opens saving setup once the quiz is done', async () => {
     mount('/saving-setup', dataFor(undefined, [attempt('lesson', 1, ['ef-how-much'])]));
-    expect(await screen.findByRole('heading', { name: 'Saving setup' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Open a high-yield savings account' })).toBeTruthy();
   });
 
   it('sends a student who has not taken the quiz back to the lessons', async () => {

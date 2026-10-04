@@ -69,6 +69,129 @@
       "testOutFailBody": "A few of these are worth a look. We picked the lessons that cover them.",
       "testOutLessons": "Lessons to review",
       "testOutToLessons": "Go to my lessons"
+    },
+    "savingSetup": {
+      "hysa": {
+        "title": "Open a high-yield savings account",
+        "intro": "Your fund needs a home that's separate from your checking account and pays much more than a regular savings account. Here's what to look for:",
+        "points": [
+          "Insured by the FDIC (banks) or the NCUA (credit unions)",
+          "Low or no fees",
+          "No minimum balance that's hard to meet",
+          "Easy access when you need your money"
+        ],
+        "demoNote": "In this demo, no real account is opened and no real money moves.",
+        "haveOne": "I have one now",
+        "later": "I'll do this later"
+      },
+      "habit": {
+        "title": "Pick a saving habit",
+        "intro": "Small, steady deposits beat big, rare ones. Pick the one that fits how you earn.",
+        "weeklyTitle": "Save weekly",
+        "weeklyBody": "A set amount each week. {amount} a week gets you to your goal in about one semester.",
+        "weeklyLabel": "Amount each week",
+        "paycheckTitle": "Save from each paycheck",
+        "paycheckBody": "Move {percent} of every paycheck to your savings.",
+        "paycheckLabel": "About how much is one paycheck?",
+        "frequencyLabel": "How often are you paid?",
+        "frequencies": {
+          "weekly": "Every week",
+          "biweekly": "Every two weeks",
+          "twice-monthly": "Twice a month",
+          "monthly": "Once a month",
+          "varies": "It varies"
+        },
+        "paycheckAmountLabel": "Amount from each paycheck",
+        "paycheckNote": "That's {percent} of {paycheck}. You can change the amount.",
+        "accountNote": "Keep it in a high-yield savings account, apart from your checking account.",
+        "invalid": "Enter a dollar amount, like 25.",
+        "continue": "Continue",
+        "skip": "Skip for now"
+      },
+      "automatic": {
+        "title": "Make it automatic",
+        "body": "Saving works best when you don't have to remember it. In your bank's app, set up a transfer to your savings account for payday or once a week. Then your fund grows even on busy weeks.",
+        "skippedNote": "We started you with a weekly habit. You can change it in Settings.",
+        "done": "Go to my loaf"
+      }
+    },
+    "home": {
+      "eyebrow": "Your loaf",
+      "mastered": "Lessons mastered",
+      "progressLabel": "Progress toward your goal",
+      "amountOf": "of {target}",
+      "keptIn": "Kept in your savings account",
+      "disclaimer": "Educational demo. No real money moves.",
+      "wholeFund": "Whole fund: {total} of {target}",
+      "stageLineFormat": "{stage} · {detail}",
+      "percentOfGoal": "{percent} of your goal",
+      "percentOfNewGoal": "{percent} of your new goal",
+      "rebuilding": "Rebuilding",
+      "stageLine": {
+        "mix": "Mixing",
+        "shape": "Shaping",
+        "proof": "Proofing",
+        "bake": "Baking",
+        "baked": "Baked"
+      },
+      "stageNames": {
+        "mix": "Mix",
+        "shape": "Shape",
+        "proof": "Proof",
+        "bake": "Bake",
+        "baked": "Done"
+      },
+      "habitCard": {
+        "label": {
+          "weekly": "This week",
+          "biweekly": "These two weeks",
+          "twice-monthly": "This half month",
+          "monthly": "This month",
+          "varies": "Each paycheck"
+        },
+        "value": "{amount} to your loaf",
+        "notLogged": "Not logged yet",
+        "logged": "Logged",
+        "lastAdded": "Last added {date}",
+        "neverAdded": "Nothing added yet"
+      },
+      "add": "Add to my loaf",
+      "use": "Use my fund",
+      "addSheet": {
+        "title": "Add to my loaf",
+        "amountLabel": "How much did you move to savings?",
+        "confirm": "I moved {amount} to savings",
+        "cancel": "Cancel",
+        "invalid": "Enter a dollar amount, like 25."
+      },
+      "useSheet": {
+        "title": "Use my fund",
+        "intro": "This is what it's for. Take what you need.",
+        "available": "You have {amount} in your fund.",
+        "amountLabel": "How much do you need?",
+        "confirm": "Use {amount} from my fund",
+        "cancel": "Cancel",
+        "invalid": "Enter a dollar amount, like 25."
+      },
+      "stageUp": "Nice! Your loaf is now {stage}.",
+      "stageUpTip": "Nice! Your loaf is now {stage}. A new tip is unlocked: {tip}.",
+      "stageDown": "Your loaf is back to {stage}.",
+      "readTip": "Read it now",
+      "dismissNotice": "Dismiss message",
+      "tips": {
+        "title": "Tips while it rises",
+        "read": "Read",
+        "new": "New",
+        "unlockedAt": "Unlocked at {stage}",
+        "unlocksAt": "Unlocks at {stage}",
+        "unlocksAtBaked": "Unlocks when your loaf is baked"
+      },
+      "hysaCardDismiss": "Dismiss this reminder",
+      "completePlaceholder": {
+        "title": "Your loaf is baked!",
+        "body": "The celebration is coming in the next step of the build.",
+        "home": "Back to my loaf"
+      }
     }
   },
   "tips": [

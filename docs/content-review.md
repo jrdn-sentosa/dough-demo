@@ -310,6 +310,104 @@ Links to: lesson `ef-where-to-keep` at 42s.
 - testOutLessons: Lessons to review
 - testOutToLessons: Go to my lessons
 
+## Saving setup and Home screens
+
+### Saving setup
+
+- hysa.title: Open a high-yield savings account
+- hysa.intro: Your fund needs a home that's separate from your checking account and pays much more than a regular savings account. Here's what to look for:
+- hysa.demoNote: In this demo, no real account is opened and no real money moves.
+- hysa.haveOne: I have one now
+- hysa.later: I'll do this later
+- hysa.points: Insured by the FDIC (banks) or the NCUA (credit unions) / Low or no fees / No minimum balance that's hard to meet / Easy access when you need your money
+- habit.title: Pick a saving habit
+- habit.intro: Small, steady deposits beat big, rare ones. Pick the one that fits how you earn.
+- habit.weeklyTitle: Save weekly
+- habit.weeklyBody: A set amount each week. {amount} a week gets you to your goal in about one semester.
+- habit.weeklyLabel: Amount each week
+- habit.paycheckTitle: Save from each paycheck
+- habit.paycheckBody: Move {percent} of every paycheck to your savings.
+- habit.paycheckLabel: About how much is one paycheck?
+- habit.frequencyLabel: How often are you paid?
+- habit.paycheckAmountLabel: Amount from each paycheck
+- habit.paycheckNote: That's {percent} of {paycheck}. You can change the amount.
+- habit.accountNote: Keep it in a high-yield savings account, apart from your checking account.
+- habit.invalid: Enter a dollar amount, like 25.
+- habit.continue: Continue
+- habit.skip: Skip for now
+- habit.frequencies.weekly: Every week
+- habit.frequencies.biweekly: Every two weeks
+- habit.frequencies.twice-monthly: Twice a month
+- habit.frequencies.monthly: Once a month
+- habit.frequencies.varies: It varies
+- automatic.title: Make it automatic
+- automatic.body: Saving works best when you don't have to remember it. In your bank's app, set up a transfer to your savings account for payday or once a week. Then your fund grows even on busy weeks.
+- automatic.skippedNote: We started you with a weekly habit. You can change it in Settings.
+- automatic.done: Go to my loaf
+
+### Home
+
+- eyebrow: Your loaf
+- mastered: Lessons mastered
+- progressLabel: Progress toward your goal
+- amountOf: of {target}
+- keptIn: Kept in your savings account
+- disclaimer: Educational demo. No real money moves.
+- wholeFund: Whole fund: {total} of {target}
+- stageLineFormat: {stage} · {detail}
+- percentOfGoal: {percent} of your goal
+- percentOfNewGoal: {percent} of your new goal
+- rebuilding: Rebuilding
+- add: Add to my loaf
+- use: Use my fund
+- stageUp: Nice! Your loaf is now {stage}.
+- stageUpTip: Nice! Your loaf is now {stage}. A new tip is unlocked: {tip}.
+- stageDown: Your loaf is back to {stage}.
+- readTip: Read it now
+- dismissNotice: Dismiss message
+- hysaCardDismiss: Dismiss this reminder
+- stageLine.mix: Mixing
+- stageLine.shape: Shaping
+- stageLine.proof: Proofing
+- stageLine.bake: Baking
+- stageLine.baked: Baked
+- stageNames.mix: Mix
+- stageNames.shape: Shape
+- stageNames.proof: Proof
+- stageNames.bake: Bake
+- stageNames.baked: Done
+- habitCard.value: {amount} to your loaf
+- habitCard.notLogged: Not logged yet
+- habitCard.logged: Logged
+- habitCard.lastAdded: Last added {date}
+- habitCard.neverAdded: Nothing added yet
+- habitCard.label.weekly: This week
+- habitCard.label.biweekly: These two weeks
+- habitCard.label.twice-monthly: This half month
+- habitCard.label.monthly: This month
+- habitCard.label.varies: Each paycheck
+- addSheet.title: Add to my loaf
+- addSheet.amountLabel: How much did you move to savings?
+- addSheet.confirm: I moved {amount} to savings
+- addSheet.cancel: Cancel
+- addSheet.invalid: Enter a dollar amount, like 25.
+- useSheet.title: Use my fund
+- useSheet.intro: This is what it's for. Take what you need.
+- useSheet.available: You have {amount} in your fund.
+- useSheet.amountLabel: How much do you need?
+- useSheet.confirm: Use {amount} from my fund
+- useSheet.cancel: Cancel
+- useSheet.invalid: Enter a dollar amount, like 25.
+- tips.title: Tips while it rises
+- tips.read: Read
+- tips.new: New
+- tips.unlockedAt: Unlocked at {stage}
+- tips.unlocksAt: Unlocks at {stage}
+- tips.unlocksAtBaked: Unlocks when your loaf is baked
+- completePlaceholder.title: Your loaf is baked!
+- completePlaceholder.body: The celebration is coming in the next step of the build.
+- completePlaceholder.home: Back to my loaf
+
 ## Tips while the loaf rises
 
 ### Why small deposits add up (unlocks at shape)

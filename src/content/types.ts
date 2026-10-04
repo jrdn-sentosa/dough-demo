@@ -1,3 +1,4 @@
+import type { PayFrequency } from '../domain/habits';
 import type { AccountType, LoafId, Stage } from '../domain/types';
 
 export interface PlacementOption {
@@ -151,6 +152,81 @@ export interface FlowContent {
     testOutLessons: string;
     testOutToLessons: string;
   };
+  savingSetup: SavingSetupContent;
+  home: HomeContent;
+}
+
+/** Saving setup and Home copy. Money, percents and stage names are tokens filled in by the screens. */
+export interface SavingSetupContent {
+  /** The "open a high-yield savings account" step, also shown on the Home reminder card. */
+  hysa: {
+    title: string;
+    intro: string;
+    /** The "what to look for" points from the where-to-keep lesson. */
+    points: string[];
+    demoNote: string;
+    haveOne: string;
+    later: string;
+  };
+  /** `{amount}`, `{percent}` and `{paycheck}` are filled in. */
+  habit: {
+    title: string;
+    intro: string;
+    weeklyTitle: string;
+    weeklyBody: string;
+    weeklyLabel: string;
+    paycheckTitle: string;
+    paycheckBody: string;
+    paycheckLabel: string;
+    frequencyLabel: string;
+    frequencies: Record<PayFrequency, string>;
+    paycheckAmountLabel: string;
+    paycheckNote: string;
+    accountNote: string;
+    invalid: string;
+    continue: string;
+    skip: string;
+  };
+  automatic: { title: string; body: string; skippedNote: string; done: string };
+}
+
+export interface HomeContent {
+  eyebrow: string;
+  mastered: string;
+  progressLabel: string;
+  amountOf: string;
+  keptIn: string;
+  disclaimer: string;
+  wholeFund: string;
+  /** `{stage}` and `{detail}`. */
+  stageLineFormat: string;
+  percentOfGoal: string;
+  percentOfNewGoal: string;
+  rebuilding: string;
+  stageLine: Record<Stage, string>;
+  /** Names on the bar's dots. */
+  stageNames: Record<Stage, string>;
+  habitCard: {
+    label: Record<PayFrequency, string>;
+    value: string;
+    notLogged: string;
+    logged: string;
+    lastAdded: string;
+    neverAdded: string;
+  };
+  add: string;
+  use: string;
+  addSheet: { title: string; amountLabel: string; confirm: string; cancel: string; invalid: string };
+  useSheet: { title: string; intro: string; available: string; amountLabel: string; confirm: string; cancel: string; invalid: string };
+  stageUp: string;
+  stageUpTip: string;
+  stageDown: string;
+  readTip: string;
+  dismissNotice: string;
+  tips: { title: string; read: string; new: string; unlockedAt: string; unlocksAt: string; unlocksAtBaked: string };
+  hysaCardDismiss: string;
+  /** Until the celebration screen is built (milestone 8). */
+  completePlaceholder: { title: string; body: string; home: string };
 }
 
 export interface BuiltLoaf extends LoafBase {
