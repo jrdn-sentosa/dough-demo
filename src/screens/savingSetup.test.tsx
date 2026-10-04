@@ -71,7 +71,7 @@ describe('saving setup: the high-yield account step', () => {
 
   it('"I have one now" adds high-yield savings to the profile and moves on', async () => {
     const adapter = await setupAdapter(noSavings);
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter);
     await user.click(await screen.findByRole('button', { name: 'I have one now' }));
     await screen.findByRole('heading', { name: habitTitle });
@@ -85,7 +85,7 @@ describe('saving setup: the high-yield account step', () => {
 
   it('"I\'ll do this later" never blocks: it moves on and leaves a reminder for Home', async () => {
     const adapter = await setupAdapter(noSavings);
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter);
     await user.click(await screen.findByRole('button', { name: "I'll do this later" }));
     await screen.findByRole('heading', { name: habitTitle });
@@ -96,7 +96,7 @@ describe('saving setup: the high-yield account step', () => {
 
   it('puts the reminder card on Home after the rest of setup', async () => {
     const adapter = await setupAdapter(noSavings);
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { pathname } = mount(adapter);
     await user.click(await screen.findByRole('button', { name: "I'll do this later" }));
     await user.click(await screen.findByRole('button', { name: 'Skip for now' }));
@@ -113,7 +113,7 @@ describe('saving setup: the high-yield account step', () => {
 describe('saving setup: the habit', () => {
   it('suggests the weekly amount (target over 12 weeks, rounded up to $5) and lets the student edit it', async () => {
     const adapter = await setupAdapter(hasSavings);
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter);
     await screen.findByRole('heading', { name: habitTitle });
     expect(screen.getByText(/\$35 a week gets you to your goal in about one semester/)).toBeTruthy();
@@ -128,7 +128,7 @@ describe('saving setup: the habit', () => {
   });
 
   it('does not continue with an amount that is not dollars', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(await setupAdapter(hasSavings));
     const input = (await screen.findByLabelText('Amount each week')) as HTMLInputElement;
     await user.clear(input);
@@ -138,7 +138,7 @@ describe('saving setup: the habit', () => {
 
   it('saves 10% of each paycheck, editable, with how often they are paid', async () => {
     const adapter = await setupAdapter(hasSavings);
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter);
     await user.click(await screen.findByRole('radio', { name: 'Save from each paycheck' }));
     expect(screen.getByText('Move 10% of every paycheck to your savings.')).toBeTruthy();
@@ -164,7 +164,7 @@ describe('saving setup: the habit', () => {
 
   it('asks how often they are paid, and the Home card tracks that period', async () => {
     const adapter = await setupAdapter(hasSavings);
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter);
     await user.click(await screen.findByRole('radio', { name: 'Save from each paycheck' }));
     await user.click(screen.getByRole('radio', { name: 'Once a month' }));
@@ -178,7 +178,7 @@ describe('saving setup: the habit', () => {
 
   it('for "it varies" the Home card says "Each paycheck" and has no logged status', async () => {
     const adapter = await setupAdapter(hasSavings);
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter);
     await user.click(await screen.findByRole('radio', { name: 'Save from each paycheck' }));
     await user.click(screen.getByRole('radio', { name: 'It varies' }));
@@ -194,7 +194,7 @@ describe('saving setup: the habit', () => {
 
   it('"Skip for now" saves the suggested weekly amount and says it can be changed in Settings', async () => {
     const adapter = await setupAdapter(hasSavings);
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter);
     await user.click(await screen.findByRole('button', { name: 'Skip for now' }));
     await screen.findByRole('heading', { name: 'Make it automatic' });
@@ -206,7 +206,7 @@ describe('saving setup: the habit', () => {
 describe('saving setup: make it automatic, then Home', () => {
   it('suggests an automatic transfer, then goes to Home with the habit card', async () => {
     const adapter = await setupAdapter(hasSavings);
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { pathname } = mount(adapter);
     await user.click(await screen.findByRole('button', { name: 'Continue' }));
     await screen.findByRole('heading', { name: 'Make it automatic' });

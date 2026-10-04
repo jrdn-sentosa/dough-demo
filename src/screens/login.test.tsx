@@ -38,7 +38,7 @@ async function toCodeStep(user: ReturnType<typeof userEvent.setup>) {
 
 describe('login with Supabase', () => {
   it('asks for a real email before sending anything', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const auth = fakeAuth();
     mount(auth);
     await user.type(await screen.findByLabelText('Email'), 'nope');
@@ -48,7 +48,7 @@ describe('login with Supabase', () => {
   });
 
   it('emails a code, then checks the 6 digits', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const auth = fakeAuth();
     mount(auth);
     await user.type(await screen.findByLabelText('Email'), ' sam@school.edu ');
@@ -64,7 +64,7 @@ describe('login with Supabase', () => {
   });
 
   it('does not check a short code', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const auth = fakeAuth();
     mount(auth);
     await user.type(await toCodeStep(user), '123');
@@ -74,7 +74,7 @@ describe('login with Supabase', () => {
   });
 
   it('shows a friendly message for a wrong or expired code', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const auth = fakeAuth({
       verifyOtp: vi.fn().mockResolvedValue({ data: {}, error: { message: 'Token has expired or is invalid', status: 403 } }),
     });
@@ -87,7 +87,7 @@ describe('login with Supabase', () => {
   });
 
   it('shows a friendly message when the connection is down', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(fakeAuth({ signInWithOtp: vi.fn().mockRejectedValue(new TypeError('Failed to fetch')) }));
     await user.type(await screen.findByLabelText('Email'), 'sam@school.edu');
     await user.click(screen.getByRole('button', { name: 'Continue with email' }));
@@ -95,7 +95,7 @@ describe('login with Supabase', () => {
   });
 
   it('makes the student wait before asking for another code', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(fakeAuth());
     await toCodeStep(user);
     const resend = screen.getByRole('button', { name: /send a new code/i });
@@ -103,7 +103,7 @@ describe('login with Supabase', () => {
   });
 
   it('lets the student go back and use a different email', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(fakeAuth());
     await toCodeStep(user);
     await user.click(screen.getByRole('button', { name: 'Use a different email' }));
@@ -111,7 +111,7 @@ describe('login with Supabase', () => {
   });
 
   it('starts Google sign-in with a redirect back to this site', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const auth = fakeAuth();
     mount(auth);
     await user.click(await screen.findByRole('button', { name: /continue with google/i }));
@@ -119,7 +119,7 @@ describe('login with Supabase', () => {
   });
 
   it('still offers the demo user, which signs in without Supabase', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const auth = fakeAuth();
     const { adapter } = mount(auth);
     await user.click(await screen.findByRole('button', { name: 'Continue as demo user' }));

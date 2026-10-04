@@ -14,8 +14,6 @@ export default defineConfig(({ mode }) => {
     define: { __APP_VERSION__: JSON.stringify(version) },
     test: {
       include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
-      // The jsdom screen tests are slow when many run at once; the default 5s made them fail on a busy machine.
-      testTimeout: 15_000,
     },
   };
 });

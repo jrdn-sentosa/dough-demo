@@ -38,7 +38,7 @@ function mount(data: AppData, props: Partial<Parameters<typeof SettingsView>[0]>
 
 describe('Settings, Change your goal', () => {
   it("offers 1, 3 and 6 months from the student's essentials, and changes the goal", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const adapter = mount(mayaSeed(NOW));
     await screen.findByText('Your goal is $400.');
     expect(screen.getByRole('radio', { name: '1 month ($400)' })).toBeTruthy();
@@ -51,7 +51,7 @@ describe('Settings, Change your goal', () => {
   });
 
   it('takes a typed amount, and a goal at or below what is saved bakes the loaf', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const adapter = mount(mayaSeed(NOW));
     await user.type(await screen.findByLabelText('Or type an amount'), '200');
     await user.click(screen.getByRole('button', { name: 'Change my goal' }));
@@ -62,7 +62,7 @@ describe('Settings, Change your goal', () => {
   });
 
   it('will not save something that is not a dollar amount', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const adapter = mount(mayaSeed(NOW));
     await user.type(await screen.findByLabelText('Or type an amount'), 'lots');
     expect((screen.getByRole('button', { name: 'Change my goal' }) as HTMLButtonElement).disabled).toBe(true);
@@ -92,7 +92,7 @@ describe('Settings, Change your habit', () => {
   });
 
   it('changes the amount without touching the streak, and shows no restart note', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const adapter = mount(mayaSeed(NOW));
     const before = (await adapter.load()).habit;
     const field = await screen.findByLabelText("Amount each week");
@@ -107,7 +107,7 @@ describe('Settings, Change your habit', () => {
   });
 
   it('warns before a different period length restarts the streak, and keeps breads and the best streak', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const adapter = mount(mayaSeed(NOW));
     const before = await adapter.load();
     await user.click(await screen.findByRole('radio', { name: /paycheck/i }));
@@ -126,7 +126,7 @@ describe('Settings, Change your habit', () => {
 describe('Settings, demo tools', () => {
   it('shows Reset demo and Start fresh demo to the demo user in demo mode, and Reset puts Maya back', async () => {
     sessionStorage.setItem('dough.demo', '1');
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const adapter = mount(mayaSeed(NOW));
     const data = await adapter.load();
     data.transactions = data.transactions.slice(0, 2);

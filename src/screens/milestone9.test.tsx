@@ -96,7 +96,7 @@ describe('Home streak card and unlock moment', () => {
     const adapter = await risingAdapter();
     await skipWeek(adapter, EF);
     await skipWeek(adapter, EF);
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter);
     await screen.findByText('Baguette unlocked');
     await user.click(screen.getByRole('button', { name: 'Dismiss' }));
@@ -130,7 +130,7 @@ describe('Home streak card and unlock moment', () => {
     cleanup();
 
     sessionStorage.setItem('dough.demo', '1');
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter);
     await user.click(await screen.findByRole('button', { name: 'Skip a week' }));
     await waitFor(async () => expect((await adapter.load()).transactions).toHaveLength(1));
@@ -141,7 +141,7 @@ describe('Home streak card and unlock moment', () => {
   it('Skip a week without saving only moves the clock', async () => {
     sessionStorage.setItem('dough.demo', '1');
     const adapter = await risingAdapter();
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter);
     await user.click(await screen.findByRole('button', { name: 'Skip a week without saving' }));
     await waitFor(async () => expect((await adapter.load()).clock.offsetDays).toBe(7));
@@ -155,7 +155,7 @@ describe('UnlockMoment', () => {
     render(<UnlockMoment bread="pretzel" copy={breads} onDismiss={() => (dismissed += 1)} />);
     expect(screen.getByText('Pretzel unlocked')).toBeTruthy();
     expect(document.querySelector('img')?.getAttribute('aria-hidden')).toBe('true');
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Dismiss' }));
+    await userEvent.setup({ delay: null }).click(screen.getByRole('button', { name: 'Dismiss' }));
     expect(dismissed).toBe(1);
   });
 });
@@ -186,7 +186,7 @@ describe('BreadPicker', () => {
   it('selects the open bread and ignores a locked one', async () => {
     const picked: string[] = [];
     pick('sandwich', (b) => picked.push(b));
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     await user.click(screen.getByRole('radio', { name: /Baguette/ }));
     await user.click(screen.getByRole('radio', { name: /Bagel/ }));
     expect(picked).toEqual(['baguette']);
@@ -201,7 +201,7 @@ describe('BreadPicker', () => {
 describe('bread step on Choose your next loaf', () => {
   it('goes straight to Home, in the default bread, when nothing beyond the default is unlocked', async () => {
     const adapter = await bakedAdapter();
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { pathname } = mount(adapter, '/choose-loaf');
     await user.click(await screen.findByRole('button', { name: 'Grow my cushion' }));
     await waitFor(() => expect(pathname()).toBe('/'));
@@ -211,7 +211,7 @@ describe('bread step on Choose your next loaf', () => {
 
   it('asks which bread when one is unlocked, and grows in the one picked', async () => {
     const adapter = await bakedAdapter(['baguette']);
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { pathname } = mount(adapter, '/choose-loaf');
     await user.click(await screen.findByRole('button', { name: 'Grow my cushion' }));
 
@@ -228,7 +228,7 @@ describe('bread step on Choose your next loaf', () => {
 
   it('Back closes the step without changing the loaf', async () => {
     const adapter = await bakedAdapter(['baguette']);
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { pathname } = mount(adapter, '/choose-loaf');
     await user.click(await screen.findByRole('button', { name: 'Grow my cushion' }));
     await user.click(within(await screen.findByRole('dialog', { name: 'Pick a bread' })).getByRole('button', { name: 'Back' }));
@@ -251,7 +251,7 @@ describe('bread step on Choose your next loaf', () => {
     data.streaks.unlocked = [{ bread: 'bagel', at: '2026-01-01T00:00:00.000Z', seen: true }];
     await adapter.save(data);
 
-    const user2 = userEvent.setup();
+    const user2 = userEvent.setup({ delay: null });
     const { pathname } = mount(adapter, '/choose-loaf');
     await user2.click(await screen.findByRole('button', { name: 'Grow my cushion' }));
     const dialog = await screen.findByRole('dialog', { name: 'Pick a bread' });
@@ -268,7 +268,7 @@ describe('bread step on the risk result', () => {
   it('shows the bread step before growing from "keep it in savings"', async () => {
     const adapter = await bakedAdapter(['baguette', 'bagel']);
     await saveRisk(adapter, { horizon: 'within-year', drop: 'add-more', priority: 'growth', experience: 'yes' });
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { pathname } = mount(adapter, '/risk-result');
     await user.click(await screen.findByRole('button', { name: 'Grow my cushion' }));
     const dialog = await screen.findByRole('dialog', { name: 'Pick a bread' });
@@ -296,7 +296,7 @@ describe('bread step on Your new loaf', () => {
 
   it('shows the picker when a bread is unlocked, and starts the loaf in the one picked', async () => {
     const adapter = await newLoafAdapter(['baguette']);
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter, '/new-loaf');
     expect(await screen.findByText('Pick a bread')).toBeTruthy();
     await user.click(screen.getByRole('radio', { name: /Baguette/ }));
@@ -307,7 +307,7 @@ describe('bread step on Your new loaf', () => {
 
   it('starts in the default bread when the picker is left alone', async () => {
     const adapter = await newLoafAdapter(['baguette']);
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mount(adapter, '/new-loaf');
     await user.click(await screen.findByRole('button', { name: 'Start my loaf' }));
     await waitFor(async () => expect((await adapter.load()).loaves).toHaveLength(1));

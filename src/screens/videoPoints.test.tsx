@@ -83,7 +83,7 @@ describe('video points', () => {
   });
 
   it('are not earned by "Mark as watched"', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const adapter = mount();
     await user.click(await screen.findByRole('button', { name: 'Mark as watched' }));
     await waitFor(async () => expect((await adapter.load()).lessonProgress).toHaveLength(1));

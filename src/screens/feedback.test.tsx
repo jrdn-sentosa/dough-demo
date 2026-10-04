@@ -36,7 +36,7 @@ const box = () => screen.findByRole('textbox', { name: 'Your feedback' });
 
 describe('Send feedback for a signed-in student', () => {
   it('sends the message, category, version and screen path, then clears the box', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const send = vi.fn().mockResolvedValue(undefined);
     trackScreen('/lessons/ef-how-much');
     trackScreen('/settings');
@@ -60,7 +60,7 @@ describe('Send feedback for a signed-in student', () => {
   });
 
   it('works with no category', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const send = vi.fn().mockResolvedValue(undefined);
     mountSettings({ account, sendFeedback: send });
     await user.type(await box(), 'Hello');
@@ -70,7 +70,7 @@ describe('Send feedback for a signed-in student', () => {
   });
 
   it('cannot send an empty or blank message', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const send = vi.fn();
     mountSettings({ account, sendFeedback: send });
     const button = await screen.findByRole('button', { name: 'Send feedback' });
@@ -88,7 +88,7 @@ describe('Send feedback for a signed-in student', () => {
   });
 
   it('keeps the message and says so when it could not be sent', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const send = vi.fn().mockRejectedValue(new Error('offline'));
     mountSettings({ account, sendFeedback: send });
     await user.type(await box(), 'Keep me');
@@ -105,7 +105,7 @@ describe('Send feedback for a signed-in student', () => {
 
 describe('Send feedback for the demo user', () => {
   it('has no send button, and opens an email with the message once there is one', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const send = vi.fn();
     mountSettings({ account: null, sendFeedback: send });
     expect((await screen.findByRole('button', { name: 'Email my feedback' })).hasAttribute('disabled')).toBe(true);

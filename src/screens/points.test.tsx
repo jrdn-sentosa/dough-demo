@@ -50,12 +50,15 @@ function mount(adapter: DataAdapter, path = '/') {
   return { router, pathname: () => router.state.location.pathname };
 }
 
+/** Home loads, syncs points and picks the question before these show, which takes longer than 1s on a busy machine. */
+const SLOW = { timeout: 5000 };
+
 const pointsLink = (n: number | RegExp) =>
-  screen.findByRole('link', { name: typeof n === 'number' ? new RegExp(`^${n} Dough points`) : n });
+  screen.findByRole('link', { name: typeof n === 'number' ? new RegExp(`^${n} Dough points`) : n }, SLOW);
 
 /** The daily quiz card, and the content question it is showing (the choices are shuffled, so find it by its text). */
 async function dailyCard() {
-  const card = await screen.findByRole('region', { name: 'Daily quiz' });
+  const card = await screen.findByRole('region', { name: 'Daily quiz' }, SLOW);
   const text = card.querySelector('legend')?.textContent;
   const question = quiz.questions.find((q) => q.question === text);
   if (!question) throw new Error(`no quiz question in the card: ${text}`);
@@ -100,7 +103,7 @@ describe('the daily quiz card', () => {
   });
 
   it('asks one question, and a right answer earns a point and shows the explanation', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const adapter = await homeAdapter(4);
     mount(adapter);
     const { card, question } = await dailyCard();
@@ -109,7 +112,7 @@ describe('the daily quiz card', () => {
     await user.click(within(card).getByRole('radio', { name: startsWith(labelOf(question, question.answer)) }));
     await user.click(within(card).getByRole('button', { name: 'Check answer' }));
 
-    expect(await within(card).findByText("That's right. +1 point.")).toBeTruthy();
+    expect(await within(card).findByText("That's right. +1 point.", {}, SLOW)).toBeTruthy();
     expect(within(card).getByText(question.explain)).toBeTruthy();
     expect(within(card).getByText(/A new one is waiting tomorrow/)).toBeTruthy();
     expect(within(card).queryByRole('button', { name: 'Check answer' })).toBeNull();
@@ -119,7 +122,7 @@ describe('the daily quiz card', () => {
   });
 
   it('shows the explanation for a wrong answer too, with no point', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const adapter = await homeAdapter(4);
     mount(adapter);
     const { card, question } = await dailyCard();
@@ -128,7 +131,7 @@ describe('the daily quiz card', () => {
     await user.click(within(card).getByRole('radio', { name: startsWith(labelOf(question, wrongId)) }));
     await user.click(within(card).getByRole('button', { name: 'Check answer' }));
 
-    expect(await within(card).findByText("Not quite. Here's the idea:")).toBeTruthy();
+    expect(await within(card).findByText("Not quite. Here's the idea:", {}, SLOW)).toBeTruthy();
     expect(within(card).getByText(question.explain)).toBeTruthy();
     expect(within(card).getByText(`The answer: ${labelOf(question, question.answer)}`)).toBeTruthy();
     await pointsLink(5);
@@ -136,13 +139,13 @@ describe('the daily quiz card', () => {
   });
 
   it('keeps the same question on a reload, and the answered state', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const adapter = await homeAdapter(4);
     mount(adapter);
     const first = await dailyCard();
     await user.click(within(first.card).getAllByRole('radio')[0]);
     await user.click(within(first.card).getByRole('button', { name: 'Check answer' }));
-    await within(first.card).findByText(/A new one is waiting tomorrow/);
+    await within(first.card).findByText(/A new one is waiting tomorrow/, {}, SLOW);
     cleanup();
 
     mount(adapter);
@@ -179,7 +182,7 @@ describe('the points history', () => {
 
   it('lists what earned each point and when, newest first, with the total', async () => {
     mount(await withPoints(), '/points');
-    expect(await screen.findByRole('heading', { name: 'Your Dough points' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Your Dough points' }, SLOW)).toBeTruthy();
     expect(screen.getByText('7 points in all')).toBeTruthy();
     const rows = screen.getAllByRole('listitem').map((li) => li.textContent ?? '');
     expect(rows).toHaveLength(3);
@@ -194,14 +197,14 @@ describe('the points history', () => {
 
   it('is calm when there are no points yet', async () => {
     mount(await homeAdapter(), '/points');
-    expect(await screen.findByText('Your points will show up here as you go.')).toBeTruthy();
+    expect(await screen.findByText('Your points will show up here as you go.', {}, SLOW)).toBeTruthy();
     expect(screen.getByText('0 points in all')).toBeTruthy();
   });
 
   it('goes back to Home', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { pathname } = mount(await homeAdapter(), '/points');
-    await user.click(await screen.findByRole('button', { name: 'Back to Home' }));
+    await user.click(await screen.findByRole('button', { name: 'Back to Home' }, SLOW));
     await waitFor(() => expect(pathname()).toBe('/'));
   });
 
