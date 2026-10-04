@@ -107,6 +107,7 @@ export interface FlowContent {
     answeredRight: string;
     watchAnyway: string;
     watched: string;
+    mastered: string;
     reviewTitle: string;
     reviewIntro: string;
     allOptionalTitle: string;
@@ -141,6 +142,9 @@ export interface FlowContent {
     tryAgain: string;
     continueSaving: string;
     scoreNote: string;
+    mastered: string;
+    masteredBefore: string;
+    masteryHint: string;
     testOutPassTitle: string;
     testOutPassBody: string;
     testOutFailBody: string;

@@ -138,7 +138,7 @@ function parseFlow(raw: unknown, file: string): FlowContent {
   return {
     lessons: strings(
       obj(o.lessons, `${w} lessons`),
-      ['title', 'intro', 'testOutButton', 'quizButton', 'recommended', 'known', 'answeredRight', 'watchAnyway', 'watched', 'reviewTitle', 'reviewIntro', 'allOptionalTitle', 'allOptionalBody', 'continueSaving'] as const,
+      ['title', 'intro', 'testOutButton', 'quizButton', 'recommended', 'known', 'answeredRight', 'watchAnyway', 'watched', 'mastered', 'reviewTitle', 'reviewIntro', 'allOptionalTitle', 'allOptionalBody', 'continueSaving'] as const,
       `${w} lessons`,
     ),
     lesson: strings(
@@ -148,7 +148,7 @@ function parseFlow(raw: unknown, file: string): FlowContent {
     ),
     quiz: strings(
       obj(o.quiz, `${w} quiz`),
-      ['testOutTitle', 'testOutIntro', 'check', 'next', 'seeScore', 'correct', 'notQuite', 'correctAnswer', 'rewatch', 'readSummary', 'questionOf', 'scoreTitle', 'score', 'reviewMissed', 'tryAgain', 'continueSaving', 'scoreNote', 'testOutPassTitle', 'testOutPassBody', 'testOutFailBody', 'testOutLessons', 'testOutToLessons'] as const,
+      ['testOutTitle', 'testOutIntro', 'check', 'next', 'seeScore', 'correct', 'notQuite', 'correctAnswer', 'rewatch', 'readSummary', 'questionOf', 'scoreTitle', 'score', 'reviewMissed', 'tryAgain', 'continueSaving', 'scoreNote', 'mastered', 'masteredBefore', 'masteryHint', 'testOutPassTitle', 'testOutPassBody', 'testOutFailBody', 'testOutLessons', 'testOutToLessons'] as const,
       `${w} quiz`,
     ),
   };

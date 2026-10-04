@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ESSENTIALS_BANDS, SAVINGS_BANDS } from '../domain/bands';
+import { MASTERY_PERCENT } from '../domain/mastery';
 import { GROW_TARGET_MONTHS } from '../domain/recommendations';
 import {
   ACCOUNT_TYPES,
@@ -230,6 +231,15 @@ describe('quiz content', () => {
 
   it('covers every lesson, so a missed question can recommend any of them', () => {
     expect(new Set(quiz.questions.map((q) => q.lesson))).toEqual(new Set(lessons.map((l) => l.id)));
+  });
+
+  it('has mastery copy that matches the mastery bar', () => {
+    const loaf = getLoaf('emergency-fund');
+    if (loaf.status !== 'built') throw new Error('expected built');
+    const needed = (quiz.questions.length * MASTERY_PERCENT) / 100;
+    expect(loaf.flow.quiz.masteryHint).toContain(`${needed} out of ${quiz.questions.length}`);
+    expect(loaf.flow.quiz.mastered).toBe("You mastered this loaf's lessons.");
+    expect(loaf.flow.lessons.mastered).toBe('Mastered');
   });
 
   it('is the quiz the loaf points to', () => {
