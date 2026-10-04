@@ -6,7 +6,9 @@ import { useAuth } from '../../app/AuthProvider';
 import { useData } from '../../app/DataProvider';
 import { CODE_LENGTH, sendEmailCode, signInWithGoogle, verifyEmailCode } from '../../data/auth';
 import type { AuthClient } from '../../data/auth';
-import { signInDemo } from '../../data/session';
+import { isDemoMode } from '../../app/demoFlag';
+import { DemoActions } from '../../components/DemoActions';
+import { signInAsMaya } from '../../money/demo';
 import { getSupabase } from '../../data/supabaseClient';
 
 export const DISCLAIMER_LINES = ['Educational demo. Not financial advice.', 'No real money moves.'] as const;
@@ -90,7 +92,7 @@ export function LoginView({ auth, google = false }: { auth: AuthClient | null; g
   }
 
   async function onDemo() {
-    await signInDemo(adapter);
+    await signInAsMaya(adapter);
     await refresh();
   }
 
@@ -206,6 +208,8 @@ export function LoginView({ auth, google = false }: { auth: AuthClient | null; g
           </SliceButton>
         )}
       </div>
+
+      {step === 'email' && isDemoMode() && <DemoActions actions={['fresh']} />}
 
       <p className="login__disclaimer">
         {DISCLAIMER_LINES[0]}

@@ -3,19 +3,26 @@ import { Link } from 'react-router';
 import { useAuth } from '../../app/AuthProvider';
 import type { Account } from '../../app/AuthProvider';
 import { useData } from '../../app/DataProvider';
+import { canChooseNext } from '../../app/guard';
+import { DemoActions } from '../../components/DemoActions';
 import { SliceButton } from '../../components/SliceButton';
+import { isDemoMode } from '../../app/demoFlag';
 import { signOutAccount } from '../../data/auth';
 import { signOutLocal } from '../../data/session';
 import { clearCache } from '../../data/supabaseAdapter';
 import { getSupabase } from '../../data/supabaseClient';
+import { DraftNote } from '../../components/DraftNote';
+import { getSettings } from '../../content/loader';
 import { DISCLAIMER_LINES } from '../Login';
+import { GoalSection } from './GoalSection';
+import { HabitSection } from './HabitSection';
 
 export const RETAKE_PATH = `/placement?retake=1&return=${encodeURIComponent('/settings')}`;
 
 /**
  * A bare Settings screen: who is signed in, sign out for real accounts, "Exit demo" for the demo user (it keeps the local
  * demo data, so "Continue as demo user" picks up where they left off),
- * retaking the placement quiz, and the disclaimer. Goal and habit changes, demo tools and Reset demo come with milestone 11.
+ * retaking the placement quiz, changing the goal and the saving habit, the demo tools (`?demo=1`, demo user only), and the disclaimer.
  */
 export function Settings() {
   const { account } = useAuth();
@@ -54,6 +61,10 @@ export function SettingsView({ account, onSignOut }: { account: Account | null; 
         </Link>
       </div>
       <h1 className="screen-title">Settings</h1>
+      <DraftNote draft={getSettings().draft} />
+
+      <GoalSection />
+      <HabitSection />
 
       {account && (
         <section className="settings__section" aria-labelledby="settings-account">
@@ -79,6 +90,12 @@ export function SettingsView({ account, onSignOut }: { account: Account | null; 
         </section>
       )}
 
+      {!account && data.user && isDemoMode() && (
+        <section className="settings__section">
+          <DemoActions actions={['reset', 'fresh']} />
+        </section>
+      )}
+
       {data.profile && (
         <section className="settings__section" aria-labelledby="settings-placement">
           <h2 id="settings-placement" className="settings__heading">
@@ -87,6 +104,18 @@ export function SettingsView({ account, onSignOut }: { account: Account | null; 
           <p className="settings__text">Your situation changed? Retake the quiz. It never changes your savings history.</p>
           <Link className="slice-button" to={RETAKE_PATH}>
             Retake the quiz
+          </Link>
+        </section>
+      )}
+
+      {canChooseNext(data) && (
+        <section className="settings__section" aria-labelledby="settings-risk">
+          <h2 id="settings-risk" className="settings__heading">
+            {getSettings().risk.title}
+          </h2>
+          <p className="settings__text">{getSettings().risk.intro}</p>
+          <Link className="slice-button" to="/risk-quiz">
+            {getSettings().risk.link}
           </Link>
         </section>
       )}

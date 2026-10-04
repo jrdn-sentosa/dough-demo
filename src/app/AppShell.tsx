@@ -2,6 +2,7 @@ import { Navigate, Outlet, useLocation } from 'react-router';
 import { isDemoMode } from './demoFlag';
 import { useData } from './DataProvider';
 import { guardRedirect } from './guard';
+import { UpdatePrompt } from './UpdatePrompt';
 
 /** Real accounts only. There is no offline syncing: changes made without a connection are not kept. */
 export const OFFLINE_MESSAGE = "You're offline. Your loaf is safe, but changes can't be saved until you're back online.";
@@ -18,6 +19,7 @@ export function AppShell() {
         <div className="phone-frame__scroll">
           <main className="app-screen">
             {isDemoMode() && <span className="demo-pill">Demo</span>}
+            <UpdatePrompt />
             {connection !== 'online' && (
               <p className="connection-banner" role="status">
                 {connection === 'offline' ? OFFLINE_MESSAGE : ERROR_MESSAGE}

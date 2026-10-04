@@ -18,14 +18,21 @@ function startFor(previous: Habit | null, next: Habit): string {
   return previous && streakPeriodDays(previous) === streakPeriodDays(next) ? previous.startedAt : next.startedAt;
 }
 
-/** Saves the habit from Saving setup. The start date comes from the demo clock; periods are counted from it. */
+function habitFromInput(input: HabitInput, startedAt: string): Habit {
+  return input.kind === 'weekly'
+    ? { kind: 'weekly', amountCents: input.amountCents, paycheckCents: null, frequency: null, startedAt }
+    : { kind: 'paycheck', amountCents: input.amountCents, paycheckCents: input.paycheckCents, frequency: input.frequency, startedAt };
+}
+
+/** Whether saving `input` over `previous` restarts the streak: only when the period length changes. A new amount never does. */
+export function restartsStreak(previous: Habit | null, input: HabitInput): boolean {
+  return previous !== null && streakPeriodDays(previous) !== streakPeriodDays(habitFromInput(input, previous.startedAt));
+}
+
+/** Saves the habit from Saving setup or Settings. The start date comes from the demo clock; periods are counted from it. */
 export async function saveHabit(adapter: DataAdapter, input: HabitInput): Promise<Habit> {
   const data = await adapter.load();
-  const startedAt = await nowIso(adapter);
-  const next: Habit =
-    input.kind === 'weekly'
-      ? { kind: 'weekly', amountCents: input.amountCents, paycheckCents: null, frequency: null, startedAt }
-      : { kind: 'paycheck', amountCents: input.amountCents, paycheckCents: input.paycheckCents, frequency: input.frequency, startedAt };
+  const next = habitFromInput(input, await nowIso(adapter));
   data.habit = { ...next, startedAt: startFor(data.habit, next) };
   await adapter.save(data);
   return data.habit;

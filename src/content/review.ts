@@ -1,6 +1,6 @@
 import { DEFAULT_GOAL_CENTS } from '../domain/bands';
 import { formatCents } from '../money/format';
-import { getBreads, getLessons, getLoaf, getLoaves, getPlacement, getQuiz, getRisk } from './loader';
+import { getBreads, getLessons, getLoaf, getLoaves, getPlacement, getQuiz, getRisk, getSettings } from './loader';
 import { fillTemplate } from './template';
 
 const LETTERS = 'ABCD';
@@ -171,6 +171,18 @@ export function renderContentReview(): string {
     ['Unlock moment', breads.unlock],
     ['Bread picker', breads.picker],
     ['Demo tools (only with ?demo=1)', breads.demo],
+  ] as const) {
+    out.push(`### ${heading}`, '');
+    for (const [key, text] of flattenCopy(copy)) out.push(`- ${key}: ${text}`);
+    out.push('');
+  }
+
+  const settings = getSettings();
+  out.push(`## Settings${draftTag(settings.draft)}`, '');
+  for (const [heading, copy] of [
+    ['Your goal', settings.goal],
+    ['Your saving habit', settings.habit],
+    ['Retake the risk quiz', settings.risk],
   ] as const) {
     out.push(`### ${heading}`, '');
     for (const [key, text] of flattenCopy(copy)) out.push(`- ${key}: ${text}`);

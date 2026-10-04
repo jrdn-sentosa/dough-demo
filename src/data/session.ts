@@ -3,8 +3,8 @@ import type { LocalUser } from './types';
 
 /**
  * "Continue as demo user". The demo user has no account: it lives only in this browser's local data, works
- * without Supabase or a connection, and nothing leaves the device. Until Maya's seed exists (milestone 11)
- * this is a plain demo user who starts placement. Real accounts sign in through Supabase (`auth.ts`).
+ * without Supabase or a connection, and nothing leaves the device. `signInAsMaya` (src/money/demo.ts) is what the login
+ * button uses; this plain sign-in is the building block. Real accounts sign in through Supabase (`auth.ts`).
  */
 export const DEMO_EMAIL = 'demo@dough.local';
 

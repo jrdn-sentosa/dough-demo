@@ -374,6 +374,17 @@ export interface RiskContent {
   };
 }
 
+/** Copy for Settings: changing the goal and the saving habit. `{token}` placeholders are filled at display time. */
+export interface SettingsContent {
+  draft: boolean;
+  goal: Record<
+    'title' | 'current' | 'intro' | 'monthsLegend' | 'month' | 'months' | 'noEssentials' | 'customLabel' | 'save' | 'invalid' | 'edited' | 'growing' | 'baked',
+    string
+  >;
+  habit: Record<'title' | 'current' | 'weekly' | 'paycheck' | 'save' | 'restartNote' | 'saved' | 'savedRestart', string>;
+  risk: Record<'title' | 'intro' | 'link', string>;
+}
+
 /** Bread names and the copy for streaks, the unlock moment, the bread picker and the demo tools. */
 export interface BreadsContent {
   draft: boolean;
@@ -420,5 +431,15 @@ export interface BreadsContent {
     back: string;
     groupLabel: string;
   };
-  demo: { heading: string; skipWeek: string; skipWeekWithoutSaving: string };
+  demo: {
+    heading: string;
+    skipWeek: string;
+    skipWeekWithoutSaving: string;
+    resetDemo: string;
+    resetDemoNote: string;
+    startFresh: string;
+    startFreshNote: string;
+    confirm: string;
+    cancel: string;
+  };
 }

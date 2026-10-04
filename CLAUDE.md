@@ -17,7 +17,8 @@ This repository is a **tech demo only**. It runs as a progressive web app (PWA) 
 ## Stack
 
 - React + TypeScript (strict mode) + Vite
-- `vite-plugin-pwa` for the manifest and service worker
+- `vite-plugin-pwa` (with `workbox-build` and `workbox-window`, its peers) for the manifest and service worker
+- `sharp` (dev dependency) only for `npm run icons`
 - Supabase for auth (email one-time code and Google) and the database, through `@supabase/supabase-js`. The Supabase CLI is run with `npx supabase ...` and is not a dependency.
 - Plain CSS with CSS variables for design tokens (no UI kit)
 - Fonts self-hosted with `@fontsource-variable/fraunces` and `@fontsource-variable/dm-sans` so the app works offline
@@ -36,6 +37,7 @@ Ask before adding any dependency not listed here.
 - `npm run preview`: serve the production build, used to test PWA install and offline behavior
 - `npm run test`: run Vitest
 - `npm run lint`: run ESLint
+- `npm run icons`: regenerate every app icon in `public/icons/` from `design/icon/icon.svg`
 
 ## Folder structure
 
@@ -48,7 +50,8 @@ src/
   components/   LoafButton, SliceButton, LoafIllustration, ProgressBar,
                 ChoiceGroup (radio or checkbox inputs styled as slice buttons,
                 used by placement and the quiz), VideoPlayer, QuizQuestion, LessonRow,
-                StageBar, HabitCard, TipRow, AmountSheet, HysaPoints (Home and Saving setup)
+                StageBar, HabitCard, TipRow, AmountSheet, HysaPoints (Home and Saving setup),
+                HabitForm (Saving setup and Settings), DemoActions (Reset and Start fresh demo)
   domain/       pure logic: placement scoring, targets, stages,
                 recommendations, quiz grading (no React, no Supabase)
   content/      typed loader for everything in content/ (import.meta.glob),
@@ -60,13 +63,16 @@ src/
 content/
   placement.json            placement quiz questions and scoring
   risk.json                 risk quiz questions and result copy (educational)
+  settings.json             Settings copy: change your goal, change your habit
   loaves/<loaf>.json        loaf definition: title, bread, lessons, quiz, tips
   lessons/<loaf>/<id>.md    lesson page text and video metadata
   quizzes/<loaf>.json       loaf quiz questions
 public/
   videos/<loaf>/            lesson videos (MP4, H.264) and captions (.vtt)
-  icons/                    PWA icons
+  icons/                    PWA icons (generated: npm run icons)
+  video-cache.js            service worker helper that keeps played videos for offline
 design/
+  icon/icon.svg             the one source for every app icon (placeholder)
   loaves/                   stage illustrations as SVG
 ```
 
@@ -159,12 +165,13 @@ Titled "Here's where you'll start." Shows the first loaf, the goal in dollars an
 
 ### Retaking placement and changing the goal (Settings)
 
-Settings (`/settings`, linked from Home) exists in a bare form since milestone 12: the signed-in email and **Sign out** (real accounts) or **Exit demo** (the demo user, who has no account; it uses `signOutLocal` and keeps the local demo data, so "Continue as demo user" picks up where they left off), **Retake the quiz** (`/placement?retake=1&return=/settings`) and the disclaimer. Changing the goal and the habit, the demo tools and Reset demo come with milestone 11.
+Settings (`/settings`, linked from Home) has, in order: **Change your goal**, **Change your habit**, the signed-in email and **Sign out** (real accounts) or **Exit demo** (the demo user, who has no account; it uses `signOutLocal` and keeps the local demo data, so "Continue as demo user" picks up where they left off), the demo tools (only with `?demo=1`, demo user only: **Reset demo** and **Start fresh demo**, each asking first), **Retake the quiz** (`/placement?retake=1&return=/settings`) and the disclaimer. Copy is in `content/settings.json`. **Retake the risk quiz** appears only once the emergency fund has baked (the same `canChooseNext` check as the `/risk-quiz` route guard), since the route is closed before that.
 
 - **Retake the quiz** reruns placement with current answers prefilled. New answers update the profile, account steps, and recommendations. It never deletes or changes transactions.
 - If the new answers suggest a different goal, ask "Update your goal to $X?" instead of changing it silently. If the current target is the $1,000 starter goal and the student now gives essentials, suggest 1 month of essentials. If the target was months-based (1, 3, or 6 months), re-price the same number of months. A custom amount is left alone. Nothing is suggested unless the essentials or savings answer changed.
 - If the current loaf already has transactions, skip the existing savings question: that money is already tracked.
-- **Change your goal:** pick 1, 3, or 6 months, or type an amount. It uses `setTarget` (through `changeGoal`), so the existing rules apply: at or below the balance bakes the loaf, and above it on a baked fund starts growing. While rebuilding, a higher target just edits the goal.
+- **Change your goal:** pick 1, 3, or 6 months (only when essentials are known), or type an amount (a typed amount wins). It uses `setTarget` (through `changeGoal`), so the existing rules apply: at or below the balance bakes the loaf, and above it on a baked fund starts growing. While rebuilding, a higher target just edits the goal. The screen says which happened.
+- **Change your habit:** the same form as Saving setup (`HabitForm`), started from the saved habit. A new amount never touches the streak. Only a different period length restarts it, and the form says so before saving ("Changing how often you're paid starts a new streak. Your breads and best streak stay."; `restartsStreak` in `src/data/habit.ts` uses the same rule as saving).
 
 Placement scoring and starting-point rules live in `src/domain/placement.ts` (and siblings) with unit tests.
 
@@ -355,10 +362,10 @@ The result is a pure function in `src/domain/risk.ts` with unit tests:
 
 - Turned on with `?demo=1` in the URL or `VITE_DEMO_MODE=true`. This turns on the demo tools only (the Demo pill, Skip a week, Reset demo).
 - Shows a small "Demo" pill in the top corner.
-- **Continue as demo user** is always on the login screen, with or without `?demo=1`, because the whole app is a demo. It is a slice button. Until Maya's seed exists (milestone 11) it signs in a plain demo user (`signInDemo` in `src/data/session.ts`) who starts the placement quiz. Once the seed exists it signs into a seeded account: Maya. Placement: checking and regular savings, no emergency savings at start, no retirement account. She did not test out. Lessons watched, quiz done, emergency fund loaf at 60% ($240 of $400), with about 6 weeks of past deposits so her history looks real. Earned income: yes. Credit card debt: no. Her target is under 3 months, so when her fund bakes ChooseLoaf puts the "Recommended" pill on Keep saving ("Grow your cushion to 3 months"); once the grown fund bakes, Start investing is the recommendation, and her risk result would point to a Roth IRA because she has earned income. Her 6 weeks of weekly deposits should also give her a 6-week streak once milestone 9 exists.
-- **Start fresh demo** runs the full first-time flow from the placement quiz.
+- **Continue as demo user** is always on the login screen, with or without `?demo=1`, because the whole app is a demo. It is a slice button. It signs in Maya (`signInAsMaya` in `src/money/demo.ts`, seed in `src/money/seed.ts`) on a device with no demo data; if this browser already holds demo data (an earlier session, or after **Exit demo**) it is kept and nothing is reseeded. Placement: checking and regular savings, no emergency savings at start, no retirement account. She did not test out. Lessons watched, quiz done, emergency fund loaf at 60% ($240 of $400), with about 6 weeks of past deposits so her history looks real. Earned income: yes. Credit card debt: no. Her target is under 3 months, so when her fund bakes ChooseLoaf puts the "Recommended" pill on Keep saving ("Grow your cushion to 3 months"); once the grown fund bakes, Start investing is the recommendation, and her risk result would point to a Roth IRA because she has earned income. Her 6 weekly seed deposits give her a 6-week streak. The breads that streak already earned (baguette, bagel, focaccia) are saved as seen, so opening the demo shows no unlock messages; her next unlock (pretzel, at 8 weeks) shows normally.
+- **Start fresh demo** (Settings, and the login screen, behind `?demo=1`) clears the demo data on this device and runs the full first-time flow from the placement quiz.
 - **Skip a week** adds one simulated deposit of the user's habit amount and moves the demo clock forward 7 days.
-- **Reset demo** restores the seed data.
+- **Reset demo** (Settings, behind `?demo=1`) restores Maya's seed data and puts the demo clock back to real time. Reset and Start fresh only ever touch the local demo user: they are hidden when someone is signed in with an account, and `resetDemo` and `startFreshDemo` refuse (`not-demo`) for any user but the demo user.
 - The demo clock lives in `src/money/clock.ts`. Domain code gets "now" from it, never from `Date.now()` directly.
 
 ## Design system
@@ -412,7 +419,9 @@ Warm, encouraging, plain. Explain the why behind every nudge. No guilt, no shame
 - Use `100dvh` for full-height screens, never `100vh`.
 - `overscroll-behavior: none` on the body to avoid pull-to-refresh bounce. `touch-action: manipulation` on buttons.
 - Videos use `playsinline` so they don't force full-screen on iPhone.
-- The service worker caches the app shell, fonts, illustrations, lesson text, and quizzes. Videos are cached only after first play, so the install stays small.
+- The service worker (`vite-plugin-pwa`, settings in `pwa.config.ts`) precaches the app shell, fonts, loaf art, and icons. Lesson text and quizzes are bundled into the JS, so they come with it. Videos and captions under `/videos/` are kept only after first play, by `public/video-cache.js` (the first play streams from the network, then the whole file is stored once and range requests are answered from it; a missing file is never stored). **Never cache Supabase or any other origin**: there is no runtime rule for other origins, and sign-in paths are never answered from the cache. A test checks this.
+- **Updates:** a new version waits until the student taps Refresh on the calm "New version available" message (`UpdatePrompt`, with "Not now"). It never swaps in mid-lesson. Only the production build registers the service worker.
+- **App icon:** one source file, `design/icon/icon.svg` (a placeholder loaf; full-bleed square, artwork in the centre 80% so it also works as the maskable icon). `npm run icons` (`scripts/generate-icons.mjs`, uses `sharp`) writes every size to `public/icons/`. Steps to swap in the final logo are in `docs/setup.md`.
 - Nothing may depend on hover. Touch targets are at least 44×44px.
 - On screens wider than 600px, center the app in a 390×844 phone frame on a `--crumb` backdrop, so it presents well on a laptop.
 

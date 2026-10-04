@@ -39,3 +39,8 @@ export async function reset(adapter: DataAdapter): Promise<void> {
   data.clock.offsetDays = 0;
   await adapter.save(data);
 }
+
+/** Real time with no demo offset. Used only to date a fresh demo seed. */
+export function realNow(realNowMs: () => number = Date.now): Date {
+  return new Date(realNowMs());
+}

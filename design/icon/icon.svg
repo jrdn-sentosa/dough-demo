@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!--
+    PLACEHOLDER app icon: a butter loaf on a crust square, in the app palette.
+    The ONE source for every app icon. Replace this file with the final logo, then run `npm run icons`
+    (see docs/setup.md, "Replace the placeholder app icon").
+    Keep it a full-bleed square, with everything that matters inside the centre 80% (the circle of radius
+    205 around 256,256), so the same file works as a plain icon, a maskable icon and the iPhone icon.
+  -->
+  <rect width="512" height="512" fill="#8A4B1F" />
+  <g transform="translate(256 266) scale(2.2) translate(-80 -58)" fill="none">
+    <path d="M58 18 C54 12 62 8 58 2" stroke="#FFF6E6" stroke-width="3.5" stroke-linecap="round" opacity="0.8" />
+    <path d="M80 16 C76 10 84 6 80 0" stroke="#FFF6E6" stroke-width="3.5" stroke-linecap="round" opacity="0.8" />
+    <path d="M102 18 C98 12 106 8 102 2" stroke="#FFF6E6" stroke-width="3.5" stroke-linecap="round" opacity="0.8" />
+    <path
+      d="M14 80 C14 44 46 28 80 28 C114 28 146 44 146 80 Q146 88 138 88 L22 88 Q14 88 14 80 Z"
+      fill="#F6C453"
+      stroke="#5E3315"
+      stroke-width="3.5"
+    />
+    <path d="M46 52 Q55 43 65 45" stroke="#5E3315" stroke-width="3.5" stroke-linecap="round" />
+    <path d="M72 44 Q81 35 91 37" stroke="#5E3315" stroke-width="3.5" stroke-linecap="round" />
+    <path d="M98 50 Q107 41 117 43" stroke="#5E3315" stroke-width="3.5" stroke-linecap="round" />
+  </g>
+</svg>
