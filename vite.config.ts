@@ -14,6 +14,11 @@ export default defineConfig(({ mode }) => {
     define: { __APP_VERSION__: JSON.stringify(version) },
     test: {
       include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
+      // The default is one worker per logical processor minus one. Each worker is a jsdom environment, and on a
+      // machine with many (and uneven) cores that many at once starve each other: a worker can stall for seconds and
+      // take whatever test it is in with it. A smaller share finishes sooner and never hit the timeout in 30 runs
+      // (the default failed 1 run in 20, in a placement test that takes about half a second on its own).
+      maxWorkers: '40%',
     },
   };
 });
