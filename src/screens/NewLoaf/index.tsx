@@ -89,7 +89,7 @@ export function NewLoaf() {
     setConfirming(null);
     setError(null);
     await refresh();
-    navigate(baked ? '/choose-loaf' : '/', { replace: true });
+    navigate(baked ? '/choose-loaf' : '/lessons', { replace: true });
   }
 
   if (baked) {

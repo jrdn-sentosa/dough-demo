@@ -203,9 +203,9 @@ In this demo, no real account is opened and no real money moves.
 
 ### Question 1: What is an emergency fund for?
 
-- A. Your car insurance payment that's due next month
-- B. A car repair you need to get to work **(correct)**
-- C. Concert tickets that are on sale this week
+- A. Your car insurance payment that's due next month (`insurance-bill`)
+- B. A car repair you need to get to work (`car-repair`) **(correct)**
+- C. Concert tickets that are on sale this week (`concert-tickets`)
 
 Explanation: It's for urgent costs you couldn't plan for. A bill you know is coming belongs in your budget, and a sale is a want, not an emergency.
 
@@ -213,9 +213,9 @@ Links to: lesson `ef-what-its-for` at 20s.
 
 ### Question 2: Your housing and meal plan are paid through financial aid. What should you count as monthly essentials?
 
-- A. Rent and meals anyway, to be safe
-- B. Only what you still pay each month, like phone and transportation **(correct)**
-- C. Nothing, since you're covered
+- A. Rent and meals anyway, to be safe (`count-everything`)
+- B. Only what you still pay each month, like phone and transportation (`count-what-you-pay`) **(correct)**
+- C. Nothing, since you're covered (`count-nothing`)
 
 Explanation: Count what you still pay yourself. Prepaid costs don't need to come out of your fund.
 
@@ -223,9 +223,9 @@ Links to: lesson `ef-how-much` at 10s.
 
 ### Question 3: What's a good first goal for an emergency fund?
 
-- A. One month of essentials **(correct)**
-- B. Six months, since smaller amounts don't really help
-- C. Whatever's left at the end of the month
+- A. One month of essentials (`one-month`) **(correct)**
+- B. Six months, since smaller amounts don't really help (`six-months`)
+- C. Whatever's left at the end of the month (`leftovers`)
 
 Explanation: One month is a realistic place to start and covers many common surprises. Every bit helps, and you can build toward three or six months later.
 
@@ -233,9 +233,9 @@ Links to: lesson `ef-how-much` at 42s.
 
 ### Question 4: Where is a good place to keep your emergency fund?
 
-- A. In checking, so it's easy to reach
-- B. In a separate high-yield savings account **(correct)**
-- C. In an index fund, since it can grow more
+- A. In checking, so it's easy to reach (`checking`)
+- B. In a separate high-yield savings account (`high-yield-savings`) **(correct)**
+- C. In an index fund, since it can grow more (`index-fund`)
 
 Explanation: A separate savings account keeps it from being spent by accident. Investments can drop in value right when you need cash.
 
@@ -243,13 +243,72 @@ Links to: lesson `ef-where-to-keep` at 10s.
 
 ### Question 5: What matters most when choosing where to keep it?
 
-- A. It's insured by the FDIC (banks) or NCUA (credit unions) **(correct)**
-- B. It has the highest rate you can find, even if it isn't insured
-- C. It gives you a bonus for opening the account
+- A. It's insured by the FDIC (banks) or NCUA (credit unions) (`insured`) **(correct)**
+- B. It has the highest rate you can find, even if it isn't insured (`highest-rate`)
+- C. It gives you a bonus for opening the account (`signup-bonus`)
 
 Explanation: Insurance protects your money, up to the legal limit, even if the institution runs into trouble. A higher rate or a bonus doesn't matter if the money isn't safe.
 
 Links to: lesson `ef-where-to-keep` at 42s.
+
+## Lesson and quiz screens
+
+### Lessons list
+
+- title: Your lessons
+- intro: Three short videos, each under 2 minutes. Watch them in order, or see what you already know first.
+- testOutButton: Already know this? Take the quiz first
+- quizButton: Take the quiz
+- recommended: Recommended
+- known: You already know this
+- answeredRight: You got this one right
+- watchAnyway: Watch anyway
+- watched: Watched
+- mastered: Mastered
+- reviewTitle: Here's what to review
+- reviewIntro: These lessons cover the questions you missed. Watch them, then take the quiz again. This time you'll see the answers and why.
+- allOptionalTitle: You know this. Let's make it happen.
+- allOptionalBody: The videos are optional now. Watch any you like, or go straight to setting up your saving.
+- continueSaving: Continue to saving setup
+
+### Lesson screen
+
+- videoSoon: Video coming soon
+- videoSoonNote: The video for this lesson isn't ready yet. The summary below covers the same ideas.
+- markWatched: Mark as watched
+- watched: Watched
+- next: Next lesson
+- toQuiz: Take the quiz
+- back: Back to lessons
+- fromQuiz: You're here from a quiz question. The summary below covers it.
+
+### Quiz screens
+
+- testOutTitle: Quick check
+- testOutIntro: Answer what you can. You'll see how you did at the end, and we'll point you to any lessons worth watching.
+- check: Check answer
+- next: Next question
+- seeScore: See my score
+- correct: Correct
+- notQuite: Not quite
+- correctAnswer: The answer: {answer}
+- rewatch: Rewatch this part
+- readSummary: Read the summary
+- questionOf: Question {n} of {total}
+- scoreTitle: Your score
+- score: {score} of {total} correct
+- reviewMissed: What to know
+- tryAgain: Try again
+- continueSaving: Continue to saving setup
+- scoreNote: You don't need a certain score to move on. The goal is to get you saving, and the explanations are there to help.
+- mastered: You mastered this loaf's lessons.
+- masteredBefore: You've already mastered this loaf's lessons. Your best score still counts.
+- masteryHint: Get 4 out of 5 to master these lessons. You can try again anytime.
+- testOutPassTitle: You know this. Let's make it happen.
+- testOutPassBody: The videos are optional now. Next, set up your saving.
+- testOutFailBody: A few of these are worth a look. We picked the lessons that cover them.
+- testOutLessons: Lessons to review
+- testOutToLessons: Go to my lessons
 
 ## Tips while the loaf rises
 

@@ -2,7 +2,8 @@ import type { LoafId } from './types';
 
 export interface GradableQuestion {
   id: string;
-  answer: number;
+  /** The id of the correct choice. */
+  answer: string;
   explain: string;
   lesson: string;
   timestamp: number;
@@ -11,7 +12,8 @@ export interface GradableQuestion {
 export interface QuestionResult {
   id: string;
   correct: boolean;
-  chosen: number | null;
+  /** The id of the choice the student picked, or null when unanswered. */
+  chosen: string | null;
   explain: string;
   lesson: string;
   timestamp: number;
@@ -27,7 +29,8 @@ export interface QuizGrade {
 /** Unanswered questions count as missed. */
 export function gradeQuiz(
   questions: readonly GradableQuestion[],
-  answers: Readonly<Record<string, number | undefined>>,
+  /** Question id to the id of the picked choice. */
+  answers: Readonly<Record<string, string | undefined>>,
 ): QuizGrade {
   const results = questions.map((q): QuestionResult => {
     const chosen = answers[q.id] ?? null;

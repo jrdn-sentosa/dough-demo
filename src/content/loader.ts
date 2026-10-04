@@ -2,10 +2,12 @@ import { parseFrontmatter } from '../domain/frontmatter';
 import type { AccountType, LoafId, Stage } from '../domain/types';
 import { ContentError, arr, bool, num, obj, oneOf, optStr, str } from './guards';
 import type {
+  FlowContent,
   Lesson,
   LoafDefinition,
   PlacementContent,
   PlacementQuestion,
+  QuizChoice,
   QuizContent,
   Tip,
 } from './types';
@@ -124,6 +126,35 @@ function parsePlacement(raw: unknown): PlacementContent {
   };
 }
 
+/** Reads every key in `keys` as a non-empty string, so a missing line of screen copy throws at load. */
+function strings<K extends string>(o: Record<string, unknown>, keys: readonly K[], where: string): Record<K, string> {
+  const out = {} as Record<K, string>;
+  for (const key of keys) out[key] = str(o, key, where);
+  return out;
+}
+
+function parseFlow(raw: unknown, file: string): FlowContent {
+  const w = `${file} flow`;
+  const o = obj(raw, w);
+  return {
+    lessons: strings(
+      obj(o.lessons, `${w} lessons`),
+      ['title', 'intro', 'testOutButton', 'quizButton', 'recommended', 'known', 'answeredRight', 'watchAnyway', 'watched', 'mastered', 'reviewTitle', 'reviewIntro', 'allOptionalTitle', 'allOptionalBody', 'continueSaving'] as const,
+      `${w} lessons`,
+    ),
+    lesson: strings(
+      obj(o.lesson, `${w} lesson`),
+      ['videoSoon', 'videoSoonNote', 'markWatched', 'watched', 'next', 'toQuiz', 'back', 'fromQuiz'] as const,
+      `${w} lesson`,
+    ),
+    quiz: strings(
+      obj(o.quiz, `${w} quiz`),
+      ['testOutTitle', 'testOutIntro', 'check', 'next', 'seeScore', 'correct', 'notQuite', 'correctAnswer', 'rewatch', 'readSummary', 'questionOf', 'scoreTitle', 'score', 'reviewMissed', 'tryAgain', 'continueSaving', 'scoreNote', 'mastered', 'masteredBefore', 'masteryHint', 'testOutPassTitle', 'testOutPassBody', 'testOutFailBody', 'testOutLessons', 'testOutToLessons'] as const,
+      `${w} quiz`,
+    ),
+  };
+}
+
 export function parseLoaf(raw: unknown, file: string): LoafDefinition {
   const o = obj(raw, file);
   const id = oneOf(o, 'id', LOAF_IDS, file);
@@ -171,6 +202,7 @@ export function parseLoaf(raw: unknown, file: string): LoafDefinition {
       return l;
     }),
     quiz: str(o, 'quiz', file),
+    flow: parseFlow(o.flow, file),
     tips,
   };
 }
@@ -209,14 +241,15 @@ export function parseQuiz(raw: unknown, file: string): QuizContent {
     questions: arr(o, 'questions', file).map((q, i) => {
       const w = `${file} question ${i + 1}`;
       const qo = obj(q, w);
-      const choices = arr(qo, 'choices', w).map((c) => {
-        if (typeof c !== 'string' || c.trim() === '') throw new ContentError(w, 'choices must be text');
-        return c;
+      const choices = arr(qo, 'choices', w).map((c, j): QuizChoice => {
+        const cw = `${w} choice ${j + 1}`;
+        const co = obj(c, cw);
+        return { id: str(co, 'id', cw), label: str(co, 'label', cw) };
       });
-      const answer = num(qo, 'answer', w);
-      if (!Number.isInteger(answer) || answer < 0 || answer >= choices.length) {
-        throw new ContentError(w, '"answer" must be the index of one of the choices');
-      }
+      const ids = choices.map((c) => c.id);
+      if (new Set(ids).size !== ids.length) throw new ContentError(w, 'choice ids must be unique within a question');
+      const answer = str(qo, 'answer', w);
+      if (!ids.includes(answer)) throw new ContentError(w, `"answer" must be the id of one of the choices (${ids.join(', ')})`);
       return {
         id: str(qo, 'id', w),
         question: str(qo, 'question', w),

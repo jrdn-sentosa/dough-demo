@@ -106,11 +106,23 @@ export function renderContentReview(): string {
   quiz.questions.forEach((q, i) => {
     out.push(`### Question ${i + 1}: ${q.question}`, '');
     q.choices.forEach((c, j) => {
-      out.push(`- ${LETTERS[j]}. ${c}${j === q.answer ? ' **(correct)**' : ''}`);
+      out.push(`- ${LETTERS[j]}. ${c.label} (\`${c.id}\`)${c.id === q.answer ? ' **(correct)**' : ''}`);
     });
     out.push('', `Explanation: ${q.explain}`, '');
     out.push(`Links to: lesson \`${q.lesson}\` at ${q.timestamp}s.`, '');
   });
+
+  out.push('## Lesson and quiz screens', '');
+  const flowGroups: [string, Record<string, string>][] = [
+    ['Lessons list', loaf.flow.lessons],
+    ['Lesson screen', loaf.flow.lesson],
+    ['Quiz screens', loaf.flow.quiz],
+  ];
+  for (const [heading, copy] of flowGroups) {
+    out.push(`### ${heading}`, '');
+    for (const [key, text] of Object.entries(copy)) out.push(`- ${key}: ${text}`);
+    out.push('');
+  }
 
   out.push('## Tips while the loaf rises', '');
   for (const tip of loaf.tips) {

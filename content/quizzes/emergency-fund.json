@@ -6,11 +6,11 @@
       "id": "ef-q1",
       "question": "What is an emergency fund for?",
       "choices": [
-        "Your car insurance payment that's due next month",
-        "A car repair you need to get to work",
-        "Concert tickets that are on sale this week"
+        { "id": "insurance-bill", "label": "Your car insurance payment that's due next month" },
+        { "id": "car-repair", "label": "A car repair you need to get to work" },
+        { "id": "concert-tickets", "label": "Concert tickets that are on sale this week" }
       ],
-      "answer": 1,
+      "answer": "car-repair",
       "explain": "It's for urgent costs you couldn't plan for. A bill you know is coming belongs in your budget, and a sale is a want, not an emergency.",
       "lesson": "ef-what-its-for",
       "timestamp": 20
@@ -19,11 +19,11 @@
       "id": "ef-q2",
       "question": "Your housing and meal plan are paid through financial aid. What should you count as monthly essentials?",
       "choices": [
-        "Rent and meals anyway, to be safe",
-        "Only what you still pay each month, like phone and transportation",
-        "Nothing, since you're covered"
+        { "id": "count-everything", "label": "Rent and meals anyway, to be safe" },
+        { "id": "count-what-you-pay", "label": "Only what you still pay each month, like phone and transportation" },
+        { "id": "count-nothing", "label": "Nothing, since you're covered" }
       ],
-      "answer": 1,
+      "answer": "count-what-you-pay",
       "explain": "Count what you still pay yourself. Prepaid costs don't need to come out of your fund.",
       "lesson": "ef-how-much",
       "timestamp": 10
@@ -32,11 +32,11 @@
       "id": "ef-q3",
       "question": "What's a good first goal for an emergency fund?",
       "choices": [
-        "One month of essentials",
-        "Six months, since smaller amounts don't really help",
-        "Whatever's left at the end of the month"
+        { "id": "one-month", "label": "One month of essentials" },
+        { "id": "six-months", "label": "Six months, since smaller amounts don't really help" },
+        { "id": "leftovers", "label": "Whatever's left at the end of the month" }
       ],
-      "answer": 0,
+      "answer": "one-month",
       "explain": "One month is a realistic place to start and covers many common surprises. Every bit helps, and you can build toward three or six months later.",
       "lesson": "ef-how-much",
       "timestamp": 42
@@ -45,11 +45,11 @@
       "id": "ef-q4",
       "question": "Where is a good place to keep your emergency fund?",
       "choices": [
-        "In checking, so it's easy to reach",
-        "In a separate high-yield savings account",
-        "In an index fund, since it can grow more"
+        { "id": "checking", "label": "In checking, so it's easy to reach" },
+        { "id": "high-yield-savings", "label": "In a separate high-yield savings account" },
+        { "id": "index-fund", "label": "In an index fund, since it can grow more" }
       ],
-      "answer": 1,
+      "answer": "high-yield-savings",
       "explain": "A separate savings account keeps it from being spent by accident. Investments can drop in value right when you need cash.",
       "lesson": "ef-where-to-keep",
       "timestamp": 10
@@ -58,11 +58,11 @@
       "id": "ef-q5",
       "question": "What matters most when choosing where to keep it?",
       "choices": [
-        "It's insured by the FDIC (banks) or NCUA (credit unions)",
-        "It has the highest rate you can find, even if it isn't insured",
-        "It gives you a bonus for opening the account"
+        { "id": "insured", "label": "It's insured by the FDIC (banks) or NCUA (credit unions)" },
+        { "id": "highest-rate", "label": "It has the highest rate you can find, even if it isn't insured" },
+        { "id": "signup-bonus", "label": "It gives you a bonus for opening the account" }
       ],
-      "answer": 0,
+      "answer": "insured",
       "explain": "Insurance protects your money, up to the legal limit, even if the institution runs into trouble. A higher rate or a bonus doesn't matter if the money isn't safe.",
       "lesson": "ef-where-to-keep",
       "timestamp": 42
