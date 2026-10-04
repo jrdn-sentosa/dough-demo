@@ -7,6 +7,7 @@ import type {
   LoafDefinition,
   PlacementContent,
   PlacementQuestion,
+  QuizChoice,
   QuizContent,
   Tip,
 } from './types';
@@ -240,14 +241,15 @@ export function parseQuiz(raw: unknown, file: string): QuizContent {
     questions: arr(o, 'questions', file).map((q, i) => {
       const w = `${file} question ${i + 1}`;
       const qo = obj(q, w);
-      const choices = arr(qo, 'choices', w).map((c) => {
-        if (typeof c !== 'string' || c.trim() === '') throw new ContentError(w, 'choices must be text');
-        return c;
+      const choices = arr(qo, 'choices', w).map((c, j): QuizChoice => {
+        const cw = `${w} choice ${j + 1}`;
+        const co = obj(c, cw);
+        return { id: str(co, 'id', cw), label: str(co, 'label', cw) };
       });
-      const answer = num(qo, 'answer', w);
-      if (!Number.isInteger(answer) || answer < 0 || answer >= choices.length) {
-        throw new ContentError(w, '"answer" must be the index of one of the choices');
-      }
+      const ids = choices.map((c) => c.id);
+      if (new Set(ids).size !== ids.length) throw new ContentError(w, 'choice ids must be unique within a question');
+      const answer = str(qo, 'answer', w);
+      if (!ids.includes(answer)) throw new ContentError(w, `"answer" must be the id of one of the choices (${ids.join(', ')})`);
       return {
         id: str(qo, 'id', w),
         question: str(qo, 'question', w),

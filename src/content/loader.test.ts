@@ -39,7 +39,7 @@ function proseOf(loafId: 'emergency-fund'): string[] {
     ...Object.values(loaf.flow.lesson),
     ...Object.values(loaf.flow.quiz),
     ...getLessons(loafId).flatMap((l) => [l.title, l.summary]),
-    ...getQuiz(loafId).questions.flatMap((q) => [q.question, ...q.choices, q.explain]),
+    ...getQuiz(loafId).questions.flatMap((q) => [q.question, ...q.choices.map((c) => c.label), q.explain]),
     ...Object.entries(captionFiles).map(([, text]) => text),
   ];
 }
@@ -209,9 +209,23 @@ describe('quiz content', () => {
     for (const q of quiz.questions) {
       expect(q.choices.length).toBeGreaterThanOrEqual(3);
       expect(q.choices.length).toBeLessThanOrEqual(4);
-      expect(Number.isInteger(q.answer)).toBe(true);
-      expect(q.answer).toBeLessThan(q.choices.length);
+      expect(q.choices.map((c) => c.id)).toContain(q.answer);
       expect(q.explain.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('gives every choice an id that is unique within its question', () => {
+    for (const q of quiz.questions) {
+      const ids = q.choices.map((c) => c.id);
+      for (const id of ids) expect(id, `${q.id} choice id`).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
+      expect(new Set(ids).size, q.id).toBe(ids.length);
+    }
+  });
+
+  it('has an answer id that is one of the question\'s choice ids', () => {
+    for (const q of quiz.questions) {
+      expect(typeof q.answer).toBe('string');
+      expect(q.choices.map((c) => c.id), q.id).toContain(q.answer);
     }
   });
 
@@ -303,14 +317,43 @@ describe('financial content rules', () => {
   });
 });
 
+const choicesOf = (...ids: string[]) => ids.map((id) => ({ id, label: id.toUpperCase() }));
+
 describe('malformed content throws', () => {
   it('rejects a quiz whose answer is out of range', () => {
     const bad = {
       draft: true,
       loaf: 'emergency-fund',
       questions: [
-        { id: 'x', question: 'q', choices: ['a', 'b', 'c'], answer: 3, explain: 'e', lesson: 'l', timestamp: 1 },
+        { id: 'x', question: 'q', choices: choicesOf('a', 'b', 'c'), answer: 'd', explain: 'e', lesson: 'l', timestamp: 1 },
       ],
+    };
+    expect(() => parseQuiz(bad, 'quiz.json')).toThrow(/answer/);
+  });
+
+  it('rejects a quiz whose answer is a position instead of a choice id', () => {
+    const bad = {
+      draft: true,
+      loaf: 'emergency-fund',
+      questions: [{ id: 'x', question: 'q', choices: choicesOf('a', 'b', 'c'), answer: 1, explain: 'e', lesson: 'l', timestamp: 1 }],
+    };
+    expect(() => parseQuiz(bad, 'quiz.json')).toThrow(ContentError);
+  });
+
+  it('rejects a question with two choices that share an id', () => {
+    const bad = {
+      draft: true,
+      loaf: 'emergency-fund',
+      questions: [{ id: 'x', question: 'q', choices: choicesOf('a', 'b', 'a'), answer: 'a', explain: 'e', lesson: 'l', timestamp: 1 }],
+    };
+    expect(() => parseQuiz(bad, 'quiz.json')).toThrow(/unique/);
+  });
+
+  it('rejects a choice with no id', () => {
+    const bad = {
+      draft: true,
+      loaf: 'emergency-fund',
+      questions: [{ id: 'x', question: 'q', choices: [{ label: 'A' }, { id: 'b', label: 'B' }, { id: 'c', label: 'C' }], answer: 'b', explain: 'e', lesson: 'l', timestamp: 1 }],
     };
     expect(() => parseQuiz(bad, 'quiz.json')).toThrow(ContentError);
   });

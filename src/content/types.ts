@@ -186,11 +186,18 @@ export interface Lesson {
   optionalFor: AccountType | null;
 }
 
+/** One answer choice. The id is fixed in the content file, so saved answers don't depend on order or wording. */
+export interface QuizChoice {
+  id: string;
+  label: string;
+}
+
 export interface QuizQuestionContent {
   id: string;
   question: string;
-  choices: string[];
-  answer: number;
+  choices: QuizChoice[];
+  /** The id of the correct choice. */
+  answer: string;
   explain: string;
   lesson: string;
   timestamp: number;
