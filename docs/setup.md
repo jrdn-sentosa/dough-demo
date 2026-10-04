@@ -118,7 +118,7 @@ The Google button uses Google's four-color "G" and a white button with a thin gr
 In the Vercel dashboard, open the `dough-demo` project → **Settings → Environment Variables**:
 
 1. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` (and `VITE_GOOGLE_SIGNIN=true` once step 6 is done) for **Production** and **Preview** (and Development if you use `vercel dev`). For Preview choose **All Preview Branches**.
-2. Add `VITE_APP_URL` = `https://dough-demo.vercel.app` for **Production** and **Preview** (All Preview Branches). It is the address on share cards and in the share link, so a card made on a preview link or a local run still points to the real app. Leave it empty (or unset, as in `.env.local`) and the share link uses the address of the page the student is on. It is only a public address, not a secret.
+2. Add `VITE_APP_URL` = `https://dough-demo.vercel.app` for **Production** and **Preview** (All Preview Branches). It is the address on share cards and in the share link, so a card made on a preview link or a local run still points to the real app. Leave it empty (or unset, as in `.env.local`) and the share link uses the address of the page the student is on. The same happens if the value isn't a web address (it needs `https://`), and the browser console warns with the bad value. It is only a public address, not a secret.
 3. If `VITE_SUPABASE_ANON_KEY` exists, delete it.
 4. **Redeploy.** Vite bakes these values in when it builds, so a deployment made before you added them still shows only the demo option. Use **Deployments → ⋯ → Redeploy** on the branch you want to test, or push a new commit.
 

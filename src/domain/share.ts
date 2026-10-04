@@ -36,8 +36,9 @@ export interface CardContent {
  * An address that isn't a real URL gives an empty link, so a share still works without one.
  *
  * The address is `VITE_APP_URL` (a fixed address, so a preview link or a local run still shares the real app)
- * and falls back to `origin` (`window.location.origin`) when that is empty. This is the only code that reads
- * `VITE_APP_URL`. `appUrl` is a parameter only so tests can set it.
+ * and falls back to `origin` (`window.location.origin`) when that is empty or isn't a valid web address
+ * (a console warning names the bad value, once per value). This is the only code that reads `VITE_APP_URL`.
+ * `appUrl` is a parameter only so tests can set it.
  */
 export function buildShareLink({
   origin,
@@ -48,17 +49,34 @@ export function buildShareLink({
   ref?: string;
   appUrl?: string;
 }): string {
+  const fixed = appUrl?.trim() ?? '';
+  const url = webUrl(fixed) ?? (fixed === '' ? null : warnBadAppUrl(fixed)) ?? webUrl(origin);
+  if (!url) return '';
+  url.pathname = '/';
+  url.search = '';
+  url.hash = '';
+  if (ref) url.searchParams.set('ref', ref);
+  return url.toString();
+}
+
+function webUrl(text: string): URL | null {
   try {
-    const url = new URL(appUrl?.trim() || origin);
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') return '';
-    url.pathname = '/';
-    url.search = '';
-    url.hash = '';
-    if (ref) url.searchParams.set('ref', ref);
-    return url.toString();
+    const url = new URL(text);
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url : null;
   } catch {
-    return '';
+    return null;
   }
+}
+
+const warned = new Set<string>();
+
+/** Always returns null, so the caller moves on to the page address. Warns once per bad value, not on every render. */
+function warnBadAppUrl(value: string): null {
+  if (!warned.has(value)) {
+    warned.add(value);
+    console.warn(`VITE_APP_URL is not a valid web address (${JSON.stringify(value)}). Using the page address for share links instead.`);
+  }
+  return null;
 }
 
 /** The part of a link shown on the picture: the host, with no protocol, path or query. */

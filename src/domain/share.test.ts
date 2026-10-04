@@ -101,6 +101,26 @@ describe('buildShareLink', () => {
     expect(buildShareLink({ origin: 'https://branch-abc.vercel.app', appUrl: undefined })).toBe('https://branch-abc.vercel.app/');
   });
 
+  it('falls back to the page address and warns, naming the value, when the fixed one is not a web address', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    for (const appUrl of ['dough-demo.vercel.app', 'ftp://dough.example', 'javascript:alert(1)']) {
+      expect(buildShareLink({ origin: 'https://branch-abc.vercel.app', appUrl })).toBe('https://branch-abc.vercel.app/');
+      expect(warn).toHaveBeenLastCalledWith(expect.stringContaining(JSON.stringify(appUrl)));
+    }
+    expect(warn).toHaveBeenCalledTimes(3);
+    warn.mockRestore();
+  });
+
+  it('warns once per bad value, not on every call, and never for an empty or good one', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    for (let i = 0; i < 3; i++) buildShareLink({ origin: 'https://a.example', appUrl: 'not a url, once' });
+    expect(warn).toHaveBeenCalledTimes(1);
+    buildShareLink({ origin: 'https://a.example', appUrl: '' });
+    buildShareLink({ origin: 'https://a.example', appUrl: 'https://dough-demo.vercel.app' });
+    expect(warn).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
+  });
+
   it('reads VITE_APP_URL by itself when no address is passed', () => {
     vi.stubEnv('VITE_APP_URL', 'https://dough-demo.vercel.app');
     expect(buildShareLink({ origin: 'http://localhost:5173' })).toBe('https://dough-demo.vercel.app/');
