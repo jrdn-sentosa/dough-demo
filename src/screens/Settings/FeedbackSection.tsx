@@ -5,7 +5,7 @@ import { screenForFeedback } from '../../app/screenTracker';
 import { APP_VERSION } from '../../appVersion';
 import { ChoiceGroup } from '../../components/ChoiceGroup';
 import { SliceButton } from '../../components/SliceButton';
-import { getSettings } from '../../content/loader';
+import { getPreview, getSettings } from '../../content/loader';
 import { fillTemplate } from '../../content/template';
 import {
   FEEDBACK_CATEGORIES,
@@ -88,6 +88,7 @@ export function FeedbackSection({ account, send }: { account: Account | null; se
         id="feedback-message"
         className="feedback-form__text"
         rows={5}
+        aria-describedby={category === 'bug' ? 'feedback-bug-hint' : undefined}
         maxLength={FEEDBACK_MAX}
         placeholder={t.placeholder}
         value={message}
@@ -96,6 +97,11 @@ export function FeedbackSection({ account, send }: { account: Account | null; se
           if (state !== 'sending') setState('idle');
         }}
       />
+      {category === 'bug' && (
+        <p id="feedback-bug-hint" className="settings__text">
+          {getPreview().bugHint}
+        </p>
+      )}
       <p className="feedback-form__count" aria-live="off">
         {fillTemplate(t.counter, { count: String(message.length), max: String(FEEDBACK_MAX) })}
       </p>

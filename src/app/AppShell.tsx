@@ -5,6 +5,7 @@ import { trackScreen } from './screenTracker';
 import { isDemoMode } from './demoFlag';
 import { useData } from './DataProvider';
 import { guardRedirect } from './guard';
+import { PreviewNotice } from './PreviewNotice';
 import { UpdatePrompt } from './UpdatePrompt';
 
 /** Real accounts only. There is no offline syncing: changes made without a connection are not kept. */
@@ -39,6 +40,7 @@ function Shell() {
             )}
             {/* Nothing shows until saved data has loaded, so no screen flashes before the guard decides. */}
             {data && (redirect ? <Navigate to={redirect} replace /> : <Outlet />)}
+            {data && !redirect && <PreviewNotice />}
           </main>
         </div>
       </div>

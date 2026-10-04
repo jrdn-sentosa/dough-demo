@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { useAppOpen } from '../../app/AppOpen';
+import { MomentShowing, useAppOpen } from '../../app/AppOpen';
 import { isDemoMode } from '../../app/demoFlag';
 import { useData } from '../../app/DataProvider';
 import { AmountSheet } from '../../components/AmountSheet';
@@ -133,13 +133,14 @@ export function Home() {
 
   // The daily quiz popup waits for any other moment on this screen, and is shown at most once per app open.
   const quizWaiting = dailyQuizWaiting(data);
+  // The early-preview welcome also waits for these moments, and the popup waits for the welcome.
+  const momentOnScreen = unseen !== null || notice !== null || message !== null || showHysaCard || sheet !== null;
   const showPopup = popupDue({
     prefs: data.dailyQuizPopup,
     today: localDayKey(nowFromData(data)),
     waiting: quizWaiting,
     openPending: appOpen.pending,
-    otherMomentShowing:
-      unseen !== null || notice !== null || message !== null || showHysaCard || sheet !== null || appOpen.updateShowing,
+    otherMomentShowing: momentOnScreen || appOpen.updateShowing || appOpen.noticeUnseen,
   });
 
   const entry = readAmount(amountText, sheet === 'use' ? copy.useSheet.invalid : copy.addSheet.invalid);
@@ -266,6 +267,7 @@ export function Home() {
 
   return (
     <div className="home">
+      {(momentOnScreen || showPopup) && <MomentShowing />}
       <div className="home__header">
         <div className="home__top">
           <span className="home__eyebrow">{copy.eyebrow}</span>

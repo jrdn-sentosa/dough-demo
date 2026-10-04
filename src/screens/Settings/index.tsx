@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router';
+import { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router';
 import { useAuth } from '../../app/AuthProvider';
 import type { Account } from '../../app/AuthProvider';
 import { useData } from '../../app/DataProvider';
@@ -12,7 +12,8 @@ import { signOutLocal } from '../../data/session';
 import { clearCache } from '../../data/supabaseAdapter';
 import { feedbackSender, getSupabase } from '../../data/supabaseClient';
 import { DraftNote } from '../../components/DraftNote';
-import { getSettings } from '../../content/loader';
+import { PreviewAbout } from '../../components/PreviewAbout';
+import { getPreview, getSettings } from '../../content/loader';
 import { DISCLAIMER_LINES } from '../Login';
 import { DailyQuizSection } from './DailyQuizSection';
 import { GoalSection } from './GoalSection';
@@ -61,6 +62,14 @@ export function SettingsView({
 }) {
   const { adapter, data, refresh } = useData();
   const [busy, setBusy] = useState(false);
+  const { hash } = useLocation();
+
+  // "Send feedback" on the welcome notice arrives here with #settings-feedback.
+  useEffect(() => {
+    if (!data || !hash) return;
+    document.getElementById(hash.slice(1))?.scrollIntoView?.();
+  }, [data, hash]);
+
   if (!data) return null;
 
   async function signOut() {
@@ -148,6 +157,20 @@ export function SettingsView({
       <DailyQuizSection />
 
       <FeedbackSection account={account} send={sendFeedback} />
+
+      <section className="settings__section" aria-labelledby="settings-preview">
+        <h2 id="settings-preview" className="settings__heading">
+          {getPreview().about.settingsTitle}
+        </h2>
+        <PreviewAbout />
+      </section>
+
+      <section className="settings__section" aria-labelledby="settings-privacy">
+        <h2 id="settings-privacy" className="settings__heading">
+          {getPreview().privacy.title}
+        </h2>
+        <p className="settings__text">{getPreview().privacy.body}</p>
+      </section>
 
       <p className="login__disclaimer">
         {DISCLAIMER_LINES[0]}

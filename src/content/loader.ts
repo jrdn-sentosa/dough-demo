@@ -8,6 +8,7 @@ import type { AccountType, LoafId, Stage } from '../domain/types';
 import { ContentError, arr, bool, num, obj, oneOf, optStr, str } from './guards';
 import type {
   BreadsContent,
+  PreviewContent,
   SettingsContent,
   CelebrationContent,
   ChooseContent,
@@ -74,6 +75,10 @@ const breadFiles = import.meta.glob<unknown>('../../content/breads.json', {
   import: 'default',
 });
 const settingsFiles = import.meta.glob<unknown>('../../content/settings.json', {
+  eager: true,
+  import: 'default',
+});
+const previewFiles = import.meta.glob<unknown>('../../content/preview.json', {
   eager: true,
   import: 'default',
 });
@@ -489,6 +494,21 @@ export function parsePoints(raw: unknown, where = 'content/points.json'): Points
   };
 }
 
+export function parsePreview(raw: unknown, where = 'content/preview.json'): PreviewContent {
+  const o = obj(raw, where);
+  const about = obj(o.about, `${where} about`);
+  const notHere = stringList(about, 'notHere', `${where} about`);
+  if (notHere.length === 0) throw new ContentError(`${where} about`, '"notHere" must list at least one thing');
+  return {
+    draft: bool(o, 'draft', where),
+    label: str(o, 'label', where),
+    about: { ...strings(about, ['title', 'settingsTitle', 'body', 'bugTitle', 'bugBody', 'notHereTitle'] as const, `${where} about`), notHere },
+    bugHint: str(o, 'bugHint', where),
+    notice: record(o.notice, ['gotIt', 'sendFeedback', 'feedbackSubject'] as const, `${where} notice`),
+    privacy: record(o.privacy, ['title', 'body'] as const, `${where} privacy`),
+  };
+}
+
 export function parseShare(raw: unknown, where = 'content/share.json'): ShareContent {
   const o = obj(raw, where);
   return {
@@ -570,6 +590,7 @@ interface Content {
   risk: RiskContent;
   breads: BreadsContent;
   settings: SettingsContent;
+  preview: PreviewContent;
   points: PointsContent;
   share: ShareContent;
   loaves: LoafDefinition[];
@@ -593,6 +614,9 @@ function content(): Content {
   const [settingsRaw] = Object.values(settingsFiles);
   if (settingsRaw === undefined) throw new ContentError('content/', 'settings.json is missing');
 
+  const [previewRaw] = Object.values(previewFiles);
+  if (previewRaw === undefined) throw new ContentError('content/', 'preview.json is missing');
+
   const [pointsRaw] = Object.values(pointsFiles);
   if (pointsRaw === undefined) throw new ContentError('content/', 'points.json is missing');
 
@@ -608,6 +632,7 @@ function content(): Content {
     risk: parseRisk(riskRaw),
     breads: parseBreads(breadsRaw),
     settings: parseSettings(settingsRaw),
+    preview: parsePreview(previewRaw),
     points: parsePoints(pointsRaw),
     share: parseShare(shareRaw),
     loaves,
@@ -623,6 +648,10 @@ export function getRisk(): RiskContent {
 
 export function getSettings(): SettingsContent {
   return content().settings;
+}
+
+export function getPreview(): PreviewContent {
+  return content().preview;
 }
 
 export function getPoints(): PointsContent {

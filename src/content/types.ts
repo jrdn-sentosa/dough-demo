@@ -379,6 +379,21 @@ export interface RiskContent {
   };
 }
 
+/**
+ * The early-preview notice: the one-time welcome, the "Early preview" label on the login screen, and the Settings
+ * sections "About this preview" and "Privacy". `about` is shared by the welcome notice and Settings, so the list of
+ * what isn't built yet is kept in one place.
+ */
+export interface PreviewContent {
+  draft: boolean;
+  label: string;
+  about: Record<'title' | 'settingsTitle' | 'body' | 'bugTitle' | 'bugBody' | 'notHereTitle', string> & { notHere: string[] };
+  /** Shown under the feedback text box while the "bug" category is selected. */
+  bugHint: string;
+  notice: Record<'gotIt' | 'sendFeedback' | 'feedbackSubject', string>;
+  privacy: Record<'title' | 'body', string>;
+}
+
 /** Copy for Settings: changing the goal and the saving habit. `{token}` placeholders are filled at display time. */
 export interface SettingsContent {
   draft: boolean;
