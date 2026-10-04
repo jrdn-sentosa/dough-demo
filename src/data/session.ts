@@ -14,6 +14,13 @@ export async function signInLocal(adapter: DataAdapter, email: string): Promise<
   return data.user;
 }
 
+/** "Continue as demo user". Until Maya's seed exists (milestone 9) this is a plain demo user who starts placement. */
+export const DEMO_EMAIL = 'demo@dough.local';
+
+export function signInDemo(adapter: DataAdapter): Promise<LocalUser | null> {
+  return signInLocal(adapter, DEMO_EMAIL);
+}
+
 export async function signOutLocal(adapter: DataAdapter): Promise<void> {
   const data = await adapter.load();
   data.user = null;
