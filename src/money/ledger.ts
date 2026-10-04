@@ -1,5 +1,7 @@
 import type { DataAdapter } from '../data/adapter';
 import type { AppData, Bake, LoafRecord, Transaction, TransactionSource, TransactionType } from '../data/types';
+import { DEFAULT_BREAD } from '../domain/breads';
+import type { BreadId } from '../domain/breads';
 import type { LoafId, Stage } from '../domain/types';
 import { growthPercent, progressPercent, stageForPercent } from '../domain/stages';
 import { MAX_ENTRY_CENTS, MAX_STARTING_CENTS, checkAmount, type AmountErrorCode } from './amounts';
@@ -15,7 +17,9 @@ export type MoneyErrorCode =
   | 'starting-too-late'
   | 'needs-confirmation'
   | 'grow-not-ready'
-  | 'grow-not-bigger';
+  | 'grow-not-bigger'
+  | 'bread-locked'
+  | 'no-habit';
 
 export interface MoneyFailure {
   ok: false;
@@ -29,6 +33,8 @@ export interface MoneyFailure {
 
 export interface LoafStatus {
   loafId: LoafId;
+  /** The bread look the loaf rises in now. */
+  bread: BreadId;
   targetCents: number;
   balanceCents: number;
   /**
@@ -88,6 +94,12 @@ const fail = (code: MoneyErrorCode, message: string, extra: Partial<MoneyFailure
 });
 
 const NO_LOAF = 'That loaf has not been started yet.';
+const BREAD_LOCKED = 'That bread is not unlocked yet.';
+
+/** A bread can be picked when it is the default or a streak has unlocked it. */
+function breadAvailable(data: AppData, bread: BreadId): boolean {
+  return bread === DEFAULT_BREAD || data.streaks.unlocked.some((u) => u.bread === bread);
+}
 
 // ---- Reads (pure, from raw rows) ----
 
@@ -114,6 +126,7 @@ export function statusFor(data: AppData, loaf: LoafRecord): LoafStatus {
   const growing = loaf.growFromCents !== null;
   return {
     loafId: loaf.loafId,
+    bread: loaf.bread,
     targetCents: loaf.targetCents,
     balanceCents: balance,
     percent,
@@ -138,7 +151,7 @@ function recordBake(loaf: LoafRecord, at: string | null): { grown: boolean } {
   const last = loaf.bakes[loaf.bakes.length - 1];
   loaf.growFromCents = null;
   if (last && loaf.targetCents <= last.targetCents) return { grown: false };
-  loaf.bakes.push({ targetCents: loaf.targetCents, at });
+  loaf.bakes.push({ targetCents: loaf.targetCents, at, bread: loaf.bread });
   return { grown: last !== undefined };
 }
 
@@ -172,6 +185,7 @@ export async function startLoaf(
   adapter: DataAdapter,
   loafId: LoafId,
   targetCents: number,
+  options: { bread?: BreadId } = {},
 ): Promise<{ ok: true; loaf: LoafRecord } | MoneyFailure> {
   const bad = checkAmount(targetCents, Number.MAX_SAFE_INTEGER);
   if (bad) return bad;
@@ -179,8 +193,11 @@ export async function startLoaf(
   if (data.loaves.some((l) => l.loafId === loafId)) {
     return fail('loaf-exists', 'This loaf has already been started.');
   }
+  const bread = options.bread ?? DEFAULT_BREAD;
+  if (!breadAvailable(data, bread)) return fail('bread-locked', BREAD_LOCKED);
   const loaf: LoafRecord = {
     loafId,
+    bread,
     targetCents,
     startedAt: await nowIso(adapter),
     bakes: [],
@@ -213,12 +230,14 @@ export interface SetTargetResult {
  *   target becomes `growFromCents` and progress counts the new part only. It
  *   fails unless the fund is baked and the new target is bigger. Raising the
  *   target without `grow` just edits the goal.
+ * - `bread` (with `grow`) is the look the grown loaf rises and bakes in. It must be the
+ *   default or an unlocked bread. Earlier bakes keep the bread they were baked as.
  */
 export async function setTarget(
   adapter: DataAdapter,
   loafId: LoafId,
   targetCents: number,
-  options: { grow?: boolean } = {},
+  options: { grow?: boolean; bread?: BreadId } = {},
 ): Promise<SetTargetResult | MoneyFailure> {
   const bad = checkAmount(targetCents, Number.MAX_SAFE_INTEGER);
   if (bad) return bad;
@@ -236,6 +255,10 @@ export async function setTarget(
     }
     if (targetCents <= loaf.targetCents) {
       return fail('grow-not-bigger', 'Pick a goal bigger than your current one.');
+    }
+    if (options.bread !== undefined) {
+      if (!breadAvailable(data, options.bread)) return fail('bread-locked', BREAD_LOCKED);
+      loaf.bread = options.bread;
     }
     loaf.growFromCents ??= loaf.targetCents;
   } else {

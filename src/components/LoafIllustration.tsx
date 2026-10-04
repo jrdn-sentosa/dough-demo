@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import type { LoafId, Stage } from '../domain/types';
+import type { BreadId } from '../domain/breads';
+import type { Stage } from '../domain/types';
 import { GoldenFinish } from './GoldenFinish';
 import { loafArtUrl } from './loafArt';
 
@@ -17,7 +18,7 @@ interface View {
  * over the old one (under 400ms, see `--stage-ms`); reduced motion turns the animation off in global.css.
  * The pictures are decorative: Home spells out the stage in text.
  */
-export function LoafIllustration({ loafId, stage, mastered = false }: { loafId: LoafId; stage: Stage; mastered?: boolean }) {
+export function LoafIllustration({ bread, stage, mastered = false }: { bread: BreadId; stage: Stage; mastered?: boolean }) {
   const [view, setView] = useState<View>({ current: stage, previous: null });
   useEffect(() => {
     if (view.previous === null) return;
@@ -36,7 +37,7 @@ export function LoafIllustration({ loafId, stage, mastered = false }: { loafId: 
         <img
           key={`out-${shown.previous}`}
           className="loaf-art__img loaf-art__img--out"
-          src={loafArtUrl(loafId, shown.previous)}
+          src={loafArtUrl(bread, shown.previous)}
           alt=""
           aria-hidden="true"
         />
@@ -44,7 +45,7 @@ export function LoafIllustration({ loafId, stage, mastered = false }: { loafId: 
       <img
         key={shown.current}
         className={`loaf-art__img${shown.previous ? ' loaf-art__img--in' : ''}`}
-        src={loafArtUrl(loafId, shown.current)}
+        src={loafArtUrl(bread, shown.current)}
         alt=""
         aria-hidden="true"
       />

@@ -1,3 +1,4 @@
+import { BREAD_IDS } from '../domain/breads';
 import { parseFrontmatter } from '../domain/frontmatter';
 import { PAY_FREQUENCIES } from '../domain/habits';
 import { RISK_QUESTION_IDS } from '../domain/risk';
@@ -5,6 +6,7 @@ import { STAGES } from '../domain/stages';
 import type { AccountType, LoafId, Stage } from '../domain/types';
 import { ContentError, arr, bool, num, obj, oneOf, optStr, str } from './guards';
 import type {
+  BreadsContent,
   CelebrationContent,
   ChooseContent,
   FlowContent,
@@ -60,6 +62,10 @@ const lessonFiles = import.meta.glob<string>('../../content/lessons/*/*.md', {
   import: 'default',
 });
 const riskFiles = import.meta.glob<unknown>('../../content/risk.json', {
+  eager: true,
+  import: 'default',
+});
+const breadFiles = import.meta.glob<unknown>('../../content/breads.json', {
   eager: true,
   import: 'default',
 });
@@ -362,6 +368,24 @@ export function parseRisk(raw: unknown, where = 'content/risk.json'): RiskConten
   };
 }
 
+export function parseBreads(raw: unknown, where = 'content/breads.json'): BreadsContent {
+  const o = obj(raw, where);
+  const names = obj(o.names, `${where} names`);
+  const demo = obj(o.demo, `${where} demo`);
+  return {
+    draft: bool(o, 'draft', where),
+    names: Object.fromEntries(BREAD_IDS.map((id) => [id, str(names, id, `${where} names`)])) as BreadsContent['names'],
+    streak: record(
+      o.streak,
+      ['label', 'valueNone', 'valueWeek', 'valuePayPeriodOne', 'valuePayPeriod', 'valueMonthOne', 'valueMonth', 'weeksPill', 'startNext', 'unlockedNext', 'allUnlocked', 'resetValue', 'resetBody', 'resetAllUnlocked'] as const,
+      `${where} streak`,
+    ),
+    unlock: record(o.unlock, ['title', 'body', 'dismiss'] as const, `${where} unlock`),
+    picker: record(o.picker, ['title', 'intro', 'defaultTag', 'unlockedTag', 'lockedOne', 'locked', 'button', 'back', 'groupLabel'] as const, `${where} picker`),
+    demo: strings(demo, ['heading', 'skipWeek', 'skipWeekWithoutSaving'] as const, `${where} demo`),
+  };
+}
+
 export function parseLesson(source: string, file: string): Lesson {
   const match = /content\/lessons\/([^/]+)\/[^/]+\.md$/.exec(file);
   if (!match) throw new ContentError(file, 'lessons must live in content/lessons/<loaf>/');
@@ -421,6 +445,7 @@ export function parseQuiz(raw: unknown, file: string): QuizContent {
 interface Content {
   placement: PlacementContent;
   risk: RiskContent;
+  breads: BreadsContent;
   loaves: LoafDefinition[];
   lessons: Lesson[];
   quizzes: QuizContent[];
@@ -436,6 +461,9 @@ function content(): Content {
   const [riskRaw] = Object.values(riskFiles);
   if (riskRaw === undefined) throw new ContentError('content/', 'risk.json is missing');
 
+  const [breadsRaw] = Object.values(breadFiles);
+  if (breadsRaw === undefined) throw new ContentError('content/', 'breads.json is missing');
+
   const loaves = Object.entries(loafFiles).map(([file, raw]) => parseLoaf(raw, file));
   const ids = loaves.map((l) => l.id);
   if (new Set(ids).size !== ids.length) throw new ContentError('content/loaves', 'duplicate loaf id');
@@ -443,6 +471,7 @@ function content(): Content {
   cache = {
     placement: parsePlacement(placementRaw),
     risk: parseRisk(riskRaw),
+    breads: parseBreads(breadsRaw),
     loaves,
     lessons: Object.entries(lessonFiles).map(([file, src]) => parseLesson(src, file)),
     quizzes: Object.entries(quizFiles).map(([file, raw]) => parseQuiz(raw, file)),
@@ -452,6 +481,10 @@ function content(): Content {
 
 export function getRisk(): RiskContent {
   return content().risk;
+}
+
+export function getBreads(): BreadsContent {
+  return content().breads;
 }
 
 export function getPlacement(): PlacementContent {

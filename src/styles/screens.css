@@ -793,6 +793,135 @@ input:focus-visible {
   color: #ffffff;
 }
 
+/* Streak card: the habit card's family, with a line under the value and the latest bread beside it */
+.streak-card__line {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.streak-card__bread {
+  flex: none;
+  width: 64px;
+  height: auto;
+}
+
+/* Unlock moment: lighter than a baked loaf's celebration. No confetti; a short entrance. */
+.unlock-moment {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--crumb);
+  border: 1.5px dashed var(--toast-edge);
+  animation: unlock-in 300ms ease-out both;
+}
+
+.unlock-moment__art {
+  flex: none;
+  width: 72px;
+  height: auto;
+}
+
+.unlock-moment__text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.unlock-moment__title {
+  font-family: var(--font-display);
+  font-variation-settings: 'SOFT' 100;
+  font-weight: 700;
+  font-size: 17px;
+}
+
+.unlock-moment__body {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+@keyframes unlock-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Bread picker */
+.bread-option {
+  gap: 12px;
+}
+
+.bread-option__art {
+  flex: none;
+  width: 56px;
+  height: auto;
+}
+
+.bread-option__name {
+  flex: 1;
+}
+
+.bread-option__tag {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.choice--locked .choice__label {
+  background: #f3ece0;
+  border-color: var(--divider);
+  color: var(--locked-text, #7a6552);
+}
+
+.choice--locked .bread-option__art {
+  opacity: 0.45;
+  filter: grayscale(0.6);
+}
+
+.choice--locked .choice__input {
+  cursor: not-allowed;
+}
+
+/* Demo tools (only with ?demo=1) */
+.demo-tools {
+  display: grid;
+  gap: 8px;
+}
+
+.demo-tools__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.demo-tools__row {
+  display: flex;
+  gap: 10px;
+}
+
+.demo-tools__button {
+  flex: 1;
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 1.5px dashed var(--toast-edge);
+  border-radius: 12px;
+  background: var(--crumb);
+  color: var(--crust);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  touch-action: manipulation;
+}
+
 /* Tips */
 .tips h2 {
   margin: 6px 0 4px;

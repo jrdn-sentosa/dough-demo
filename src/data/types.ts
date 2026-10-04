@@ -1,3 +1,4 @@
+import type { BreadId, UnlockableBread } from '../domain/breads';
 import type { Habit } from '../domain/habits';
 import type { Profile } from '../domain/profile';
 import type { LoafId } from '../domain/types';
@@ -27,12 +28,16 @@ export interface Bake {
   targetCents: number;
   /** ISO string in UTC from the demo clock, or null for "Already built" (existing savings covered it). */
   at: string | null;
+  /** The bread this loaf was baked as, so the shelf shows each bake in its own look. */
+  bread: BreadId;
 }
 
 export interface LoafRecord {
   loafId: LoafId;
   targetCents: number;
   startedAt: string;
+  /** The bread look for the loaf as it rises now. Only changes when a student grows the loaf; older bakes keep theirs. */
+  bread: BreadId;
   /**
    * Every bake, oldest first. Never cleared by withdrawals, so the shelf keeps
    * the first bake. A new entry is added only when a higher target is reached.
@@ -87,6 +92,23 @@ export interface QuizAttempt {
  */
 export type HysaCardState = 'pending' | 'dismissed' | null;
 
+/** A bread unlocked by a saving streak. Permanent. `seen` goes true once the student has dismissed the unlock moment on Home. */
+export interface BreadUnlock {
+  bread: UnlockableBread;
+  /** ISO string in UTC, from the demo clock. */
+  at: string;
+  seen: boolean;
+}
+
+/**
+ * What a streak has earned. The current streak itself is never stored: it is worked out from the habit and
+ * the deposit rows. Unlocks never go away, and `bestDays` is the longest streak so far, in days covered.
+ */
+export interface Streaks {
+  unlocked: BreadUnlock[];
+  bestDays: number;
+}
+
 export interface AppData {
   version: 1;
   user: LocalUser | null;
@@ -101,6 +123,7 @@ export interface AppData {
   /** Ids of rising tips the student has opened (see `tipId`), so their "New" badge goes away. */
   tipsSeen: string[];
   hysaCard: HysaCardState;
+  streaks: Streaks;
   clock: ClockState;
 }
 
@@ -116,6 +139,7 @@ export function emptyData(): AppData {
     habit: null,
     tipsSeen: [],
     hysaCard: null,
+    streaks: { unlocked: [], bestDays: 0 },
     clock: { offsetDays: 0 },
   };
 }

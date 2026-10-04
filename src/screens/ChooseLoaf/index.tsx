@@ -78,7 +78,7 @@ export function ChooseLoaf() {
       recommendedLabel={copy.recommended}
       title={growOption.title}
       summary={growOption.summary}
-      art={<img src={loafArtUrl(FLOW_LOAF, 'shape')} alt="" aria-hidden="true" width={76} height={53} />}
+      art={<img src={loafArtUrl(record.bread, 'shape')} alt="" aria-hidden="true" width={76} height={53} />}
       buttonLabel={rec.growTargetMonths === 6 ? copy.saveButtonFurther : copy.saveButton}
       loafButton={rec.path === 'save'}
       onChoose={() => grow.start(rec.growTargetMonths as 3 | 6)}

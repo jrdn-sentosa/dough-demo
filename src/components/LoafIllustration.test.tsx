@@ -10,7 +10,7 @@ afterEach(() => {
 
 describe('LoafIllustration', () => {
   it('shows the picture for the stage, hidden from screen readers', () => {
-    const { container } = render(<LoafIllustration loafId="emergency-fund" stage="proof" />);
+    const { container } = render(<LoafIllustration bread="sandwich" stage="proof" />);
     const imgs = container.querySelectorAll('img');
     expect(imgs).toHaveLength(1);
     expect(imgs[0].getAttribute('src')).toContain('proof');
@@ -21,8 +21,8 @@ describe('LoafIllustration', () => {
 
   it('fades the new stage in over the old one, then drops the old picture', () => {
     vi.useFakeTimers();
-    const { container, rerender } = render(<LoafIllustration loafId="emergency-fund" stage="shape" />);
-    rerender(<LoafIllustration loafId="emergency-fund" stage="proof" />);
+    const { container, rerender } = render(<LoafIllustration bread="sandwich" stage="shape" />);
+    rerender(<LoafIllustration bread="sandwich" stage="proof" />);
     const imgs = container.querySelectorAll('img');
     expect(imgs).toHaveLength(2);
     expect(imgs[0].className).toContain('--out');
