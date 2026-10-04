@@ -2,6 +2,8 @@ import type { PlacementAnswers } from '../domain/placement';
 import { answersFromProfile, profileFromAnswers } from '../domain/profile';
 import type { Profile } from '../domain/profile';
 import { retake } from '../domain/retake';
+import { riskRecord } from '../domain/risk';
+import type { RiskAnswers, RiskRecord } from '../domain/risk';
 import type { RetakeResult } from '../domain/retake';
 import type { LoafId } from '../domain/types';
 import type { DataAdapter } from './adapter';
@@ -16,7 +18,7 @@ export async function loadProfile(adapter: DataAdapter): Promise<Profile | null>
  */
 export async function savePlacement(adapter: DataAdapter, answers: PlacementAnswers): Promise<Profile> {
   const data = await adapter.load();
-  data.profile = profileFromAnswers(answers);
+  data.profile = { ...profileFromAnswers(answers), risk: data.profile?.risk ?? null };
   await adapter.save(data);
   return data.profile;
 }
@@ -35,6 +37,33 @@ export async function addHighYieldAccount(adapter: DataAdapter): Promise<Profile
   if (!real.includes('high-yield-savings')) real.push('high-yield-savings');
   data.profile = { ...data.profile, accounts: real };
   data.hysaCard = null;
+  await adapter.save(data);
+  return data.profile;
+}
+
+/**
+ * Saves the risk quiz (answered, partly answered or skipped) on the profile, with its result.
+ * Earned income comes from placement: unknown earned income never produces a Roth IRA suggestion.
+ * Null without a profile.
+ */
+export async function saveRisk(adapter: DataAdapter, answers: RiskAnswers): Promise<RiskRecord | null> {
+  const data = await adapter.load();
+  if (!data.profile) return null;
+  const earnedIncome = data.profile.earnedIncome ?? undefined;
+  const record = riskRecord(answers, earnedIncome === undefined ? {} : { earnedIncome });
+  data.profile = { ...data.profile, risk: record };
+  await adapter.save(data);
+  return record;
+}
+
+/**
+ * "To size your 3-month goal, about how much do you need each month?": a student whose essentials
+ * were unknown gives a figure so the shelf and later goals can work out months. Only the profile changes.
+ */
+export async function saveEssentials(adapter: DataAdapter, essentialsCents: number): Promise<Profile | null> {
+  const data = await adapter.load();
+  if (!data.profile) return null;
+  data.profile = { ...data.profile, essentialsExactCents: essentialsCents, essentialsCents };
   await adapter.save(data);
   return data.profile;
 }
@@ -59,7 +88,8 @@ export async function retakePlacement(
       ? { targetCents: loaf.targetCents, hasTransactions: data.transactions.some((t) => t.loafId === loafId) }
       : null,
   });
-  data.profile = result.profile;
+  // Retaking placement never clears the risk quiz result.
+  data.profile = { ...result.profile, risk: data.profile?.risk ?? null };
   await adapter.save(data);
-  return result;
+  return { ...result, profile: data.profile };
 }

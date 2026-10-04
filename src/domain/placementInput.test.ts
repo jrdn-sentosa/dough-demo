@@ -1,7 +1,50 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_GOAL_CENTS } from './bands';
 import { startingPoint } from './placement';
-import { answersFromSelections, bakedStartTargetCents, toggleAccount } from './placementInput';
+import { answersFromSelections, bakedStartTargetCents, safeReturnPath, selectionsFromAnswers, toggleAccount } from './placementInput';
+
+describe('selectionsFromAnswers', () => {
+  it('turns current answers back into on-screen selections', () => {
+    expect(
+      selectionsFromAnswers({
+        essentials: '500-749',
+        savings: '100-249',
+        accounts: ['checking', 'regular-savings'],
+        cardDebt: 'no',
+        earnedIncome: false,
+      }),
+    ).toEqual({
+      essentials: '500-749',
+      'existing-savings': '100-249',
+      accounts: ['checking', 'regular-savings'],
+      'card-debt': 'no',
+      'earned-income': 'no',
+    });
+  });
+
+  it('leaves unknown answers unselected', () => {
+    expect(selectionsFromAnswers({})).toEqual({});
+    expect(selectionsFromAnswers({ cardDebt: 'yes', earnedIncome: true })).toEqual({ 'card-debt': 'yes', 'earned-income': 'yes' });
+  });
+
+  it('round-trips with answersFromSelections', () => {
+    const answers = { essentials: 'under-250', accounts: ['none' as const], cardDebt: 'no-card' as const, earnedIncome: true };
+    expect(answersFromSelections(selectionsFromAnswers(answers))).toEqual(answers);
+  });
+});
+
+describe('safeReturnPath', () => {
+  it('keeps paths inside the app', () => {
+    expect(safeReturnPath('/choose-loaf')).toBe('/choose-loaf');
+    expect(safeReturnPath('/risk-quiz?x=1')).toBe('/risk-quiz?x=1');
+  });
+
+  it('sends anything else home', () => {
+    for (const bad of [null, undefined, '', 'choose-loaf', '//evil.example', 'https://evil.example', 'javascript:alert(1)']) {
+      expect(safeReturnPath(bad)).toBe('/');
+    }
+  });
+});
 
 describe('toggleAccount', () => {
   it('adds and removes real accounts', () => {

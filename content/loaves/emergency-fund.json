@@ -13,6 +13,12 @@
     "targetMonths": 3,
     "askEssentials": "To size your 3-month goal, about how much do you need each month?"
   },
+  "growFurtherOption": {
+    "title": "Grow to 6 months",
+    "summary": "Your cushion already covers a few months. Raise the goal to six months of essentials for extra room, like a longer gap between jobs. Your earlier bakes stay on the shelf.",
+    "targetMonths": 6,
+    "askEssentials": "To size your 6-month goal, about how much do you need each month?"
+  },
   "lessons": ["ef-what-its-for", "ef-how-much", "ef-where-to-keep"],
   "quiz": "emergency-fund",
   "flow": {
@@ -69,6 +75,70 @@
       "testOutFailBody": "A few of these are worth a look. We picked the lessons that cover them.",
       "testOutLessons": "Lessons to review",
       "testOutToLessons": "Go to my lessons"
+    },
+    "celebration": {
+      "first": {
+        "title": "Your loaf is baked!",
+        "body": "You saved {amount} for emergencies. That's a real cushion."
+      },
+      "rebuilt": {
+        "title": "You rebuilt your fund.",
+        "body": "It's back to {amount}, ready for the next surprise."
+      },
+      "grown": {
+        "title": "Your cushion is at {months} months.",
+        "body": "That's {amount} set aside. Seriously impressive."
+      },
+      "grownNoMonths": {
+        "title": "Your cushion just grew.",
+        "body": "That's {amount} set aside. Seriously impressive."
+      },
+      "mastered": "Baked with mastered lessons",
+      "tagline": "Stack that bread.",
+      "chooseNext": "Choose my next loaf",
+      "shelf": "See my bread shelf"
+    },
+    "shelf": {
+      "title": "Your bread shelf",
+      "intro": "Every loaf you've baked, and what's coming next.",
+      "totalLabel": "Emergency fund total",
+      "bakedHeading": "Baked",
+      "comingSoonHeading": "Coming soon",
+      "comingSoon": "Coming soon",
+      "alreadyBuilt": "Already built",
+      "monthOne": "1 month",
+      "monthMany": "{n} months",
+      "bakedSub": "{size} · {date}",
+      "back": "Back to my loaf"
+    },
+    "choose": {
+      "title": "Choose your next loaf",
+      "intro": "Your cushion is built. Here's what we'd suggest next, and you pick.",
+      "recommended": "Recommended",
+      "saveButton": "Grow my cushion",
+      "saveButtonFurther": "Grow to 6 months",
+      "invest": {
+        "title": "Start investing",
+        "summary": "Answer a few questions about your timing and comfort, and we'll explain what might fit. Nothing is invested and no money moves.",
+        "button": "Start investing"
+      },
+      "personalize": "Personalize",
+      "debtUnknown": "One quick question first: do you carry a credit card balance from month to month? Answer a few quick questions and we'll go from there.",
+      "debt": {
+        "note": "Paying off high-interest debt usually comes before investing.",
+        "body": "Interest on a credit card balance often costs more than investments tend to earn, so clearing it first is usually the stronger move. It's your call.",
+        "continueAnyway": "Continue anyway",
+        "back": "Back"
+      },
+      "essentials": {
+        "label": "About how much do you need each month?",
+        "confirm": "Set my goal",
+        "cancel": "Cancel",
+        "invalid": "Enter a dollar amount, like 800."
+      },
+      "moreHeading": "More loaves",
+      "comingSoon": "Coming soon",
+      "notNow": "Not now, back to my loaf"
     },
     "savingSetup": {
       "hysa": {
@@ -173,6 +243,8 @@
         "cancel": "Cancel",
         "invalid": "Enter a dollar amount, like 25."
       },
+      "shelfLink": "Bread shelf",
+      "chooseNext": "Choose my next loaf",
       "stageUp": "Nice! Your loaf is now {stage}.",
       "stageUpTip": "Nice! Your loaf is now {stage}. A new tip is unlocked: {tip}.",
       "stageDown": "Your loaf is back to {stage}.",
@@ -186,12 +258,7 @@
         "unlocksAt": "Unlocks at {stage}",
         "unlocksAtBaked": "Unlocks when your loaf is baked"
       },
-      "hysaCardDismiss": "Dismiss this reminder",
-      "completePlaceholder": {
-        "title": "Your loaf is baked!",
-        "body": "The celebration is coming in the next step of the build.",
-        "home": "Back to my loaf"
-      }
+      "hysaCardDismiss": "Dismiss this reminder"
     }
   },
   "tips": [

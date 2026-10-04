@@ -10,7 +10,10 @@
   },
   "resultSkipped": "Your first loaf: Emergency fund. Starting goal: {goal}, a default you can change in Settings.",
   "retake": {
-    "updateGoal": "Update your goal to {amount}?"
+    "updateGoal": "Update your goal to {amount}?",
+    "eyebrow": "Update your answers",
+    "intro": "Your current answers are filled in. Change anything that's different now. Your savings and history stay exactly as they are.",
+    "done": "Save my answers"
   },
   "personalizePrompt": "Answer a few quick questions for a personalized pick",
   "result": {

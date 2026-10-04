@@ -58,6 +58,7 @@ describe('skipping at the start', () => {
       cardDebt: null,
       earnedIncome: null,
       monthsCovered: null,
+      risk: null,
     });
   });
 });
@@ -82,7 +83,8 @@ describe('skipping partway', () => {
 
   it('keeps the card debt answer when other answers are missing', () => {
     expect(startingPoint({ cardDebt: 'yes', savings: '1000-plus' }).nextLoaf).toMatchObject({
-      loaf: 'debt-payoff',
+      debtNote: true,
+      debtUnknown: false,
     });
   });
 
@@ -149,14 +151,14 @@ describe('the starter goal when essentials are unknown', () => {
   it('recommends growing the cushion once baked, and says essentials are needed first', () => {
     const s = startingPoint({ savings: '1000-plus', cardDebt: 'no', earnedIncome: true, accounts: [] });
     expect(s.nextLoaf).toMatchObject({
-      loaf: 'emergency-fund',
+      path: 'save',
       growTargetMonths: 3,
       growNeedsEssentials: true,
     });
   });
 
-  it('recommends Debt payoff first when card debt is yes', () => {
+  it('keeps the debt note when card debt is yes, with Keep saving still recommended for the starter goal', () => {
     const s = startingPoint({ savings: '1000-plus', cardDebt: 'yes' });
-    expect(s.nextLoaf).toMatchObject({ loaf: 'debt-payoff', debtNote: true });
+    expect(s.nextLoaf).toMatchObject({ path: 'save', debtNote: true, growNeedsEssentials: true });
   });
 });

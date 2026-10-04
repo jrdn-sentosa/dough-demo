@@ -138,7 +138,8 @@ export function startingPoint(answers: PlacementAnswers): StartingPoint {
     startStage: stageForPercent(startPercent),
     suggestBiggerTarget: targetCents !== null && savingsMeetTarget(savings, targetCents),
     emergencyFundBaked: baked,
-    nextLoaf: baked ? recommendNext({ ...answers, targetMonths: null }) : null,
+    // The "Already built" bake is recorded at the biggest of 1 or 3 months the savings cover (see `bakedStartTargetCents`).
+    nextLoaf: baked ? recommendNext({ ...answers, targetMonths: covered >= 3 ? 3 : 1 }) : null,
     ...rules,
     showInvestmentNote: !baked && hasInvestments,
   };

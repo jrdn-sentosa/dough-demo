@@ -231,7 +231,7 @@ describe('add to my loaf', () => {
     expect((await adapter.load()).transactions.filter((t) => t.type === 'deposit')).toEqual([]);
   });
 
-  it('goes to the celebration placeholder when the deposit bakes the loaf', async () => {
+  it('goes to the celebration when the deposit bakes the loaf', async () => {
     const adapter = await homeAdapter({ starting: dollars(360) }); // 90%: bake
     const user = userEvent.setup();
     const { pathname } = mount(adapter);
@@ -313,7 +313,7 @@ describe('rebuild mode', () => {
     expect(screen.getByRole('status').textContent).toContain("You used your fund for what it's for. Let's rebuild.");
   });
 
-  it('goes to the rebuilt celebration placeholder when a rebuild reaches the target again', async () => {
+  it('goes to the rebuilt celebration when a rebuild reaches the target again', async () => {
     const adapter = await bakedThenUsed();
     const user = userEvent.setup();
     const { pathname } = mount(adapter);
@@ -322,7 +322,7 @@ describe('rebuild mode', () => {
     await user.clear(input);
     await user.type(input, '120');
     await user.click(screen.getByRole('button', { name: 'I moved $120 to savings' }));
-    await screen.findByRole('heading', { name: 'Your loaf is baked!' });
+    await screen.findByRole('heading', { name: 'You rebuilt your fund.' });
     expect(pathname()).toBe('/loaf-complete');
     expect((await adapter.load()).loaves[0].bakes).toHaveLength(1); // the shelf still has one entry
   });

@@ -44,7 +44,7 @@ src/
   app/          routing, providers, app shell, phone frame for desktop
   screens/      Login, PlacementQuiz, PlacementResult, NewLoaf, Lesson,
                 LoafQuiz, SavingSetup, Home, LoafComplete, ChooseLoaf,
-                Shelf, Settings
+                Shelf, RiskQuiz, RiskResult, Settings
   components/   LoafButton, SliceButton, LoafIllustration, ProgressBar,
                 ChoiceGroup (radio or checkbox inputs styled as slice buttons,
                 used by placement and the quiz), VideoPlayer, QuizQuestion, LessonRow,
@@ -59,6 +59,7 @@ src/
   styles/       tokens.css, global.css
 content/
   placement.json            placement quiz questions and scoring
+  risk.json                 risk quiz questions and result copy (educational)
   loaves/<loaf>.json        loaf definition: title, bread, lessons, quiz, tips
   lessons/<loaf>/<id>.md    lesson page text and video metadata
   quizzes/<loaf>.json       loaf quiz questions

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { useData } from '../../app/DataProvider';
 import { AmountSheet } from '../../components/AmountSheet';
 import { DraftNote } from '../../components/DraftNote';
@@ -67,6 +67,8 @@ export function Home() {
   const status = statusFor(data, record);
   const ctx = contextOf(status);
   const mastered = isMastered(data.quizAttempts, FLOW_LOAF);
+  // Baked and sitting at its target (not rebuilding, not growing): time to choose the next loaf.
+  const readyForNext = status.baked && status.percent >= 100 && !status.growing;
 
   // While growing, the amount, stage and bar count the new part only. The whole fund gets its own line.
   const from = status.growFromCents ?? 0;
@@ -164,7 +166,12 @@ export function Home() {
   return (
     <div className="home">
       <div className="home__header">
-        <span className="home__eyebrow">{copy.eyebrow}</span>
+        <div className="home__top">
+          <span className="home__eyebrow">{copy.eyebrow}</span>
+          <Link className="home__shelf-link" to="/shelf">
+            {copy.shelfLink}
+          </Link>
+        </div>
         <h1 className="home__title">{loaf.title}</h1>
         <DraftNote draft={loaf.draft} />
       </div>
@@ -178,7 +185,7 @@ export function Home() {
             {copy.mastered}
           </span>
         )}
-        <LoafIllustration loafId={FLOW_LOAF} stage={status.stage} />
+        <LoafIllustration loafId={FLOW_LOAF} stage={status.stage} mastered={mastered} />
         <div className="loaf-card__amount">
           <span className="loaf-card__big">{formatCents(shownBalance)}</span>
           <span className="loaf-card__of">{fillTemplate(copy.amountOf, { target: formatCents(shownTarget) })}</span>
@@ -220,7 +227,14 @@ export function Home() {
       {habit && period && <HabitCard habit={habit} period={period} copy={copy.habitCard} />}
 
       <div className="home__actions">
-        <LoafButton onClick={() => openSheet('add')}>{copy.add}</LoafButton>
+        {readyForNext ? (
+          <>
+            <LoafButton onClick={() => navigate('/choose-loaf')}>{copy.chooseNext}</LoafButton>
+            <SliceButton onClick={() => openSheet('add')}>{copy.add}</SliceButton>
+          </>
+        ) : (
+          <LoafButton onClick={() => openSheet('add')}>{copy.add}</LoafButton>
+        )}
         <SliceButton onClick={() => openSheet('use')}>{copy.use}</SliceButton>
       </div>
 

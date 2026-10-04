@@ -74,7 +74,7 @@ describe('startingPoint: loaf and target', () => {
     expect(s.emergencyFundBaked).toBe(false);
   });
 
-  it('1 to under 3 months, card debt: baked, recommend Debt payoff', () => {
+  it('1 to under 3 months, card debt: baked, Keep saving is recommended and the debt note is set', () => {
     const s = startingPoint(
       answers({ essentials: '500-749', savings: '1000-plus', cardDebt: 'yes' }),
     );
@@ -82,7 +82,7 @@ describe('startingPoint: loaf and target', () => {
     expect(s.targetMonths).toBeNull();
     expect(s.targetCents).toBeNull();
     expect(s.emergencyFundBaked).toBe(true);
-    expect(s.nextLoaf).toMatchObject({ loaf: 'debt-payoff', debtNote: true, growTargetMonths: null });
+    expect(s.nextLoaf).toMatchObject({ path: 'save', debtNote: true, growTargetMonths: 3 });
   });
 
   it('"no credit card" is not card debt', () => {
@@ -95,10 +95,10 @@ describe('startingPoint: loaf and target', () => {
   it('3+ months: baked, then ChooseLoaf rules', () => {
     const base = answers({ essentials: 'under-250', savings: '1000-plus' }); // $1,000 of $150/mo
     expect(startingPoint(base).emergencyFundBaked).toBe(true);
-    expect(startingPoint(base).nextLoaf?.loaf).toBe('roth-ira');
-    expect(startingPoint({ ...base, cardDebt: 'yes' }).nextLoaf?.loaf).toBe('debt-payoff');
-    expect(startingPoint({ ...base, accounts: ['retirement'] }).nextLoaf?.loaf).toBe('index-funds');
-    expect(startingPoint({ ...base, earnedIncome: false }).nextLoaf?.loaf).toBe('index-funds');
+    // Recorded as a 3-month "Already built" bake, so Keep saving offers 6 months (never recommended).
+    expect(startingPoint({ ...base, cardDebt: 'no' }).nextLoaf).toMatchObject({ path: 'invest', growTargetMonths: 6 });
+    expect(startingPoint({ ...base, cardDebt: 'yes' }).nextLoaf).toMatchObject({ path: null, debtNote: true });
+    expect(startingPoint({ ...base, cardDebt: undefined }).nextLoaf).toMatchObject({ path: null, needsPersonalization: true });
   });
 
   it('exactly 3 months counts as baked', () => {

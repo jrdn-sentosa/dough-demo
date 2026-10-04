@@ -1,0 +1,100 @@
+{
+  "draft": true,
+  "title": "Let's see what fits",
+  "intro": "Four quick questions. There are no right answers, and this isn't a test. It just helps us explain what might fit you.",
+  "progressLabel": "Risk quiz progress",
+  "questionOf": "Question {n} of {total}",
+  "next": "Next",
+  "back": "Back",
+  "seeResult": "See what fits",
+  "skip": {
+    "label": "Skip for now",
+    "confirm": "No problem. For anything you skip, we'll use the most cautious answer. You can take this again anytime in Settings.",
+    "confirmSkip": "Skip",
+    "confirmKeep": "Keep answering"
+  },
+  "questions": [
+    {
+      "id": "horizon",
+      "prompt": "When might you need this money?",
+      "help": "Money you'll need soon is treated differently from money that can wait.",
+      "options": [
+        { "id": "within-year", "label": "Within a year" },
+        { "id": "one-to-three", "label": "In 1 to 3 years" },
+        { "id": "three-to-five", "label": "In 3 to 5 years" },
+        { "id": "over-five", "label": "In more than 5 years" }
+      ]
+    },
+    {
+      "id": "drop",
+      "prompt": "If your investment dropped sharply in value in one month, what would you do?",
+      "help": "There's no right answer. It helps us explain what feels comfortable for you.",
+      "options": [
+        { "id": "sell-all", "label": "Sell everything" },
+        { "id": "sell-some", "label": "Sell some" },
+        { "id": "wait", "label": "Wait it out" },
+        { "id": "add-more", "label": "Add more" }
+      ]
+    },
+    {
+      "id": "priority",
+      "prompt": "What matters more to you?",
+      "help": null,
+      "options": [
+        { "id": "not-losing", "label": "Not losing money" },
+        { "id": "balance", "label": "A balance of the two" },
+        { "id": "growth", "label": "Growth, even with big ups and downs" }
+      ]
+    },
+    {
+      "id": "experience",
+      "prompt": "Have you invested before?",
+      "help": null,
+      "options": [
+        { "id": "none", "label": "No" },
+        { "id": "little", "label": "A little" },
+        { "id": "yes", "label": "Yes" }
+      ]
+    }
+  ],
+  "result": {
+    "title": "Here's what fits",
+    "educational": "This is educational, not financial advice. It explains what each approach looks like and why, so you can decide for yourself. No real money moves.",
+    "keepSavings": {
+      "title": "Keep this money in savings for now",
+      "body": "Money you'll need in the next few years shouldn't ride the ups and downs of the market. Investments can drop right when you need cash, and there may not be time to wait for them to recover. A high-yield savings account keeps it safe while it still grows a little.",
+      "grow": "A bigger cushion is a good use of money you may need soon."
+    },
+    "approach": {
+      "steady": {
+        "title": "A steadier approach",
+        "body": "Here's what a steadier approach looks like and why. It leans on bonds, which are loans to governments and companies that pay you back with interest. Bonds usually move up and down less than stocks, so the ride is calmer. The trade-off is that they tend to grow more slowly. It fits when you value a smoother path or may need the money in a few years."
+      },
+      "growth": {
+        "title": "A growth-focused approach",
+        "body": "Here's what a growth-focused approach looks like and why. It leans on index funds: one fund that holds many companies at once, so you aren't betting on any single one. Over long stretches stocks have tended to grow more than bonds, but the road is bumpy and values can drop for a while. It fits when you have time to wait out the dips."
+      }
+    },
+    "loafLine": "The loaf that fits: {loaf} ({bread}).",
+    "comingSoon": "Coming soon",
+    "where": {
+      "roth-ira": {
+        "title": "Where to hold it: a Roth IRA",
+        "body": "A Roth IRA isn't an investment itself. It's an account that holds your investments, with special tax benefits for long-term money. You need income from a job to put money in, and it's meant for money you won't need for many years."
+      },
+      "investment-account": {
+        "title": "Where to hold it: a regular investment account",
+        "body": "A regular investment account holds your investments without special rules about when you can take money out. That flexibility suits money you might need in a few years, or if you don't earn income from a job yet."
+      },
+      "unknown": {
+        "title": "Where to hold it",
+        "body": "Which account fits depends on whether you earn income from a job. A Roth IRA needs it, and a regular investment account doesn't. You can answer that anytime by retaking the first questions in Settings."
+      }
+    },
+    "startSmall": "You're newer to this, so start small while you learn. Learning first is part of the plan.",
+    "knowledgeCheck": "Before any investing loaf starts, you'll take a short knowledge check and need 4 out of 5. Understanding the risk helps protect new investors.",
+    "skippedNote": "You skipped some questions, so we used the most cautious answers. Take it again anytime.",
+    "back": "Back to my loaf",
+    "chooseAgain": "Back to my choices"
+  }
+}
