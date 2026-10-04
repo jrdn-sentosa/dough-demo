@@ -1,0 +1,322 @@
+/* Login: sizes and colors come from docs/mockups/login.html. */
+.login {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  /* The app screen already pads 16px, so this adds up to the mockup's 52px 28px 32px. */
+  padding: 36px 12px 16px;
+}
+
+.login__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.login__wordmark {
+  margin: 4px 0 0;
+  font-size: 54px;
+  line-height: 1;
+  letter-spacing: -1px;
+  color: var(--crust);
+}
+
+.login__tagline {
+  margin: 0;
+  font-size: 17px;
+  color: var(--text-muted);
+}
+
+.login__form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 40px;
+}
+
+.login__form label,
+.field label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+input[type='email'],
+input[type='text'],
+input:not([type]),
+input[inputmode='decimal'] {
+  height: 52px;
+  padding: 0 16px;
+  border: 1.5px solid var(--field-border);
+  border-radius: 14px;
+  background: var(--crumb);
+  font: inherit;
+  font-size: 16px;
+  color: var(--rye);
+}
+
+input::placeholder {
+  color: var(--placeholder);
+}
+
+input:focus-visible {
+  outline: 3px solid var(--butter);
+  outline-offset: 2px;
+}
+
+.login__local-note {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.login__error,
+.field-error {
+  margin: 0;
+  font-size: 14px;
+  color: var(--crust);
+  font-weight: 600;
+}
+
+.login__loaf {
+  margin-top: 20px;
+}
+
+.login__divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.login__line {
+  flex: 1;
+  height: 1.5px;
+  background: var(--divider);
+}
+
+.login__or {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.login__alt {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.login__disclaimer {
+  margin: auto 0 0;
+  padding-top: var(--space-5);
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+/* Shared by the first-time screens */
+.screen-title {
+  font-size: 30px;
+  color: var(--crust);
+}
+
+.card {
+  padding: var(--space-4);
+  background: var(--crumb);
+  border: 1.5px solid var(--divider);
+  border-radius: 16px;
+}
+
+.card h2 {
+  font-size: 20px;
+  margin-bottom: var(--space-2);
+}
+
+.stack-tight {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.stack-tight p,
+.notice {
+  margin: 0;
+}
+
+.notice {
+  padding: var(--space-3);
+  border-radius: 12px;
+  background: var(--crumb);
+  border: 1.5px dashed var(--toast-edge);
+}
+
+.placement,
+.result,
+.new-loaf {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-top: var(--space-5);
+}
+
+.placement__eyebrow {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.placement__intro {
+  margin: 0;
+}
+
+.placement__actions,
+.result__actions,
+.new-loaf__actions {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: auto;
+  padding-top: var(--space-4);
+}
+
+.result__loaf {
+  font-family: var(--font-display);
+  font-variation-settings: 'SOFT' 100;
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--crust);
+}
+
+.text-button {
+  min-height: 44px;
+  border: 0;
+  background: none;
+  color: var(--crust);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.progress-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--divider);
+  overflow: hidden;
+}
+
+.progress-bar__fill {
+  height: 100%;
+  background: var(--sage);
+  border-radius: 999px;
+  transition: width var(--stage-ms) ease;
+}
+
+/* Radio and checkbox inputs styled as slice buttons */
+.choice-group {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.choice-group__legend {
+  padding: 0;
+  font-family: var(--font-display);
+  font-variation-settings: 'SOFT' 100;
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.choice-group__help {
+  margin: var(--space-2) 0 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.choice-group__options {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.choice {
+  position: relative;
+  display: block;
+}
+
+.choice__input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+
+.choice__label {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  padding: 10px 20px;
+  background: var(--crumb);
+  color: var(--rye);
+  font-size: 16px;
+  font-weight: 600;
+  border: 3px solid var(--toast-edge);
+  border-radius: 46px 46px 14px 14px / 32px 32px 14px 14px;
+}
+
+.choice__input:checked + .choice__label {
+  background: var(--butter);
+  border-color: var(--crust);
+}
+
+.choice__input:focus-visible + .choice__label {
+  outline: 3px solid var(--butter);
+  outline-offset: 2px;
+}
+
+.field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 44px;
+  font-weight: 600;
+}
+
+.check input {
+  width: 24px;
+  height: 24px;
+  accent-color: var(--crust);
+}
+
+/* Confirmation sheet: stays inside the phone frame */
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  background: rgb(43 27 18 / 0.45);
+}
+
+.sheet__card {
+  display: grid;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-5) var(--space-4) calc(var(--space-5) + env(safe-area-inset-bottom));
+  background: var(--ground);
+  border-radius: 24px 24px 0 0;
+}
+
+.sheet__card p {
+  margin: 0;
+}

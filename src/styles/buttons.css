@@ -6,7 +6,7 @@
   width: 100%;
   min-height: 62px;
   height: 62px;
-  padding: 10px 24px 0;
+  padding: 6px 24px 0;
   background: var(--crust);
   color: #ffffff;
   font-size: 18px;
@@ -27,23 +27,36 @@
   cursor: not-allowed;
 }
 
+/* Three slanted score marks near the top, positioned as in docs/mockups/login.html. */
 .loaf-button__scores {
   position: absolute;
-  top: 9px;
-  left: 50%;
-  display: flex;
-  gap: 10px;
-  transform: translateX(-50%);
+  inset: 0;
   pointer-events: none;
 }
 
 .loaf-button__scores i {
-  display: block;
-  width: 4px;
-  height: 11px;
-  border-radius: 2px;
+  position: absolute;
+  width: 30px;
+  height: 3px;
+  border-radius: 3px;
   background: var(--crumb);
-  transform: rotate(28deg);
+  opacity: 0.55;
+  transform: rotate(-14deg);
+}
+
+.loaf-button__scores i:nth-child(1) {
+  top: 11px;
+  left: 30%;
+}
+
+.loaf-button__scores i:nth-child(2) {
+  top: 9px;
+  left: 46%;
+}
+
+.loaf-button__scores i:nth-child(3) {
+  top: 11px;
+  left: 62%;
 }
 
 .slice-button {
@@ -61,6 +74,12 @@
   border: 3px solid var(--toast-edge);
   border-radius: 46px 46px 14px 14px / 32px 32px 14px 14px;
   text-decoration: none;
+}
+
+/* The taller slice on the login screen, as in the mockup. */
+.slice-button--tall {
+  height: 72px;
+  padding-top: 8px;
 }
 
 .slice-button:active:not(:disabled) {

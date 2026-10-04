@@ -1,0 +1,195 @@
+<!doctype html>
+<!--
+  Dough! login screen mockup (reference for milestone 5).
+  Match layout, colors, sizes, and button shapes. Values here are exact.
+
+  Notes for the build:
+  - The Google button is shown only after the Supabase milestone wires up Google sign-in.
+    It must use Google's official sign-in button asset and branding rules. The plain
+    button below only marks its position and size.
+  - "Continue as demo user" is always shown on login.
+  - No Apple or School buttons (out of scope).
+  - Fonts are self-hosted in the app; this mockup loads them from Google Fonts only for preview.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dough! login mockup</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..700&family=Fraunces:opsz,wght,SOFT@9..144,400..800,0..100&display=swap">
+<style>
+  :root {
+    --ground: #FFFFFF;
+    --crumb: #FFF6E6;
+    --butter: #F6C453;
+    --toast-edge: #B9773A;
+    --crust: #8A4B1F;
+    --deep-crust: #5E3315;
+    --rye: #2B1B12;
+    --sage: #5E7A4F;
+    --text-muted: #6B5446;
+    --field-border: #9C8467;
+    --divider: #EADBC4;
+    --placeholder: #7A6552;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--crumb);
+    font-family: 'DM Sans', 'Avenir Next', 'Segoe UI', sans-serif;
+    color: var(--rye);
+  }
+  /* Phone frame, as on screens wider than 600px */
+  .phone {
+    width: 390px;
+    height: 844px;
+    margin: 24px auto;
+    background: var(--ground);
+    padding: 52px 28px 32px;
+    display: flex;
+    flex-direction: column;
+  }
+  .brand { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .wordmark {
+    margin: 4px 0 0;
+    font-family: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+    font-variation-settings: 'SOFT' 100;
+    font-weight: 700;
+    font-size: 54px;
+    line-height: 1;
+    letter-spacing: -1px;
+    color: var(--crust);
+  }
+  .tagline { margin: 0; font-size: 17px; color: var(--text-muted); }
+
+  .form { display: flex; flex-direction: column; gap: 6px; margin-top: 40px; }
+  label { font-size: 14px; font-weight: 600; }
+  input {
+    height: 52px;
+    padding: 0 16px;
+    border: 1.5px solid var(--field-border);
+    border-radius: 14px;
+    background: var(--crumb);
+    font: inherit;
+    font-size: 16px;
+    color: var(--rye);
+  }
+  input::placeholder { color: var(--placeholder); }
+  input:focus-visible { outline: 3px solid var(--butter); outline-offset: 2px; }
+  .local-note { margin: 4px 0 0; font-size: 13px; color: var(--text-muted); }
+
+  /* Loaf button: main action, one per screen */
+  .loaf-button {
+    position: relative;
+    margin-top: 20px;
+    width: 100%;
+    height: 62px;
+    border: 0;
+    border-bottom: 5px solid var(--deep-crust);
+    border-radius: 70px 70px 16px 16px / 38px 38px 16px 16px;
+    background: var(--crust);
+    color: #FFFFFF;
+    font: inherit;
+    font-size: 18px;
+    font-weight: 700;
+    padding-top: 6px;
+    cursor: pointer;
+  }
+  .loaf-button:active { transform: translateY(3px); border-bottom-width: 2px; }
+  .score {
+    position: absolute;
+    width: 30px;
+    height: 3px;
+    border-radius: 3px;
+    background: var(--crumb);
+    opacity: 0.55;
+    transform: rotate(-14deg);
+  }
+
+  .divider { display: flex; align-items: center; gap: 12px; margin-top: 28px; }
+  .divider span.line { flex: 1; height: 1.5px; background: var(--divider); }
+  .divider span.text { font-size: 14px; color: var(--text-muted); }
+
+  .alt { display: flex; flex-direction: column; gap: 14px; margin-top: 20px; }
+
+  /* Placeholder only: replace with Google's official button asset */
+  .google-placeholder {
+    height: 52px;
+    border: 1.5px solid #747775;
+    border-radius: 999px;
+    background: #FFFFFF;
+    color: #1F1F1F;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  /* Slice button: secondary */
+  .slice-button {
+    height: 72px;
+    border: 3px solid var(--toast-edge);
+    border-radius: 46px 46px 14px 14px / 32px 32px 14px 14px;
+    background: var(--crumb);
+    color: var(--rye);
+    font: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    padding-top: 8px;
+    cursor: pointer;
+  }
+  .slice-button:active { transform: translateY(2px); }
+
+  .disclaimer {
+    margin: auto 0 0;
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--text-muted);
+  }
+</style>
+</head>
+<body>
+<main class="phone">
+
+  <div class="brand">
+    <svg aria-hidden="true" width="150" height="94" viewBox="0 0 160 100" fill="none">
+      <path d="M58 18 C54 12 62 8 58 2" stroke="#C9B497" stroke-width="3" stroke-linecap="round"/>
+      <path d="M80 16 C76 10 84 6 80 0" stroke="#C9B497" stroke-width="3" stroke-linecap="round"/>
+      <path d="M102 18 C98 12 106 8 102 2" stroke="#C9B497" stroke-width="3" stroke-linecap="round"/>
+      <path d="M14 80 C14 44 46 28 80 28 C114 28 146 44 146 80 Q146 88 138 88 L22 88 Q14 88 14 80 Z" fill="#F6C453" stroke="#8A4B1F" stroke-width="3.5"/>
+      <path d="M46 52 Q55 43 65 45" stroke="#8A4B1F" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M72 44 Q81 35 91 37" stroke="#8A4B1F" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M98 50 Q107 41 117 43" stroke="#8A4B1F" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M6 95 L154 95" stroke="#EADBC4" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <h1 class="wordmark">Dough!</h1>
+    <p class="tagline">Stack that bread.</p>
+  </div>
+
+  <form class="form" onsubmit="return false">
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="email" placeholder="you@email.com">
+    <p class="local-note">Local-only for this demo. Nothing leaves this device.</p>
+    <button type="submit" class="loaf-button">
+      <span class="score" aria-hidden="true" style="top: 11px; left: 30%"></span>
+      <span class="score" aria-hidden="true" style="top: 9px; left: 46%"></span>
+      <span class="score" aria-hidden="true" style="top: 11px; left: 62%"></span>
+      Continue with email
+    </button>
+  </form>
+
+  <div class="divider" aria-hidden="true">
+    <span class="line"></span><span class="text">or</span><span class="line"></span>
+  </div>
+
+  <div class="alt">
+    <!-- Shown only after the Supabase milestone. Use Google's official button asset. -->
+    <button type="button" class="google-placeholder">Continue with Google</button>
+    <button type="button" class="slice-button">Continue as demo user</button>
+  </div>
+
+  <p class="disclaimer">Educational demo. Not financial advice.<br>No real money moves.</p>
+
+</main>
+</body>
+</html>
