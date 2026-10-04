@@ -155,7 +155,7 @@ describe('your new loaf', () => {
     await user.click(screen.getByRole('button', { name: 'Start my loaf' }));
     await user.click(await screen.findByRole('button', { name: "Yes, that's right" }));
 
-    await waitFor(() => expect(pathname()).toBe('/'));
+    await waitFor(() => expect(pathname()).toBe('/lessons'));
     const saved = await adapter.load();
     expect(saved.loaves).toHaveLength(1);
     expect(saved.transactions).toMatchObject([{ type: 'starting', amountCents: 1_050_000 }]);
@@ -165,7 +165,7 @@ describe('your new loaf', () => {
     const user = userEvent.setup();
     const { adapter, pathname } = mount('/new-loaf', withAnswers({ essentials: '500-749', savings: 'none' }));
     await user.click(await screen.findByRole('button', { name: 'Start my loaf' }));
-    await waitFor(() => expect(pathname()).toBe('/'));
+    await waitFor(() => expect(pathname()).toBe('/lessons'));
     const saved = await adapter.load();
     expect(saved.loaves[0].targetCents).toBe(65_000);
     expect(saved.transactions).toHaveLength(0);

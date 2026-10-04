@@ -1,4 +1,5 @@
 import type { AppData } from '../data/types';
+import { savingUnlocked } from '../domain/lessons';
 
 /** Where the student belongs right now: login, placement, the result, or Home. */
 export function destinationFor(data: AppData): string {
@@ -8,9 +9,22 @@ export function destinationFor(data: AppData): string {
   return '/';
 }
 
-/** Where the student goes once their first loaf exists: a fund that starts baked goes on to choose the next loaf. */
+/**
+ * A new loaf whose lessons and quiz aren't done yet. Saving setup opens after a normal quiz
+ * (any score) or a passing test-out. A loaf that has been baked, even at the start, skips this.
+ */
+function needsLessons(data: AppData): boolean {
+  return (
+    data.loaves.length > 0 &&
+    !data.loaves.some((l) => l.bakes.length > 0) &&
+    !savingUnlocked(data.quizAttempts)
+  );
+}
+
+/** Where the student goes once their first loaf exists: a fund that starts baked goes on to choose the next loaf, a new one to its lessons. */
 function afterFirstLoaf(data: AppData): string {
-  return data.loaves.some((l) => l.bakes.length > 0) ? '/choose-loaf' : '/';
+  if (data.loaves.some((l) => l.bakes.length > 0)) return '/choose-loaf';
+  return needsLessons(data) ? '/lessons' : '/';
 }
 
 /**
@@ -30,9 +44,18 @@ export function guardRedirect(pathname: string, data: AppData): string | null {
       if (!data.profile) return '/placement';
       return hasLoaf ? afterFirstLoaf(data) : null;
     case '/choose-loaf':
-    case '/':
       return hasLoaf ? null : destinationFor(data);
+    case '/':
+      if (!hasLoaf) return destinationFor(data);
+      return needsLessons(data) ? '/lessons' : null;
+    case '/lessons':
+    case '/quiz':
+      return hasLoaf ? null : destinationFor(data);
+    case '/saving-setup':
+      if (!hasLoaf) return destinationFor(data);
+      return needsLessons(data) ? '/lessons' : null;
     default:
+      if (pathname.startsWith('/lessons/')) return hasLoaf ? null : destinationFor(data);
       return null;
   }
 }

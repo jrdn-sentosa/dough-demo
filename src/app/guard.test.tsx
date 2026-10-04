@@ -19,7 +19,9 @@ const loaf = { loafId: 'emergency-fund' as const, targetCents: 65000, startedAt:
 const signedOut = emptyData();
 const noProfile: AppData = { ...emptyData(), user };
 const noLoaf: AppData = { ...noProfile, profile };
-const returning: AppData = { ...noLoaf, loaves: [loaf] };
+const quizDone = { id: 'quiz-1', loafId: 'emergency-fund' as const, mode: 'lesson' as const, score: 2, total: 5, answers: {}, missedLessons: [], at: '2026-01-02T00:00:00.000Z' };
+const midFlow: AppData = { ...noLoaf, loaves: [loaf] };
+const returning: AppData = { ...midFlow, quizAttempts: [quizDone] };
 
 describe('guardRedirect', () => {
   it('sends signed-out students to login from everywhere', () => {
@@ -46,6 +48,33 @@ describe('guardRedirect', () => {
     expect(guardRedirect('/new-loaf', returning)).toBe('/');
     expect(guardRedirect('/', returning)).toBeNull();
     expect(guardRedirect('/choose-loaf', returning)).toBeNull();
+  });
+
+  it('keeps a new loaf on its lessons until the quiz is done', () => {
+    expect(guardRedirect('/', midFlow)).toBe('/lessons');
+    expect(guardRedirect('/new-loaf', midFlow)).toBe('/lessons');
+    expect(guardRedirect('/saving-setup', midFlow)).toBe('/lessons');
+    expect(guardRedirect('/lessons', midFlow)).toBeNull();
+    expect(guardRedirect('/lessons/ef-how-much', midFlow)).toBeNull();
+    expect(guardRedirect('/quiz', midFlow)).toBeNull();
+  });
+
+  it('a failed test-out does not unlock saving setup, but a passing one does', () => {
+    const attempt = (score: number) => ({ ...quizDone, mode: 'test-out' as const, score });
+    expect(guardRedirect('/saving-setup', { ...midFlow, quizAttempts: [attempt(3)] })).toBe('/lessons');
+    expect(guardRedirect('/', { ...midFlow, quizAttempts: [attempt(3)] })).toBe('/lessons');
+    expect(guardRedirect('/saving-setup', { ...midFlow, quizAttempts: [attempt(4)] })).toBeNull();
+    expect(guardRedirect('/', { ...midFlow, quizAttempts: [attempt(4)] })).toBeNull();
+  });
+
+  it('opens saving setup after a normal quiz at any score', () => {
+    expect(guardRedirect('/saving-setup', returning)).toBeNull();
+  });
+
+  it('keeps lessons and the quiz behind a loaf', () => {
+    for (const path of ['/lessons', '/lessons/ef-how-much', '/quiz', '/saving-setup']) {
+      expect(guardRedirect(path, noLoaf)).toBe('/placement/result');
+    }
   });
 
   it('sends a student whose fund started baked on to choose the next loaf', () => {

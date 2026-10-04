@@ -13,7 +13,7 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
 | 3 | Money layer and local adapter | Done |
 | 4 | Draft content and loader | Done |
 | 5 | First-time flow | Done |
-| 6 | Lessons and loaf quiz | To do |
+| 6 | Lessons and loaf quiz | Done (on branch `milestone-6-lessons-quiz`, pending preview check) |
 | 7 | Saving setup and Home | To do |
 | 8 | Loaf done and shelf | To do |
 | 9 | Demo mode, Settings, and PWA | To do |
@@ -73,6 +73,7 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
    - LoafQuiz: score, explanation for every wrong answer, retries, links back to lesson and timestamp.
    - "Already know this? Take the quiz first" test-out: 4 of 5 or more makes videos optional ("You know this. Let's make it happen.") and goes to Saving setup. Fewer recommends the lessons for missed questions, then a retake with explanations. Normal path unchanged.
    - `ef-where-to-keep` is optional ("You're already doing this") for students with high-yield savings.
+   - Notes (done): new `src/domain/lessons.ts` (`lessonPlan`, `nextLessonId`, `savingUnlocked`, `reachedWatchThreshold`) with tests. `AppData` gains `lessonProgress` and `quizAttempts` (old saved data loads with empty lists; `src/data/progress.ts` has `markLessonWatched` and `recordQuizAttempt`, dates from the demo clock). Screens: `/lessons` (Lessons), `/lessons/:lessonId?t=` (Lesson), `/quiz` and `/quiz?mode=test-out` (LoafQuiz), and a `/saving-setup` placeholder until milestone 7. Components: `VideoPlayer` (`playsInline`, captions, 90% or ended, `onError` poster), `LessonRow` (collapsed rows are native `<details>`), `QuizQuestion`; `ChoiceGroup` gained `disabled`, `status` and `statusText` (defaults unchanged). Screen copy is in `content/loaves/emergency-fund.json` under `flow` and appears in `docs/content-review.md`. Changes from the plan: the normal quiz uses a "Check answer" button (choices stay changeable until then); the test-out quiz has no feedback at all and its end screen shows only the score and lessons to review; `vercel.json` rewrites page routes only, so missing files 404 (tested in `src/vercelConfig.test.ts`). Guard: a new loaf is held on `/lessons` until a normal quiz or passing test-out; a failed test-out doesn't unlock Saving setup. "Rewatch this part" vs "Read the summary" depends on a HEAD probe for a real `video/*` reply. Not checked in a real browser or on the Vercel preview yet: covered by tests only.
 7. **Saving setup and Home**
    - SavingSetup: habit and the high-yield savings suggestion, plus an open-a-high-yield-account step for students with no savings account.
    - Home: LoafIllustration with stage animation, ProgressBar (`role="progressbar"`), and the separate emergency-fund total.

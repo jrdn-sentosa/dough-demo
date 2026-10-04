@@ -220,11 +220,14 @@ The emergency fund loaf is the first loaf for students with under 3 months cover
 }
 ```
 
+- **Quiz screens:** one question per screen with a progress bar. In the normal quiz the student picks a choice (and can change it), then taps "Check answer"; feedback appears and the choices lock only after Check. Right answers are sage, wrong picks are crust, each with the explanation, and a wrong pick gets "Rewatch this part" (a link to the lesson at its timestamp, or "Read the summary" when the video file doesn't exist).
 - **Emergency fund quiz:** completing it unlocks Saving setup. It does not require a passing score, because the real goal is getting the student to save. Show the score, explain every wrong answer, and allow retries.
 - **Investment loaves (future):** require 80% to start, since understanding risk protects new investors. This check applies to everyone, including students who test out of the videos.
 - **Test out (knowledge is checked inside each loaf):** before a loaf's videos, offer "Already know this? Take the quiz first."
+  - The test-out quiz gives **no per-question feedback** (no Check step, no explanations). Its end screen shows the score and, when it was missed, which lessons to review, but never the correct answers or explanations.
   - 4 or more of 5 correct: the videos become optional, with copy like "You know this. Let's make it happen." Go to Saving setup.
-  - Fewer: each missed question recommends its lesson (quiz questions already map to lessons). After the lessons, the student takes the quiz again, with explanations.
+  - Fewer: each missed question recommends its lesson (quiz questions already map to lessons), the lessons list shows those as "Recommended" and collapses the rest, and Saving setup stays locked. After the lessons, the student takes the normal quiz, with full feedback.
+  - Lesson progress (`lessonProgress`) and quiz attempts (`quizAttempts`, with `mode` of `test-out` or `lesson`) are saved through the data adapter. Saving setup opens after a normal quiz at any score or a passing test-out. Routes: `/lessons`, `/lessons/:lessonId?t=<seconds>`, `/quiz` (`?mode=test-out` for the test-out), `/saving-setup`. The route guard keeps a new loaf on `/lessons` until Saving setup is unlocked.
   - The normal path (no test-out) is unchanged: videos, then quiz.
 
 ## Saving and rising
@@ -377,7 +380,7 @@ Content for the Index funds, Bonds, Roth IRA, and Debt payoff loaves (cards only
 ## Deploying
 
 - The app is hosted on Vercel. Pushes to `main` deploy to production automatically, and every other branch gets its own preview link.
-- `vercel.json` rewrites every route to `index.html`, so refreshing or opening a link like `/placement` works. `react-router` handles routing in the browser. Files that exist (assets, icons, videos) are still served as they are.
+- `vercel.json` rewrites page routes only to `index.html`, so refreshing or opening a link like `/placement` works. `react-router` handles routing in the browser. Paths under `assets/`, `videos/`, `icons/`, and any path ending in a file extension are not rewritten, so a missing video, image, or icon returns a real 404. (The video player still has an `onError` poster as a backup, because the dev and preview servers answer a missing file with the app's index page.)
 - Environment variables (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_DEMO_MODE`) are set in the Vercel dashboard, never committed. Only `.env.example` (with empty values) is in git.
 
 ## How to work in this repo
