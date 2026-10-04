@@ -1,12 +1,9 @@
-import { readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-const DIR = join(process.cwd(), 'supabase', 'migrations');
-const sql = readdirSync(DIR)
-  .filter((f) => f.endsWith('.sql'))
+const files = import.meta.glob<string>('../../supabase/migrations/*.sql', { eager: true, query: '?raw', import: 'default' });
+const sql = Object.keys(files)
   .sort()
-  .map((f) => readFileSync(join(DIR, f), 'utf8'))
+  .map((f) => files[f])
   .join('\n');
 
 const tables = [...sql.matchAll(/create\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\.)?(\w+)/gi)].map((m) => m[1]);
