@@ -4,7 +4,7 @@ title: How much you need
 draft: true
 video: ef-how-much.mp4
 captions: ef-how-much.vtt
-durationSeconds: 105
+durationSeconds: 110
 optionalFor: null
 ---
 The right size for your fund starts with your **essentials**: what you'd need to get by for a month.
@@ -21,7 +21,7 @@ Rent, food, phone, transportation, and anything else you can't skip. If your hou
 
 ## Start where you are
 
-Dough! picks a starting goal for you based on your answers, and you can change it any time. If you already have some savings set aside, it can count toward the goal so your loaf starts partway risen.
+Dough! picks a starting goal for you based on your answers. If you skip the questions, it starts with a common starter goal. You can change it any time. If you already have some savings set aside, it can count toward the goal so your loaf starts partway risen.
 
 Progress matters more than perfect. A small fund you actually build beats a big goal you never start.
 

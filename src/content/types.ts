@@ -24,6 +24,14 @@ export interface PlacementContent {
   draft: boolean;
   title: string;
   intro: string;
+  /** "Skip for now" on every placement screen, and its confirmation. `{goal}` is the starter goal. */
+  skip: { label: string; confirm: string; confirmSkip: string; confirmKeep: string };
+  /** Result screen after skipping. `{goal}` is the starter goal. */
+  resultSkipped: string;
+  /** Settings, "Retake the quiz". `{amount}` is the suggested goal. */
+  retake: { updateGoal: string };
+  /** ChooseLoaf when an unknown answer blocks a recommendation. Opens placement. */
+  personalizePrompt: string;
   questions: PlacementQuestion[];
 }
 
@@ -47,6 +55,8 @@ export interface GrowOption {
   title: string;
   summary: string;
   targetMonths: number;
+  /** Asked first when essentials are unknown, before the 3-month goal can be sized. */
+  askEssentials: string;
 }
 
 export interface BuiltLoaf extends LoafBase {

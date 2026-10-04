@@ -70,10 +70,21 @@ function parsePlacement(raw: unknown): PlacementContent {
       }),
     };
   });
+  const skip = obj(o.skip, `${where} skip`);
+  const retake = obj(o.retake, `${where} retake`);
   return {
     draft: bool(o, 'draft', where),
     title: str(o, 'title', where),
     intro: str(o, 'intro', where),
+    skip: {
+      label: str(skip, 'label', `${where} skip`),
+      confirm: str(skip, 'confirm', `${where} skip`),
+      confirmSkip: str(skip, 'confirmSkip', `${where} skip`),
+      confirmKeep: str(skip, 'confirmKeep', `${where} skip`),
+    },
+    resultSkipped: str(o, 'resultSkipped', where),
+    retake: { updateGoal: str(retake, 'updateGoal', `${where} retake`) },
+    personalizePrompt: str(o, 'personalizePrompt', where),
     questions,
   };
 }
@@ -118,6 +129,7 @@ export function parseLoaf(raw: unknown, file: string): LoafDefinition {
       title: str(grow, 'title', `${file} growOption`),
       summary: str(grow, 'summary', `${file} growOption`),
       targetMonths: num(grow, 'targetMonths', `${file} growOption`),
+      askEssentials: str(grow, 'askEssentials', `${file} growOption`),
     },
     lessons: arr(o, 'lessons', file).map((l) => {
       if (typeof l !== 'string') throw new ContentError(file, 'lessons must be lesson ids');

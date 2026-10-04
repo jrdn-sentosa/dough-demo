@@ -10,7 +10,8 @@
   "growOption": {
     "title": "Grow your cushion to 3 months",
     "summary": "Your cushion is built. Raise the goal to three months of essentials to cover longer gaps, like losing a job or a bigger medical bill. Your first bake stays on the shelf.",
-    "targetMonths": 3
+    "targetMonths": 3,
+    "askEssentials": "To size your 3-month goal, about how much do you need each month?"
   },
   "lessons": ["ef-what-its-for", "ef-how-much", "ef-where-to-keep"],
   "quiz": "emergency-fund",

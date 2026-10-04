@@ -16,6 +16,8 @@ import {
 } from './loader';
 import { ContentError } from './guards';
 import { renderContentReview } from './review';
+import { fillTemplate } from './template';
+import { DEFAULT_GOAL_CENTS } from '../domain/bands';
 
 const captionFiles = import.meta.glob<string>('/public/videos/*/*.vtt', {
   eager: true,
@@ -74,6 +76,43 @@ describe('placement content', () => {
   it('has a boolean draft flag', () => {
     expect(typeof placement.draft).toBe('boolean');
   });
+
+  it('says placement is quick and can be skipped', () => {
+    expect(placement.intro).toBe(
+      'A few quick questions to set your first goal. There are no right answers, and you can skip anytime.',
+    );
+  });
+
+  it('has the skip button, its confirmation, and the skipped result copy', () => {
+    expect(placement.skip.label).toBe('Skip for now');
+    expect([placement.skip.confirmSkip, placement.skip.confirmKeep]).toEqual(['Skip', 'Keep answering']);
+    expect(placement.skip.confirm).toContain('You can personalize anytime in Settings.');
+    expect(placement.resultSkipped).toContain('Your first loaf: Emergency fund.');
+  });
+
+  it('uses a {goal} token instead of a typed figure, so the copy cannot drift from the default goal', () => {
+    for (const text of [placement.skip.confirm, placement.resultSkipped]) {
+      expect(text).toContain('{goal}');
+      expect(text).not.toMatch(/\$\s?\d/);
+    }
+    const shown = fillTemplate(placement.resultSkipped, { goal: '$1,000' });
+    expect(shown).toBe(
+      'Your first loaf: Emergency fund. Starting goal: $1,000, a default you can change in Settings.',
+    );
+    expect(DEFAULT_GOAL_CENTS).toBe(100_000);
+  });
+
+  it('has the retake goal prompt and the ChooseLoaf personalization prompt', () => {
+    expect(placement.retake.updateGoal).toBe('Update your goal to {amount}?');
+    expect(placement.personalizePrompt).toBe('Answer a few quick questions for a personalized pick');
+  });
+});
+
+describe('fillTemplate', () => {
+  it('fills tokens, and throws on an unknown one', () => {
+    expect(fillTemplate('Goal {goal}, again {goal}', { goal: '$1' })).toBe('Goal $1, again $1');
+    expect(() => fillTemplate('Hello {nope}', {})).toThrow(/nope/);
+  });
 });
 
 describe('loaf content', () => {
@@ -110,6 +149,12 @@ describe('loaf content', () => {
     if (loaf.status !== 'built') throw new Error('expected built');
     expect(loaf.growOption.title).toBe('Grow your cushion to 3 months');
     expect(loaf.growOption.targetMonths).toBe(GROW_TARGET_MONTHS);
+  });
+
+  it('asks for essentials first when growing with unknown essentials', () => {
+    const loaf = getLoaf('emergency-fund');
+    if (loaf.status !== 'built') throw new Error('expected built');
+    expect(loaf.growOption.askEssentials).toBe('To size your 3-month goal, about how much do you need each month?');
   });
 
   it('offers 1, 3 and 6 months, defaulting to 1', () => {
@@ -220,6 +265,12 @@ describe('financial content rules', () => {
     const captions = captionFiles['/public/videos/emergency-fund/ef-where-to-keep.vtt'];
     expect(captions).toContain('FDIC');
     expect(captions).toContain('NCUA');
+  });
+
+  it('says what happens when the questions are skipped, with no dollar figure', () => {
+    const sentence = 'If you skip the questions, it starts with a common starter goal.';
+    expect(getLesson('emergency-fund', 'ef-how-much').summary).toContain(sentence);
+    expect(captionFiles['/public/videos/emergency-fund/ef-how-much.vtt']).toContain(sentence);
   });
 
   it('warns about transfer time and about apps that are not banks', () => {

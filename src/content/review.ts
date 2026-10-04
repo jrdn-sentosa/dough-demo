@@ -1,9 +1,17 @@
+import { DEFAULT_GOAL_CENTS } from '../domain/bands';
+import { formatCents } from '../money/format';
 import { getLessons, getLoaf, getLoaves, getPlacement, getQuiz } from './loader';
+import { fillTemplate } from './template';
 
 const LETTERS = 'ABCD';
 
 function draftTag(draft: boolean): string {
   return draft ? ' _(draft)_' : '';
+}
+
+/** Fills `{goal}` with the starter goal as the app shows it, and any other tokens given. */
+function fill(text: string, extra: Record<string, string> = {}): string {
+  return fillTemplate(text, { goal: formatCents(DEFAULT_GOAL_CENTS), ...extra });
 }
 
 /**
@@ -26,6 +34,14 @@ export function renderContentReview(): string {
     '',
     placement.intro,
     '',
+    `**${placement.skip.label}** on every screen. Confirmation: ${fill(placement.skip.confirm)} Buttons: "${placement.skip.confirmSkip}" and "${placement.skip.confirmKeep}".`,
+    '',
+    `Result screen when skipped: ${fill(placement.resultSkipped)}`,
+    '',
+    `Settings, retake: ${fill(placement.retake.updateGoal, { amount: '$X' })}`,
+    '',
+    `ChooseLoaf when an answer is unknown: ${placement.personalizePrompt}.`,
+    '',
   );
 
   placement.questions.forEach((q, i) => {
@@ -45,6 +61,8 @@ export function renderContentReview(): string {
 
   out.push(
     `Option after it bakes: **${loaf.growOption.title}**. ${loaf.growOption.summary}`,
+    '',
+    `If essentials are unknown, it first asks: ${loaf.growOption.askEssentials}`,
     '',
     '## Lessons',
     '',

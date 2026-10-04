@@ -1,7 +1,18 @@
 {
   "draft": true,
   "title": "Let's get to know your money",
-  "intro": "Five quick questions about your situation. There are no right answers and nothing is graded. Ranges are fine, and you can change your goal any time.",
+  "intro": "A few quick questions to set your first goal. There are no right answers, and you can skip anytime.",
+  "skip": {
+    "label": "Skip for now",
+    "confirm": "No problem. You'll start from the beginning with a default goal of {goal}, about one month of typical essentials. You can personalize anytime in Settings.",
+    "confirmSkip": "Skip",
+    "confirmKeep": "Keep answering"
+  },
+  "resultSkipped": "Your first loaf: Emergency fund. Starting goal: {goal}, a default you can change in Settings.",
+  "retake": {
+    "updateGoal": "Update your goal to {amount}?"
+  },
+  "personalizePrompt": "Answer a few quick questions for a personalized pick",
   "questions": [
     {
       "id": "essentials",
