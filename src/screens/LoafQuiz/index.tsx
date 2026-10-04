@@ -11,7 +11,9 @@ import { fillTemplate } from '../../content/template';
 import type { Lesson, QuizQuestionContent } from '../../content/types';
 import { recordQuizAttempt } from '../../data/progress';
 import type { QuizMode } from '../../data/types';
+import { isMastered, isMasteryScore } from '../../domain/mastery';
 import { evaluateTestOut, gradeQuiz } from '../../domain/quiz';
+import { shuffleQuiz } from '../../domain/shuffle';
 import type { QuizGrade } from '../../domain/quiz';
 import { SliceButton } from '../../components/SliceButton';
 import { useLessonFlow } from '../useLessonFlow';
@@ -36,19 +38,23 @@ export function LoafQuiz() {
   const mode: QuizMode = search.get('mode') === 'test-out' ? 'test-out' : 'lesson';
   const testOut = mode === 'test-out';
 
-  const { adapter, refresh } = useData();
+  const { adapter, data, refresh } = useData();
   const navigate = useNavigate();
   const { loafId, flow, lessons, draft } = useLessonFlow();
   const t = flow.quiz;
   const quiz = useMemo(() => getQuiz(loafId), [loafId]);
   const questions = quiz.questions;
 
+  // A fresh order for the questions and their choices on every attempt. Answers are kept by choice id.
+  const [shown, setShown] = useState(() => shuffleQuiz(questions));
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [checked, setChecked] = useState(false);
   const [grade, setGrade] = useState<QuizGrade | null>(null);
+  const [masteredBefore, setMasteredBefore] = useState(false);
 
   function restart() {
+    setShown(shuffleQuiz(questions));
     setIndex(0);
     setAnswers({});
     setChecked(false);
@@ -59,15 +65,17 @@ export function LoafQuiz() {
     return testOut ? (
       <TestOutEnd grade={grade} lessons={lessons} flow={flow} draft={draft} onContinue={() => navigate('/saving-setup')} onLessons={() => navigate('/lessons')} />
     ) : (
-      <LessonEnd grade={grade} questions={questions} lessons={lessons} flow={flow} draft={draft} onRetry={restart} onContinue={() => navigate('/saving-setup')} />
+      <LessonEnd grade={grade} masteredBefore={masteredBefore} questions={questions} lessons={lessons} flow={flow} draft={draft} onRetry={restart} onContinue={() => navigate('/saving-setup')} />
     );
   }
 
-  const question = questions[index];
+  const { question, choices } = shown[index];
   const picked = answers[question.id] ?? null;
   const last = index === questions.length - 1;
 
   async function finish() {
+    // Read before saving: did an earlier attempt already master the lessons?
+    setMasteredBefore(isMastered(data?.quizAttempts ?? [], loafId));
     const result = gradeQuiz(questions, answers);
     await recordQuizAttempt(adapter, loafId, mode, result, answers);
     await refresh();
@@ -108,6 +116,7 @@ export function LoafQuiz() {
       <QuizQuestion
         key={question.id}
         question={question}
+        choices={choices}
         picked={picked}
         onPick={(choice) => {
           if (!checked) setAnswers({ ...answers, [question.id]: choice });
@@ -144,14 +153,18 @@ interface EndProps {
 }
 
 /** Normal end screen: the score, why each missed answer is what it is, retry, and on to saving setup. */
-function LessonEnd({ grade, questions, lessons, flow, draft, onRetry, onContinue }: EndProps & { questions: QuizQuestionContent[]; onRetry: () => void; onContinue: () => void }) {
+function LessonEnd({ grade, masteredBefore, questions, lessons, flow, draft, onRetry, onContinue }: EndProps & { masteredBefore: boolean; questions: QuizQuestionContent[]; onRetry: () => void; onContinue: () => void }) {
   const t = flow.quiz;
+  const mastered = isMasteryScore(grade.score, grade.total);
   return (
     <div className="quiz">
       <h1 className="screen-title">{t.scoreTitle}</h1>
       <DraftNote draft={draft} />
       <p className="quiz__score" role="status">{fillTemplate(t.score, { score: String(grade.score), total: String(grade.total) })}</p>
       <p>{t.scoreNote}</p>
+      <p className={mastered ? 'quiz__mastered' : undefined}>
+        {mastered ? t.mastered : masteredBefore ? t.masteredBefore : t.masteryHint}
+      </p>
 
       {grade.missed.length > 0 && (
         <section className="stack-tight" aria-label={t.reviewMissed}>

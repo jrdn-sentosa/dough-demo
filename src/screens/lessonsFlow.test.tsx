@@ -46,22 +46,40 @@ function mount(path: string, data: AppData): { adapter: DataAdapter; pathname: (
 const correct = (i: number) => quiz.questions[i].choices[quiz.questions[i].answer];
 const wrong = (i: number) => quiz.questions[i].choices[(quiz.questions[i].answer + 1) % quiz.questions[i].choices.length];
 
-/** Normal mode: pick, Check answer, then Next question or See my score. */
-async function answerNormal(user: ReturnType<typeof userEvent.setup>, picks: string[]) {
-  for (let i = 0; i < picks.length; i++) {
-    await user.click(await screen.findByRole('radio', { name: picks[i] }));
-    await user.click(screen.getByRole('button', { name: 'Check answer' }));
-    await user.click(screen.getByRole('button', { name: i === picks.length - 1 ? 'See my score' : 'Next question' }));
-  }
+type User = ReturnType<typeof userEvent.setup>;
+
+/** Matches a choice by its text. Choices can contain parentheses, so escape them. After a check the label also has hidden status text. */
+const startsWith = (text: string) => new RegExp(`^${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`);
+
+/** The questions and choices are shuffled, so find which content question is on screen by its text. */
+function shownIndex(): number {
+  const text = document.querySelector('legend')?.textContent;
+  const i = quiz.questions.findIndex((q) => q.question === text);
+  if (i < 0) throw new Error(`no quiz question on screen: ${text}`);
+  return i;
 }
 
-/** Test-out mode: pick, then Next question or See my score. There is no Check step. */
-async function answerTestOut(user: ReturnType<typeof userEvent.setup>, picks: string[]) {
-  for (let i = 0; i < picks.length; i++) {
-    await user.click(await screen.findByRole('radio', { name: picks[i] }));
-    await user.click(screen.getByRole('button', { name: i === picks.length - 1 ? 'See my score' : 'Next question' }));
+/** Answers every question, returning the content indexes in the order they were shown. */
+async function answerAll(user: User, rightOnes: number[], checkEach: boolean): Promise<number[]> {
+  const order: number[] = [];
+  for (let n = 0; n < quiz.questions.length; n++) {
+    await screen.findByRole('button', { name: checkEach ? 'Check answer' : /^(Next question|See my score)$/ });
+    const i = shownIndex();
+    order.push(i);
+    await user.click(screen.getByRole('radio', { name: rightOnes.includes(i) ? correct(i) : wrong(i) }));
+    if (checkEach) await user.click(screen.getByRole('button', { name: 'Check answer' }));
+    await user.click(screen.getByRole('button', { name: n === quiz.questions.length - 1 ? 'See my score' : 'Next question' }));
   }
+  return order;
 }
+
+/** Normal mode: pick, Check answer, then Next question or See my score. `rightOnes` are content indexes answered correctly. */
+const answerNormal = (user: User, rightOnes: number[]) => answerAll(user, rightOnes, true);
+
+/** Test-out mode: pick, then Next question or See my score. There is no Check step. */
+const answerTestOut = (user: User, rightOnes: number[]) => answerAll(user, rightOnes, false);
+
+const all = quiz.questions.map((_, i) => i);
 
 describe('lessons list', () => {
   it('shows the three lessons in order with the test-out offer above and the quiz below', async () => {
@@ -195,68 +213,75 @@ describe('lesson screen', () => {
 describe('loaf quiz (normal mode)', () => {
   it('shows one question per screen with a progress bar', async () => {
     mount('/quiz', dataFor());
-    await screen.findByRole('radio', { name: quiz.questions[0].choices[0] });
+    await screen.findByRole('button', { name: 'Check answer' });
+    const i = shownIndex();
     expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('20');
     expect(screen.getByText('Question 1 of 5')).toBeTruthy();
-    expect(screen.getAllByRole('radio')).toHaveLength(quiz.questions[0].choices.length);
+    expect(screen.getAllByRole('radio')).toHaveLength(quiz.questions[i].choices.length);
   });
 
   it('lets the student change their choice until they tap Check answer', async () => {
     const user = userEvent.setup();
     mount('/quiz', dataFor());
     const check = await screen.findByRole('button', { name: 'Check answer' });
+    const i = shownIndex();
     expect((check as HTMLButtonElement).disabled).toBe(true);
 
-    await user.click(screen.getByRole('radio', { name: wrong(0) }));
+    await user.click(screen.getByRole('radio', { name: wrong(i) }));
     expect(screen.queryByRole('status')).toBeNull();
-    await user.click(screen.getByRole('radio', { name: correct(0) }));
-    expect((screen.getByRole('radio', { name: correct(0) }) as HTMLInputElement).checked).toBe(true);
-    expect((screen.getByRole('radio', { name: wrong(0) }) as HTMLInputElement).checked).toBe(false);
+    await user.click(screen.getByRole('radio', { name: correct(i) }));
+    expect((screen.getByRole('radio', { name: correct(i) }) as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByRole('radio', { name: wrong(i) }) as HTMLInputElement).checked).toBe(false);
     expect(screen.queryByRole('status')).toBeNull();
-    expect(screen.queryByText(quiz.questions[0].explain)).toBeNull();
+    expect(screen.queryByText(quiz.questions[i].explain)).toBeNull();
   });
 
   it('a right answer shows sage feedback with the explanation, and locks the choices', async () => {
     const user = userEvent.setup();
     mount('/quiz', dataFor());
-    await user.click(await screen.findByRole('radio', { name: correct(0) }));
+    await screen.findByRole('button', { name: 'Check answer' });
+    const i = shownIndex();
+    await user.click(screen.getByRole('radio', { name: correct(i) }));
     await user.click(screen.getByRole('button', { name: 'Check answer' }));
 
     const feedback = screen.getByRole('status');
     expect(feedback.className).toContain('feedback--correct');
     expect(feedback.textContent).toContain('Correct');
-    expect(feedback.textContent).toContain(quiz.questions[0].explain);
+    expect(feedback.textContent).toContain(quiz.questions[i].explain);
     expect(screen.queryByRole('link', { name: /Rewatch|Read the summary/ })).toBeNull();
     const radios = screen.getAllByRole('radio') as HTMLInputElement[];
     expect(radios.every((r) => r.disabled)).toBe(true);
-    expect(screen.getByRole('radio', { name: new RegExp(correct(0)) }).closest('label')?.className).toContain('choice--correct');
+    expect(screen.getByRole('radio', { name: startsWith(correct(i)) }).closest('label')?.className).toContain('choice--correct');
     expect(screen.queryByRole('button', { name: 'Check answer' })).toBeNull();
   });
 
   it('a wrong answer shows crust (not red) feedback, the explanation, the answer, and a link to the summary when there is no video', async () => {
     const user = userEvent.setup();
     mount('/quiz', dataFor());
-    await user.click(await screen.findByRole('radio', { name: wrong(0) }));
+    await screen.findByRole('button', { name: 'Check answer' });
+    const i = shownIndex();
+    await user.click(screen.getByRole('radio', { name: wrong(i) }));
     await user.click(screen.getByRole('button', { name: 'Check answer' }));
 
     const feedback = screen.getByRole('status');
     expect(feedback.className).toContain('feedback--wrong');
     expect(feedback.textContent).toContain('Not quite');
-    expect(feedback.textContent).toContain(quiz.questions[0].explain);
-    expect(feedback.textContent).toContain(`The answer: ${correct(0)}`);
-    const picked = screen.getByRole('radio', { name: new RegExp(wrong(0)) }).closest('label');
-    expect(picked?.className).toContain('choice--incorrect');
-    expect(screen.getByRole('radio', { name: new RegExp(correct(0)) }).closest('label')?.className).toContain('choice--correct');
+    expect(feedback.textContent).toContain(quiz.questions[i].explain);
+    expect(feedback.textContent).toContain(`The answer: ${correct(i)}`);
+    expect(screen.getByRole('radio', { name: startsWith(wrong(i)) }).closest('label')?.className).toContain('choice--incorrect');
+    expect(screen.getByRole('radio', { name: startsWith(correct(i)) }).closest('label')?.className).toContain('choice--correct');
 
     const link = within(feedback).getByRole('link', { name: 'Read the summary' });
-    expect(link.getAttribute('href')).toBe(`/lessons/${quiz.questions[0].lesson}?t=${quiz.questions[0].timestamp}`);
+    expect(link.getAttribute('href')).toBe(`/lessons/${quiz.questions[i].lesson}?t=${quiz.questions[i].timestamp}`);
   });
 
   it('says "Rewatch this part" when the video file exists', async () => {
     vi.stubGlobal('fetch', async () => ({ ok: true, headers: { get: () => 'video/mp4' } }));
     const user = userEvent.setup();
     mount('/quiz', dataFor());
-    await user.click(await screen.findByRole('radio', { name: wrong(0) }));
+    await screen.findByRole('button', { name: 'Check answer' });
+    const i = shownIndex();
+    await user.click(screen.getByRole('radio', { name: wrong(i) }));
     await user.click(screen.getByRole('button', { name: 'Check answer' }));
     expect(await screen.findByRole('link', { name: 'Rewatch this part' })).toBeTruthy();
   });
@@ -265,7 +290,9 @@ describe('loaf quiz (normal mode)', () => {
     vi.stubGlobal('fetch', async () => ({ ok: true, headers: { get: () => 'text/html; charset=utf-8' } }));
     const user = userEvent.setup();
     mount('/quiz', dataFor());
-    await user.click(await screen.findByRole('radio', { name: wrong(0) }));
+    await screen.findByRole('button', { name: 'Check answer' });
+    const i = shownIndex();
+    await user.click(screen.getByRole('radio', { name: wrong(i) }));
     await user.click(screen.getByRole('button', { name: 'Check answer' }));
     expect(await screen.findByRole('link', { name: 'Read the summary' })).toBeTruthy();
   });
@@ -273,22 +300,22 @@ describe('loaf quiz (normal mode)', () => {
   it('ends with the score, explains every missed question, saves the attempt, and allows a retry', async () => {
     const user = userEvent.setup();
     const { adapter, pathname } = mount('/quiz', dataFor());
-    await answerNormal(user, [correct(0), wrong(1), correct(2), wrong(3), correct(4)]);
+    await answerNormal(user, [0, 2, 4]); // misses questions 1 and 3
 
     expect((await screen.findByRole('heading', { name: 'Your score' })).textContent).toBeTruthy();
     expect(screen.getByText('3 of 5 correct')).toBeTruthy();
-    expect(screen.getByText(/There's no passing score here/)).toBeTruthy();
+    expect(screen.getByText(/You don't need a certain score to move on/)).toBeTruthy();
     for (const i of [1, 3]) expect(screen.getByText(quiz.questions[i].explain)).toBeTruthy();
     expect(screen.queryByText(quiz.questions[0].explain)).toBeNull();
 
     const saved = (await adapter.load()).quizAttempts;
     expect(saved).toHaveLength(1);
     expect(saved[0]).toMatchObject({ mode: 'lesson', score: 3, total: 5 });
-    expect(saved[0].missedLessons).toEqual([...new Set([quiz.questions[1].lesson, quiz.questions[3].lesson])]);
+    expect([...saved[0].missedLessons].sort()).toEqual([...new Set([quiz.questions[1].lesson, quiz.questions[3].lesson])].sort());
 
     await user.click(screen.getByRole('button', { name: 'Try again' }));
     expect(await screen.findByText('Question 1 of 5')).toBeTruthy();
-    await answerNormal(user, quiz.questions.map((_, i) => correct(i)));
+    await answerNormal(user, all);
     await screen.findByText('5 of 5 correct');
     expect((await adapter.load()).quizAttempts).toHaveLength(2);
 
@@ -299,31 +326,105 @@ describe('loaf quiz (normal mode)', () => {
   it('has no pass gate: a score of zero still continues to saving setup', async () => {
     const user = userEvent.setup();
     const { pathname } = mount('/quiz', dataFor());
-    await answerNormal(user, quiz.questions.map((_, i) => wrong(i)));
+    await answerNormal(user, []);
     await screen.findByText('0 of 5 correct');
     await user.click(screen.getByRole('button', { name: 'Continue to saving setup' }));
     await waitFor(() => expect(pathname()).toBe('/saving-setup'));
   });
+
+  it('has no cooldown: the student can retry right away, many times', async () => {
+    const user = userEvent.setup();
+    const { adapter } = mount('/quiz', dataFor());
+    for (let n = 1; n <= 3; n++) {
+      await answerNormal(user, []);
+      await screen.findByText('0 of 5 correct');
+      expect((await adapter.load()).quizAttempts).toHaveLength(n);
+      await user.click(screen.getByRole('button', { name: 'Try again' }));
+    }
+    expect(await screen.findByText('Question 1 of 5')).toBeTruthy();
+  });
+});
+
+describe('shuffling on the quiz screens', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('shows the questions and choices in a different order on each attempt, and still grades by choice', async () => {
+    const user = userEvent.setup();
+    // 0.999 keeps the content order; 0 rotates every list, so the two attempts differ.
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0.999);
+    const { adapter } = mount('/quiz', dataFor());
+    await screen.findByRole('button', { name: 'Check answer' });
+    expect(shownIndex()).toBe(0);
+    const firstChoices = screen.getAllByRole('radio').map((r) => r.closest('label')?.textContent);
+    expect(firstChoices).toEqual(quiz.questions[0].choices);
+
+    const order1 = await answerNormal(user, all);
+    expect(order1).toEqual(all);
+    await screen.findByText('5 of 5 correct');
+
+    random.mockReturnValue(0);
+    await user.click(screen.getByRole('button', { name: 'Try again' }));
+    await screen.findByRole('button', { name: 'Check answer' });
+    expect(shownIndex()).not.toBe(0);
+    const rotated = screen.getAllByRole('radio').map((r) => r.closest('label')?.textContent);
+    expect(rotated).not.toEqual(quiz.questions[shownIndex()].choices);
+
+    const order2 = await answerNormal(user, [0, 1, 2]);
+    expect(order2).not.toEqual(order1);
+    expect([...order2].sort()).toEqual(all);
+    await screen.findByText('3 of 5 correct');
+
+    // Saved answers are choice ids (content indexes), whatever order they were shown in.
+    const [first, second] = (await adapter.load()).quizAttempts;
+    expect(first.answers).toEqual(Object.fromEntries(quiz.questions.map((q) => [q.id, q.answer])));
+    expect(second.score).toBe(3);
+    for (const q of quiz.questions.slice(0, 3)) expect(second.answers[q.id]).toBe(q.answer);
+    for (const q of quiz.questions.slice(3)) expect(second.answers[q.id]).not.toBe(q.answer);
+    expect([...second.missedLessons].sort()).toEqual([...new Set(quiz.questions.slice(3).map((q) => q.lesson))].sort());
+  });
+
+  it('shuffles the test-out quiz too', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(Math, 'random').mockReturnValue(0);
+    mount('/quiz?mode=test-out', dataFor());
+    await screen.findByRole('button', { name: 'Next question' });
+    expect(shownIndex()).not.toBe(0);
+    const order = await answerTestOut(user, all);
+    expect(order).not.toEqual(all);
+    await screen.findByText('5 of 5 correct');
+  });
+
+  it('links a missed question to the right lesson even when the choices were shuffled', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(Math, 'random').mockReturnValue(0);
+    mount('/quiz', dataFor());
+    await screen.findByRole('button', { name: 'Check answer' });
+    const i = shownIndex();
+    await user.click(screen.getByRole('radio', { name: wrong(i) }));
+    await user.click(screen.getByRole('button', { name: 'Check answer' }));
+    const link = screen.getByRole('link', { name: 'Read the summary' });
+    expect(link.getAttribute('href')).toBe(`/lessons/${quiz.questions[i].lesson}?t=${quiz.questions[i].timestamp}`);
+    expect(screen.getByRole('status').textContent).toContain(`The answer: ${correct(i)}`);
+  });
 });
 
 describe('test-out quiz', () => {
-  const picksFor = (rightOnes: number[]) => quiz.questions.map((_, i) => (rightOnes.includes(i) ? correct(i) : wrong(i)));
-
   it('gives no per-question feedback and has no Check answer step', async () => {
     const user = userEvent.setup();
     mount('/quiz?mode=test-out', dataFor());
-    await screen.findByRole('radio', { name: correct(0) });
+    await screen.findByRole('button', { name: 'Next question' });
+    const i = shownIndex();
     expect(screen.queryByRole('button', { name: 'Check answer' })).toBeNull();
     expect((screen.getByRole('button', { name: 'Next question' }) as HTMLButtonElement).disabled).toBe(true);
 
-    await user.click(screen.getByRole('radio', { name: wrong(0) }));
+    await user.click(screen.getByRole('radio', { name: wrong(i) }));
     expect(screen.queryByRole('status')).toBeNull();
-    expect(screen.queryByText(quiz.questions[0].explain)).toBeNull();
+    expect(screen.queryByText(quiz.questions[i].explain)).toBeNull();
     expect(screen.queryByText('Not quite')).toBeNull();
     expect(screen.queryByText('Correct')).toBeNull();
     // Choices stay open, so the student can change their mind before moving on.
-    await user.click(screen.getByRole('radio', { name: correct(0) }));
-    expect((screen.getByRole('radio', { name: correct(0) }) as HTMLInputElement).disabled).toBe(false);
+    await user.click(screen.getByRole('radio', { name: correct(i) }));
+    expect((screen.getByRole('radio', { name: correct(i) }) as HTMLInputElement).disabled).toBe(false);
     expect(document.querySelector('.choice--correct, .choice--incorrect')).toBeNull();
 
     await user.click(screen.getByRole('button', { name: 'Next question' }));
@@ -333,7 +434,7 @@ describe('test-out quiz', () => {
   it('4 of 5 makes the videos optional and moves on to saving setup', async () => {
     const user = userEvent.setup();
     const { adapter, pathname } = mount('/quiz?mode=test-out', dataFor());
-    await answerTestOut(user, picksFor([0, 1, 2, 3]));
+    await answerTestOut(user, [0, 1, 2, 3]);
 
     expect((await screen.findByRole('heading', { name: "You know this. Let's make it happen." })).textContent).toBeTruthy();
     expect(screen.getByText('4 of 5 correct')).toBeTruthy();
@@ -346,12 +447,11 @@ describe('test-out quiz', () => {
   it('fewer than 4 shows the score and the lessons to review, and no answers or explanations', async () => {
     const user = userEvent.setup();
     const { adapter } = mount('/quiz?mode=test-out', dataFor());
-    // Miss questions 1 and 2 (the lessons they cover), get the rest right.
-    const missed = [1, 2, 3];
-    await answerTestOut(user, picksFor([0, 4]));
+    // Get questions 0 and 4 right; miss 1, 2 and 3.
+    await answerTestOut(user, [0, 4]);
 
     await screen.findByText('2 of 5 correct');
-    const missedLessons = [...new Set(missed.map((i) => quiz.questions[i].lesson))];
+    const missedLessons = [...new Set([1, 2, 3].map((i) => quiz.questions[i].lesson))];
     const review = screen.getByRole('region', { name: 'Lessons to review' });
     for (const id of missedLessons) expect(review.textContent).toContain(lessons.find((l) => l.id === id)?.title);
 
@@ -367,13 +467,13 @@ describe('test-out quiz', () => {
 
     const saved = (await adapter.load()).quizAttempts;
     expect(saved).toMatchObject([{ mode: 'test-out', score: 2 }]);
-    expect(saved[0].missedLessons).toEqual(missedLessons);
+    expect([...saved[0].missedLessons].sort()).toEqual([...missedLessons].sort());
   });
 
   it('after a failed test-out, the lessons come next and the retake uses normal mode with full feedback', async () => {
     const user = userEvent.setup();
     const { pathname, search } = mount('/quiz?mode=test-out', dataFor());
-    await answerTestOut(user, picksFor([0, 4]));
+    await answerTestOut(user, [0, 4]);
     await user.click(await screen.findByRole('button', { name: 'Go to my lessons' }));
     await waitFor(() => expect(pathname()).toBe('/lessons'));
     await screen.findByRole('heading', { name: "Here's what to review" });
@@ -382,20 +482,82 @@ describe('test-out quiz', () => {
     await waitFor(() => expect(pathname()).toBe('/quiz'));
     expect(search()).toBe('');
 
-    await user.click(await screen.findByRole('radio', { name: wrong(0) }));
+    await screen.findByRole('button', { name: 'Check answer' });
+    const i = shownIndex();
+    await user.click(screen.getByRole('radio', { name: wrong(i) }));
     await user.click(screen.getByRole('button', { name: 'Check answer' }));
     const feedback = screen.getByRole('status');
     expect(feedback.textContent).toContain('Not quite');
-    expect(feedback.textContent).toContain(quiz.questions[0].explain);
+    expect(feedback.textContent).toContain(quiz.questions[i].explain);
   });
 
   it('a failed test-out does not open saving setup', async () => {
     const user = userEvent.setup();
     const { pathname } = mount('/quiz?mode=test-out', dataFor());
-    await answerTestOut(user, picksFor([0, 4]));
+    await answerTestOut(user, [0, 4]);
     await screen.findByText('2 of 5 correct');
     expect(screen.queryByRole('button', { name: 'Continue to saving setup' })).toBeNull();
     expect(pathname()).toBe('/quiz');
+  });
+});
+
+describe('mastery', () => {
+  const tellsHowToMaster = 'Get 4 out of 5 to master these lessons. You can try again anytime.';
+
+  it('3 out of 5 keeps the explanations and says how to master the lessons', async () => {
+    const user = userEvent.setup();
+    mount('/quiz', dataFor());
+    await answerNormal(user, [0, 1, 2]);
+    await screen.findByText('3 of 5 correct');
+    expect(screen.getByText(tellsHowToMaster)).toBeTruthy();
+    expect(screen.queryByText("You mastered this loaf's lessons.")).toBeNull();
+    for (const i of [3, 4]) expect(screen.getByText(quiz.questions[i].explain)).toBeTruthy();
+  });
+
+  it.each([4, 5])('%i out of 5 says the lessons are mastered', async (score) => {
+    const user = userEvent.setup();
+    mount('/quiz', dataFor());
+    await answerNormal(user, all.slice(0, score));
+    await screen.findByText(`${score} of 5 correct`);
+    expect(screen.getByText("You mastered this loaf's lessons.")).toBeTruthy();
+    expect(screen.queryByText(tellsHowToMaster)).toBeNull();
+  });
+
+  it('a lower score after mastering says the best score still counts, and retries stay open', async () => {
+    const user = userEvent.setup();
+    mount('/quiz', dataFor(undefined, [attempt('lesson', 5)]));
+    await answerNormal(user, [0]);
+    await screen.findByText('1 of 5 correct');
+    expect(screen.getByText("You've already mastered this loaf's lessons. Your best score still counts.")).toBeTruthy();
+    expect(screen.queryByText(tellsHowToMaster)).toBeNull();
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeTruthy();
+  });
+
+  it('shows a Mastered badge on the lessons list once any normal attempt reached 4 out of 5', async () => {
+    mount('/lessons', dataFor(undefined, [attempt('lesson', 2), attempt('lesson', 4), attempt('lesson', 1)]));
+    await screen.findByRole('heading', { name: 'Your lessons' });
+    expect(screen.getByText('Mastered').className).toContain('badge');
+  });
+
+  it('shows no badge below 4 out of 5', async () => {
+    mount('/lessons', dataFor(undefined, [attempt('lesson', 3)]));
+    await screen.findByRole('heading', { name: 'Your lessons' });
+    expect(screen.queryByText('Mastered')).toBeNull();
+  });
+
+  it('a perfect test-out does not master the lessons: no badge, and nothing about mastery on the end screen', async () => {
+    const user = userEvent.setup();
+    const { adapter } = mount('/quiz?mode=test-out', dataFor());
+    await answerTestOut(user, all);
+    await screen.findByText('5 of 5 correct');
+    expect(document.body.textContent).not.toContain('mastered');
+    expect(document.body.textContent).not.toContain('Get 4 out of 5');
+    expect((await adapter.load()).quizAttempts).toMatchObject([{ mode: 'test-out', score: 5 }]);
+
+    cleanup();
+    mount('/lessons', dataFor(undefined, [attempt('test-out', 5)]));
+    await screen.findByRole('heading', { name: "You know this. Let's make it happen." });
+    expect(screen.queryByText('Mastered')).toBeNull();
   });
 });
 

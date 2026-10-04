@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { QuizQuestionContent } from '../content/types';
+import type { ShuffledChoice } from '../domain/shuffle';
 import { ChoiceGroup } from './ChoiceGroup';
 import type { ChoiceStatus } from './ChoiceGroup';
 
@@ -16,16 +17,18 @@ export interface QuestionReveal {
 
 interface QuizQuestionProps {
   question: QuizQuestionContent;
-  /** Index of the picked choice, or null. */
+  /** The choices in the order shown. Each id is the choice's index in the content, so answers don't depend on order. */
+  choices: readonly ShuffledChoice[];
+  /** Id of the picked choice, or null. */
   picked: number | null;
-  onPick: (index: number) => void;
+  onPick: (choiceId: number) => void;
   /** Set after "Check answer". Locks the choices and shows feedback. Null while answering, and always null in a test-out. */
   reveal: QuestionReveal | null;
 }
 
 /** One question: choices as radio inputs styled as slice buttons, then feedback once checked. */
-export function QuizQuestion({ question, picked, onPick, reveal }: QuizQuestionProps) {
-  const options = question.choices.map((label, i) => ({ id: String(i), label }));
+export function QuizQuestion({ question, choices, picked, onPick, reveal }: QuizQuestionProps) {
+  const options = choices.map((c) => ({ id: String(c.id), label: c.label }));
   const status: Record<string, ChoiceStatus> = {};
   if (reveal) {
     status[String(question.answer)] = 'correct';

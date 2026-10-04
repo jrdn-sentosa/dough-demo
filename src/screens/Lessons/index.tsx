@@ -7,7 +7,7 @@ import { useLessonFlow } from '../useLessonFlow';
 
 /** "Your lessons": the loaf's lessons in order, with the test-out offer above and the quiz below. */
 export function Lessons() {
-  const { flow, lessons, plan, watched, unlocked, draft } = useLessonFlow();
+  const { flow, lessons, plan, watched, unlocked, mastered, draft } = useLessonFlow();
   const navigate = useNavigate();
   const t = flow.lessons;
 
@@ -51,6 +51,7 @@ export function Lessons() {
   return (
     <div className="lessons">
       <h1 className="screen-title">{title}</h1>
+      {mastered && <span className="badge badge--mastered">{t.mastered}</span>}
       <DraftNote draft={draft} />
       <p>{intro}</p>
 

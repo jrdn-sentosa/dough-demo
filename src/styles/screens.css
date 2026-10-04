@@ -528,3 +528,23 @@ input:focus-visible {
   font-size: 26px;
   color: var(--sage);
 }
+
+.badge {
+  align-self: flex-start;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Mastered: a golden finish, in the palette's butter and crust tones. */
+.badge--mastered {
+  background: var(--butter);
+  color: var(--deep-crust);
+  border: 2px solid var(--toast-edge);
+}
+
+.quiz__mastered {
+  font-weight: 700;
+  color: var(--sage);
+}

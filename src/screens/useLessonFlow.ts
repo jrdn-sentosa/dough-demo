@@ -4,6 +4,7 @@ import { getLessons, getLoaf } from '../content/loader';
 import type { FlowContent, Lesson } from '../content/types';
 import { lessonPlan, savingUnlocked } from '../domain/lessons';
 import type { LessonPlan } from '../domain/lessons';
+import { isMastered } from '../domain/mastery';
 import type { LoafId } from '../domain/types';
 import type { LessonProgress, QuizAttempt } from '../data/types';
 
@@ -21,6 +22,8 @@ export interface LessonFlow {
   /** Lesson ids the student has watched. */
   watched: ReadonlySet<string>;
   unlocked: boolean;
+  /** Best normal-quiz score is 4 out of 5 or more. Worked out from saved attempts. */
+  mastered: boolean;
   draft: boolean;
 }
 
@@ -45,6 +48,7 @@ export function useLessonFlow(): LessonFlow {
     plan,
     watched,
     unlocked: savingUnlocked(attempts),
+    mastered: isMastered(attempts, FLOW_LOAF),
     draft: loaf.draft || lessons.some((l) => l.draft),
   };
 }
