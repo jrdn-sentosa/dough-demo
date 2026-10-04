@@ -20,9 +20,10 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
 | 11 | Demo mode, Settings, and PWA | Done (on branch `milestone-11-demo-tools-settings-pwa`, pending preview check) |
 | 12 | Supabase | Done (Google sign-in postponed; worked ahead of 11) |
 | 13 | Dough points, daily quiz, and feedback | Done (on branch `milestone-13-points-daily-quiz-feedback`, pending preview check; migration not yet applied) |
-| 14 | Referrals | To do |
-| 15 | Plaid Sandbox bank linking (stretch) | To do |
-| 16 | Dough! Plus (simulated) | To do (plan only, moved after Plaid) |
+| 14 | Sharing | Done (on branch `milestone-14-sharing`, pending preview check) |
+| 15 | Referrals | To do (postponed until after Sharing) |
+| 16 | Plaid Sandbox bank linking (stretch) | To do |
+| 17 | Dough! Plus (simulated) | To do (plan only, moved after Plaid) |
 
 ## Milestones
 
@@ -129,7 +130,7 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
    - Checked in a real browser against `npm run preview`: the service worker activates, the manifest has no installability errors, and the app (and a deep link) loads with the server stopped, fonts included. A real second build showed the update message, and Refresh reloaded into the new version. The video handler is covered by unit tests only (no video files exist yet); try it with the first real video.
    - Still open from the original list: the accessibility and contrast pass.
 12. **Supabase**
-    - Schema for `profiles` (including the risk quiz result), `placement_results`, `loaves`, `transactions`, `lesson_progress`, and `quiz_attempts`, plus the habit, seen tips, (from milestone 9) streak unlocks, and (from milestone 16) the Plus flag, with RLS on every table.
+    - Schema for `profiles` (including the risk quiz result), `placement_results`, `loaves`, `transactions`, `lesson_progress`, and `quiz_attempts`, plus the habit, seen tips, (from milestone 9) streak unlocks, and (from milestone 17) the Plus flag, with RLS on every table.
     - Supabase adapter behind the same `DataAdapter` interface, plus email and Google auth.
     - Remove the fake local sign-in. Wire up the Google button (official asset) and show it only then, when Supabase is configured. Until now it is not rendered.
     - Add `.env.example` values and update CLAUDE.md.
@@ -155,11 +156,21 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
     - Maya's quiz attempt is 4 of 5, so she has mastered the loaf: her points back-fill on first open (a point for each finished day since her first deposit, plus 5 for mastery) and the daily quiz card shows.
     - Tests: no global timeout override. The slow jsdom screen tests were sped up (`userEvent` without per-action delays, cheaper role queries in the quiz helper), and only the three tests that answer the whole quiz several times have their own 15s timeout. A placement test still timed out about 1 run in 20 when all files ran at once: it takes about half a second on its own, and other tests in the same file slowed down at the same moment, so a whole worker had stalled. The cause is running too many jsdom workers at once (21 on this 22-processor, mixed-core laptop). `test.maxWorkers` in `vite.config.ts` is now `'40%'`: 30 full runs passed, averaging about 20s instead of about 30s, and the slowest test in that file was 1.8s instead of 5.4s.
     - Not checked in a real browser yet: covered by tests only. The 90% played check relies on the browser's `played` ranges, so try it with the first real video.
-14. **Referrals** (next, after milestone 13)
+14. **Sharing** (done, on branch `milestone-14-sharing`)
+    - "Share" on the celebration screen (loaf baked) and the quiz end screen (module mastered, shown only when mastered).
+    - An image card made in the browser (canvas): the loaf in its bread, the golden finish and sparkles when mastered, a short line ("I just baked my emergency fund loaf" / "I mastered the emergency fund lessons"), "Stack that bread." and the app's address. Two sizes: 1080x1920 (story) and 1080x1080 (post). Drawn only after the app fonts have loaded, in the app palette.
+    - Never anything about the student's money: no amounts, goals or balances. The card content function has no money inputs, and tests check the output and the content file.
+    - The phone's share sheet with the image when available; otherwise the image downloads, and "Copy text" is always offered.
+    - One function builds the share link (`buildShareLink` in `src/domain/share.ts`), so a referral code can be added in milestone 15.
+    - Works for the demo user and accounts. No tracking, nothing stored or sent. All copy in `content/share.json`, marked draft.
+    - Sub-plan approved before work started.
+    - Notes (done): pure parts in `src/domain/share.ts` (`shareCardContent`, `buildShareLink`, `shareText`, `cardFileName`, `CARD_SIZES`); canvas drawing in `src/share/renderCard.ts` (injectable canvas, image loader and font wait, so tests run without a real canvas); share, download and copy paths in `src/share/shareImage.ts` (injectable `ShareEnv`). `ShareButton` and `ShareSheet` are in `src/components/`. The picture is made when the sheet opens (and when the shape changes) so the "Share picture" tap only hands over a finished picture, because phones only open a share sheet right after a tap. The golden finish paths moved to `goldenFinishArt.ts`, shared by `GoldenFinish` and the card. The card shows the host (`window.location.origin`), no new env var. Share on the quiz end screen only appears when that attempt scored 4 of 5 or more.
+    - Not checked on a real phone yet: the share sheet with a file (iOS Safari, Android Chrome), the download fallback on desktop, and how the card looks with the real fonts. Covered by tests with a stand-in canvas only.
+15. **Referrals** (next, after Sharing)
     - 10 points to the referrer when the friend finishes placement and makes a first deposit.
     - Awarded by a Supabase `security definer` database function, so one account never writes another's rows. The ledger key is `referral:<friend id>`, which keeps the award unique.
     - Sub-plan first.
-15. **Plaid Sandbox bank linking (stretch, after Supabase)**
+16. **Plaid Sandbox bank linking (stretch, after Supabase)**
     - Sandbox only. Never development or production keys.
     - Plaid secret and access tokens live only in Supabase server functions, never in the browser or git. Ask before adding the Plaid Link dependency.
     - Read only: the student picks one savings account as their emergency fund. Balance data only. Never move money.
@@ -168,7 +179,7 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
     - Manual "I moved money" logging stays. Linking is optional.
     - UI states: "New deposits can take a day to appear" and "Reconnect your bank."
     - Sub-plan first (it touches many files). Update CLAUDE.md as decisions firm up.
-16. **Dough! Plus (simulated)** (plan only, moved after Plaid; see "Dough! Plus" in CLAUDE.md; sub-plan first when it starts)
+17. **Dough! Plus (simulated)** (plan only, moved after Plaid; see "Dough! Plus" in CLAUDE.md; sub-plan first when it starts)
    - `src/domain/entitlements.ts`: one pure function (for example `hasAccess(feature, flags)`) that every premium check goes through, so real billing can replace the flag later. Unit tests for every feature.
    - Always free: the emergency fund loaf and everything about it (saving, withdrawing, rebuilding, growing to 3 or 6 months), the placement quiz, the risk quiz and its result, and streak breads.
    - Plus: the investing loaves (lessons, quizzes, loaves), a set of exclusive breads that streaks can't unlock, and bank linking (Plaid exists by then).
@@ -198,14 +209,14 @@ Not blocking the demo, but each needs doing before real students use it.
 - **Dependencies.** `react-router` and `react-markdown` are approved. Frontmatter uses an in-house parser.
 - **Content scope.** Full content only for the emergency fund loaf, all marked as draft. Other loaves are "Coming soon" cards.
 - **Habit nudge.** In-app only, no notifications.
-- **Plaid (stretch).** The "no real bank connections" rule now allows Plaid in Sandbox mode only, in milestone 15. It is read-only and creates ordinary transaction rows. Until then, no Plaid code, packages, or keys.
+- **Plaid (stretch).** The "no real bank connections" rule now allows Plaid in Sandbox mode only, in milestone 16. It is read-only and creates ordinary transaction rows. Until then, no Plaid code, packages, or keys.
 - **Transaction source.** Every transaction has a `source` (`manual`, `plaid`, `seed`), default `manual`. Added in milestone 3's follow-up. Old saved rows without it load as `manual`. Milestone 11's Maya seed uses `seed`.
 - **Optional placement.** Every placement answer is optional (undefined means unknown). `placementStatus` is `complete`, `partial` or `skipped`, stored on the profile (`profile` on `AppData`, null until placement is answered or skipped). Unknown card debt, earned income or accounts never lead to a Roth IRA recommendation or skip the debt check: ChooseLoaf shows a personalization prompt instead. Grow your cushion still works.
 - **Local auth.** Email-only fake sign-in, clearly local-only, replaced in milestone 12.
 - **Save or invest.** After the emergency fund bakes, ChooseLoaf offers two paths: Keep saving (Grow your cushion) and Start investing (debt check, then the risk quiz). `recommendNext` decides which path gets the "Recommended" pill. The investing loaves stay "Coming soon", so the invest path ends in a saved result.
 - **Risk quiz.** Four questions with no right answers, skippable like placement. The result is a pure function with tests. Educational wording only: no percentages, allocations, or fund names. Saved on the profile as `profile.risk`.
-- **Points are trust-based (milestone 13).** Until Plaid verifies balances (milestone 15), every balance is self-reported, and a self-reported `starting` row or a tiny deposit can earn fund-day points. So points must not be redeemable for anything of real value before then. They have no cash, prize, or discount value in the app.
-- **Dough! Plus (milestone 16, plan only).** Simulated: no payments, a premium flag in saved data, every check through one pure function. Always free: the emergency fund loaf and everything about it, placement, the risk quiz and result, and streak breads. Plus: investing loaves, exclusive breads, and bank linking once Plaid exists. No pressure copy. Real charging needs Vercel's paid plan and clear renewal and cancellation terms.
+- **Points are trust-based (milestone 13).** Until Plaid verifies balances (milestone 16), every balance is self-reported, and a self-reported `starting` row or a tiny deposit can earn fund-day points. So points must not be redeemable for anything of real value before then. They have no cash, prize, or discount value in the app.
+- **Dough! Plus (milestone 17, plan only).** Simulated: no payments, a premium flag in saved data, every check through one pure function. Always free: the emergency fund loaf and everything about it, placement, the risk quiz and result, and streak breads. Plus: investing loaves, exclusive breads, and bank linking once Plaid exists. No pressure copy. Real charging needs Vercel's paid plan and clear renewal and cancellation terms.
 - **Streaks and bread unlocks (milestone 9).** Streak = consecutive habit periods with a deposit. Unlocks are permanent, the current streak can reset with no-guilt copy, and withdrawals never break a streak. Ladder in weeks of saving: baguette 2, bagel 4, focaccia 6, pretzel 8, brioche 12, croissant 16. Each topic keeps its bread as the default and any unlocked bread can be chosen for the next loaf.
 - **Maya's seed and unlock messages (milestone 11).** The seed marks the breads her 6-week streak already earned as `seen`, so opening the demo shows no unlock messages. A test checks the next unlock still shows.
 - **Demo tools only touch local demo data.** Reset demo and Start fresh demo are hidden for real accounts and refused by the money layer.

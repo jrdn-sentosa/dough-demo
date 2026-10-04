@@ -52,11 +52,13 @@ src/
                 used by placement and the quiz), VideoPlayer, QuizQuestion, LessonRow,
                 StageBar, HabitCard, TipRow, AmountSheet, HysaPoints (Home and Saving setup),
                 HabitForm (Saving setup and Settings), DemoActions (Reset and Start fresh demo),
-                DailyQuizCard (Home)
+                DailyQuizCard (Home), ShareButton, ShareSheet
   domain/       pure logic: placement scoring, targets, stages,
-                recommendations, quiz grading, points, daily quiz, local days (no React, no Supabase)
+                recommendations, quiz grading, points, daily quiz, local days,
+                share card content and link (no React, no Supabase)
   content/      typed loader for everything in content/ (import.meta.glob),
                 throws on malformed content; review-page renderer
+  share/        share card canvas drawing and the share, download and copy paths (no React)
   money/        simulated deposits and withdrawals, demo clock
   data/         the only code that talks to storage: DataAdapter interface,
                 localStorage (demo user), in-memory (tests) and Supabase (real accounts) adapters
@@ -66,6 +68,7 @@ content/
   risk.json                 risk quiz questions and result copy (educational)
   settings.json             Settings copy: change your goal, change your habit, send feedback
   points.json               Dough points, points history and daily quiz copy
+  share.json                Share button, sheet and share card lines (never money)
   loaves/<loaf>.json        loaf definition: title, bread, lessons, quiz, tips
   lessons/<loaf>/<id>.md    lesson page text and video metadata
   quizzes/<loaf>.json       loaf quiz questions
@@ -316,7 +319,7 @@ The result is a pure function in `src/domain/risk.ts` with unit tests:
 - The result shows which loaf fits (Coming soon) and is saved to the profile (`profile.risk`: status, answers, result). Retaking placement never clears it.
 - The 4-out-of-5 knowledge check still applies before any investing loaf starts, once that content exists.
 
-## Dough! Plus (simulated, milestone 16, planned, not built)
+## Dough! Plus (simulated, milestone 17, planned, not built)
 
 - **Always free:** the emergency fund loaf and everything about it (saving, withdrawing, rebuilding, growing to 3 or 6 months), the placement quiz, the risk quiz and its result, and streak breads.
 - **Plus:** the investing loaves (lessons, quizzes, loaves), a set of exclusive breads that streaks can't unlock, and bank linking once Plaid exists.
@@ -339,7 +342,17 @@ The result is a pure function in `src/domain/risk.ts` with unit tests:
 - **Daily quiz:** available only after at least one module is mastered. One question a day drawn from the quizzes of mastered modules, avoiding the last 3 questions shown (the avoid list shrinks, oldest first, when the pool is that small). The first Home view of the day picks it and saves it (`AppData.dailyQuizzes`, the `daily_quizzes` table), so a reload shows the same one. One try a day, with the explanation either way. Logic in `src/domain/dailyQuiz.ts`; the card is `DailyQuizCard`.
 - **UI:** the points total on Home links to `/points` (the history: what earned each point, and when, newest first). Copy is in `content/points.json`. No guilt: a day without a point is never mentioned, and a test checks the copy for loss words.
 - **Feedback (Settings):** a text box (max 1,000 characters) and an optional category (bug, idea, other). Accounts insert a row into `feedback` (RLS: insert of own rows only, never select; the length is also checked in the database). It carries the app version (`__APP_VERSION__` from `vite.config.ts`: the `package.json` version plus the short commit on Vercel) and the path of the screen the student came from, never a query string or any financial data. The demo user, who has no account, gets a `mailto:` link to the address in `content/settings.json`.
-- **Referrals (milestone 14, next):** 10 points to the referrer when the friend finishes placement and makes a first deposit, awarded by a Supabase database function (`security definer`) so one account never writes another's rows. Not built yet.
+- **Referrals (milestone 15, after Sharing):** 10 points to the referrer when the friend finishes placement and makes a first deposit, awarded by a Supabase database function (`security definer`) so one account never writes another's rows. Not built yet.
+
+## Sharing (milestone 14)
+
+- **Where:** a "Share" button on the celebration screen (loaf baked) and on the quiz end screen, the second only when that attempt mastered the lessons (not on the test-out end screen). It opens a sheet (`ShareButton`, `ShareSheet`).
+- **The card:** an image made in the browser on a canvas (`src/share/renderCard.ts`): the loaf in its bread, the golden finish and sparkles when mastered (the artwork paths are shared with `GoldenFinish` in `goldenFinishArt.ts`), a short line ("I just baked my emergency fund loaf" or "I mastered the emergency fund lessons"), "Stack that bread." and the app's address (the host). Two sizes, 1080x1920 (story) and 1080x1080 (post). It waits for the app fonts (`document.fonts.load`) before drawing, and uses the palette as hex values copied from `tokens.css`. Only bundled, same-origin art is drawn, so the canvas is never tainted and it works offline.
+- **Never money:** no amounts, goals, balances or anything about the student's money. `shareCardContent` in `src/domain/share.ts` takes only the kind, the copy and the link, so there is nowhere for money to enter, and tests check the card, the copied text and `content/share.json`.
+- **Sending:** the phone's share sheet with the image when the device can send files (`navigator.canShare`), otherwise the image downloads. "Copy text" is always offered. Closing the share sheet is quiet. The picture is made when the sheet opens, so the "Share picture" tap only hands over a finished picture (share sheets need a recent tap).
+- **One link function:** `buildShareLink` (`src/domain/share.ts`) is the only place a share link is built. It is the app's address with no path or query; a referral code goes in its `ref` argument when referrals exist (milestone 15).
+- **Works for the demo user and accounts.** No tracking: nothing is stored, counted or sent, and there are no new tables.
+- Copy is in `content/share.json` (marked draft), reviewed in `docs/content-review.md`.
 
 ## Streaks and bread unlocks (milestone 9)
 
