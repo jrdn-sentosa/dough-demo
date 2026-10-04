@@ -55,6 +55,9 @@ function withDefaults(data: AppData): AppData {
     loaves: data.loaves.map(withBakes),
     lessonProgress: Array.isArray(data.lessonProgress) ? data.lessonProgress : [],
     quizAttempts: Array.isArray(data.quizAttempts) ? data.quizAttempts.filter(hasChoiceIds) : [],
+    habit: data.habit ?? null,
+    tipsSeen: Array.isArray(data.tipsSeen) ? data.tipsSeen : [],
+    hysaCard: data.hysaCard === 'pending' || data.hysaCard === 'dismissed' ? data.hysaCard : null,
     transactions: data.transactions.map((t) => ({
       ...t,
       source: TRANSACTION_SOURCES.includes(t.source) ? t.source : ('manual' as TransactionSource),

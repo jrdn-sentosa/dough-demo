@@ -1,8 +1,12 @@
 import { parseFrontmatter } from '../domain/frontmatter';
+import { PAY_FREQUENCIES } from '../domain/habits';
+import { STAGES } from '../domain/stages';
 import type { AccountType, LoafId, Stage } from '../domain/types';
 import { ContentError, arr, bool, num, obj, oneOf, optStr, str } from './guards';
 import type {
   FlowContent,
+  HomeContent,
+  SavingSetupContent,
   Lesson,
   LoafDefinition,
   PlacementContent,
@@ -133,6 +137,61 @@ function strings<K extends string>(o: Record<string, unknown>, keys: readonly K[
   return out;
 }
 
+/** Reads a record that must have a non-empty string for every key in `keys`. */
+function record<K extends string>(raw: unknown, keys: readonly K[], where: string): Record<K, string> {
+  return strings(obj(raw, where), keys, where);
+}
+
+function stringList(o: Record<string, unknown>, key: string, where: string): string[] {
+  return arr(o, key, where).map((v) => {
+    if (typeof v !== 'string' || v.trim() === '') throw new ContentError(where, `"${key}" must be a list of non-empty strings`);
+    return v;
+  });
+}
+
+function parseSavingSetup(raw: unknown, w: string): SavingSetupContent {
+  const o = obj(raw, w);
+  const hysa = obj(o.hysa, `${w} hysa`);
+  const habit = obj(o.habit, `${w} habit`);
+  return {
+    hysa: {
+      ...strings(hysa, ['title', 'intro', 'demoNote', 'haveOne', 'later'] as const, `${w} hysa`),
+      points: stringList(hysa, 'points', `${w} hysa`),
+    },
+    habit: {
+      ...strings(
+        habit,
+        ['title', 'intro', 'weeklyTitle', 'weeklyBody', 'weeklyLabel', 'paycheckTitle', 'paycheckBody', 'paycheckLabel', 'frequencyLabel', 'paycheckAmountLabel', 'paycheckNote', 'accountNote', 'invalid', 'continue', 'skip'] as const,
+        `${w} habit`,
+      ),
+      frequencies: record(habit.frequencies, PAY_FREQUENCIES, `${w} habit frequencies`),
+    },
+    automatic: record(o.automatic, ['title', 'body', 'skippedNote', 'done'] as const, `${w} automatic`),
+  };
+}
+
+function parseHome(raw: unknown, w: string): HomeContent {
+  const o = obj(raw, w);
+  const card = obj(o.habitCard, `${w} habitCard`);
+  return {
+    ...strings(
+      o,
+      ['eyebrow', 'mastered', 'progressLabel', 'amountOf', 'keptIn', 'disclaimer', 'wholeFund', 'stageLineFormat', 'percentOfGoal', 'percentOfNewGoal', 'rebuilding', 'add', 'use', 'stageUp', 'stageUpTip', 'stageDown', 'readTip', 'dismissNotice', 'hysaCardDismiss'] as const,
+      w,
+    ),
+    stageLine: record(o.stageLine, STAGES, `${w} stageLine`),
+    stageNames: record(o.stageNames, STAGES, `${w} stageNames`),
+    habitCard: {
+      ...strings(card, ['value', 'notLogged', 'logged', 'lastAdded', 'neverAdded'] as const, `${w} habitCard`),
+      label: record(card.label, PAY_FREQUENCIES, `${w} habitCard label`),
+    },
+    addSheet: record(o.addSheet, ['title', 'amountLabel', 'confirm', 'cancel', 'invalid'] as const, `${w} addSheet`),
+    useSheet: record(o.useSheet, ['title', 'intro', 'available', 'amountLabel', 'confirm', 'cancel', 'invalid'] as const, `${w} useSheet`),
+    tips: record(o.tips, ['title', 'read', 'new', 'unlockedAt', 'unlocksAt', 'unlocksAtBaked'] as const, `${w} tips`),
+    completePlaceholder: record(o.completePlaceholder, ['title', 'body', 'home'] as const, `${w} completePlaceholder`),
+  };
+}
+
 function parseFlow(raw: unknown, file: string): FlowContent {
   const w = `${file} flow`;
   const o = obj(raw, w);
@@ -152,6 +211,8 @@ function parseFlow(raw: unknown, file: string): FlowContent {
       ['testOutTitle', 'testOutIntro', 'check', 'next', 'seeScore', 'correct', 'notQuite', 'correctAnswer', 'rewatch', 'readSummary', 'questionOf', 'scoreTitle', 'score', 'reviewMissed', 'tryAgain', 'continueSaving', 'scoreNote', 'mastered', 'masteredBefore', 'masteryHint', 'testOutPassTitle', 'testOutPassBody', 'testOutFailBody', 'testOutLessons', 'testOutToLessons'] as const,
       `${w} quiz`,
     ),
+    savingSetup: parseSavingSetup(o.savingSetup, `${w} savingSetup`),
+    home: parseHome(o.home, `${w} home`),
   };
 }
 

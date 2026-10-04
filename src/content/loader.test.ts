@@ -16,7 +16,7 @@ import {
   parseQuiz,
 } from './loader';
 import { ContentError } from './guards';
-import { renderContentReview } from './review';
+import { flattenCopy, renderContentReview } from './review';
 import { fillTemplate } from './template';
 import { DEFAULT_GOAL_CENTS } from '../domain/bands';
 
@@ -38,6 +38,8 @@ function proseOf(loafId: 'emergency-fund'): string[] {
     ...Object.values(loaf.flow.lessons),
     ...Object.values(loaf.flow.lesson),
     ...Object.values(loaf.flow.quiz),
+    ...flattenCopy(loaf.flow.savingSetup).map(([, text]) => text),
+    ...flattenCopy(loaf.flow.home).map(([, text]) => text),
     ...getLessons(loafId).flatMap((l) => [l.title, l.summary]),
     ...getQuiz(loafId).questions.flatMap((q) => [q.question, ...q.choices.map((c) => c.label), q.explain]),
     ...Object.entries(captionFiles).map(([, text]) => text),
@@ -292,6 +294,20 @@ describe('financial content rules', () => {
     const captions = captionFiles['/public/videos/emergency-fund/ef-where-to-keep.vtt'];
     expect(captions).toContain('FDIC');
     expect(captions).toContain('NCUA');
+  });
+
+  it('names the FDIC and NCUA in the high-yield account step, and lists the lesson\'s "what to look for" points', () => {
+    const loaf = getLoaf('emergency-fund');
+    if (loaf.status !== 'built') throw new Error('built loaf expected');
+    const points = loaf.flow.savingSetup.hysa.points.join(' ');
+    expect(points).toContain('FDIC');
+    expect(points).toContain('NCUA');
+    expect(points).toMatch(/fees/i);
+    expect(points).toMatch(/minimum balance/i);
+    expect(points).toMatch(/access/i);
+    const lesson = getLesson('emergency-fund', 'ef-where-to-keep').summary;
+    expect(lesson).toMatch(/Low or no fees/);
+    expect(lesson).toMatch(/hard to meet/);
   });
 
   it('says what happens when the questions are skipped, with no dollar figure', () => {

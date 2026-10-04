@@ -1,3 +1,4 @@
+import type { Habit } from '../domain/habits';
 import type { Profile } from '../domain/profile';
 import type { LoafId } from '../domain/types';
 
@@ -80,6 +81,12 @@ export interface QuizAttempt {
   at: string;
 }
 
+/**
+ * The "Open a high-yield savings account" reminder on Home.
+ * `pending` after "I'll do this later", `dismissed` once the student closes it, null when there is nothing to remind.
+ */
+export type HysaCardState = 'pending' | 'dismissed' | null;
+
 export interface AppData {
   version: 1;
   user: LocalUser | null;
@@ -89,6 +96,11 @@ export interface AppData {
   transactions: Transaction[];
   lessonProgress: LessonProgress[];
   quizAttempts: QuizAttempt[];
+  /** The saving habit from Saving setup. Null until it is picked (or skipped, which saves the suggested weekly amount). */
+  habit: Habit | null;
+  /** Ids of rising tips the student has opened (see `tipId`), so their "New" badge goes away. */
+  tipsSeen: string[];
+  hysaCard: HysaCardState;
   clock: ClockState;
 }
 
@@ -101,6 +113,9 @@ export function emptyData(): AppData {
     transactions: [],
     lessonProgress: [],
     quizAttempts: [],
+    habit: null,
+    tipsSeen: [],
+    hysaCard: null,
     clock: { offsetDays: 0 },
   };
 }

@@ -12,6 +12,7 @@ import { Lesson } from '../screens/Lesson';
 import { Lessons } from '../screens/Lessons';
 import { LoafQuiz } from '../screens/LoafQuiz';
 import { SavingSetup } from '../screens/SavingSetup';
+import { LoafComplete } from '../screens/LoafComplete';
 
 /** Exported so tests can mount the same routes in a memory router. */
 export const routes: RouteObject[] = [
@@ -29,6 +30,7 @@ export const routes: RouteObject[] = [
       { path: '/lessons/:lessonId', element: <Lesson /> },
       { path: '/quiz', element: <LoafQuiz /> },
       { path: '/saving-setup', element: <SavingSetup /> },
+      { path: '/loaf-complete', element: <LoafComplete /> },
     ],
   },
 ];

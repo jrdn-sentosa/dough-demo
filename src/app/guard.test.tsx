@@ -21,7 +21,10 @@ const noProfile: AppData = { ...emptyData(), user };
 const noLoaf: AppData = { ...noProfile, profile };
 const quizDone = { id: 'quiz-1', loafId: 'emergency-fund' as const, mode: 'lesson' as const, score: 2, total: 5, answers: {}, missedLessons: [], at: '2026-01-02T00:00:00.000Z' };
 const midFlow: AppData = { ...noLoaf, loaves: [loaf] };
-const returning: AppData = { ...midFlow, quizAttempts: [quizDone] };
+const habit = { kind: 'weekly' as const, amountCents: 5500, paycheckCents: null, frequency: null, startedAt: '2026-01-03T00:00:00.000Z' };
+/** Lessons done but no habit picked yet. */
+const quizzed: AppData = { ...midFlow, quizAttempts: [quizDone] };
+const returning: AppData = { ...quizzed, habit };
 
 describe('guardRedirect', () => {
   it('sends signed-out students to login from everywhere', () => {
@@ -64,15 +67,28 @@ describe('guardRedirect', () => {
     expect(guardRedirect('/saving-setup', { ...midFlow, quizAttempts: [attempt(3)] })).toBe('/lessons');
     expect(guardRedirect('/', { ...midFlow, quizAttempts: [attempt(3)] })).toBe('/lessons');
     expect(guardRedirect('/saving-setup', { ...midFlow, quizAttempts: [attempt(4)] })).toBeNull();
-    expect(guardRedirect('/', { ...midFlow, quizAttempts: [attempt(4)] })).toBeNull();
+    expect(guardRedirect('/', { ...midFlow, quizAttempts: [attempt(4)] })).toBe('/saving-setup');
   });
 
   it('opens saving setup after a normal quiz at any score', () => {
     expect(guardRedirect('/saving-setup', returning)).toBeNull();
   });
 
+  it('holds Home at saving setup until a habit is picked, then lets Home show', () => {
+    expect(guardRedirect('/', quizzed)).toBe('/saving-setup');
+    expect(guardRedirect('/saving-setup', quizzed)).toBeNull();
+    expect(guardRedirect('/', returning)).toBeNull();
+    // Saving setup stays open once a habit exists, so the last step (Make it automatic) isn't cut off.
+    expect(guardRedirect('/saving-setup', returning)).toBeNull();
+  });
+
+  it('does not hold a fund that has already baked at saving setup', () => {
+    const baked: AppData = { ...quizzed, loaves: [{ ...loaf, bakes: [{ targetCents: 65000, at: '2026-02-01T00:00:00.000Z' }] }] };
+    expect(guardRedirect('/', baked)).toBeNull();
+  });
+
   it('keeps lessons and the quiz behind a loaf', () => {
-    for (const path of ['/lessons', '/lessons/ef-how-much', '/quiz', '/saving-setup']) {
+    for (const path of ['/lessons', '/lessons/ef-how-much', '/quiz', '/saving-setup', '/loaf-complete']) {
       expect(guardRedirect(path, noLoaf)).toBe('/placement/result');
     }
   });
@@ -115,7 +131,7 @@ describe('route guard in the app', () => {
 
   it('sends a returning student on Home', async () => {
     const router = renderAt('/login', returning);
-    await screen.findByRole('heading', { name: 'Dough!' });
+    await screen.findByRole('heading', { name: 'Emergency fund' });
     expect(router.state.location.pathname).toBe('/');
   });
 });

@@ -22,6 +22,24 @@ export async function savePlacement(adapter: DataAdapter, answers: PlacementAnsw
 }
 
 /**
+ * "I have one now" (Saving setup or the Home reminder): adds high-yield savings to the profile's
+ * accounts, so a retake shows it selected and no later loaf asks about it. "None" and "Not sure"
+ * are dropped, the same way picking a real account does in placement. Only the profile changes
+ * (and the Home reminder is cleared); the placement status, targets and transactions stay as they were.
+ * Does nothing without a profile.
+ */
+export async function addHighYieldAccount(adapter: DataAdapter): Promise<Profile | null> {
+  const data = await adapter.load();
+  if (!data.profile) return null;
+  const real = (data.profile.accounts ?? []).filter((a) => a !== 'none' && a !== 'not-sure');
+  if (!real.includes('high-yield-savings')) real.push('high-yield-savings');
+  data.profile = { ...data.profile, accounts: real };
+  data.hysaCard = null;
+  await adapter.save(data);
+  return data.profile;
+}
+
+/**
  * Settings, "Retake the quiz": prefill with `answersFromProfile`, then pass the
  * new answers here. Updates the profile only. It never deletes or changes
  * transactions, and never changes the goal: the result's `suggestedTargetCents`
