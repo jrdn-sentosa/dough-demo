@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, describe, expect, it } from 'vitest';
 import { DataProvider } from '../app/DataProvider';
+import { guardRedirect } from '../app/guard';
 import type { DataAdapter } from '../data/adapter';
 import { createMemoryAdapter } from '../data/memoryAdapter';
 import { streakFromData } from '../data/streaks';
@@ -151,5 +152,38 @@ describe('Settings, demo tools', () => {
     await screen.findByRole('button', { name: 'Sign out' });
     expect(screen.queryByRole('button', { name: 'Reset demo' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Start fresh demo' })).toBeNull();
+  });
+});
+
+describe('Settings, Retake the risk quiz', () => {
+  function bakedMaya(): AppData {
+    const data = mayaSeed(NOW);
+    data.transactions.push({ id: 'top-up', loafId: 'emergency-fund', type: 'deposit', source: 'seed', amountCents: 16_000, at: NOW.toISOString() });
+    data.loaves[0].bakes = [{ targetCents: 40_000, at: NOW.toISOString(), bread: 'sandwich' }];
+    return data;
+  }
+
+  it('is hidden while the emergency fund is still rising (the risk quiz route is closed then)', async () => {
+    const data = mayaSeed(NOW);
+    expect(guardRedirect('/risk-quiz', data)).toBe('/');
+    mount(data);
+    await screen.findByRole('heading', { name: 'Settings' });
+    expect(screen.queryByRole('link', { name: 'Retake the risk quiz' })).toBeNull();
+  });
+
+  it('shows once the fund has baked, and the link opens the risk quiz', async () => {
+    const data = bakedMaya();
+    expect(guardRedirect('/risk-quiz', data)).toBeNull();
+    mount(data);
+    const link = await screen.findByRole('link', { name: 'Retake the risk quiz' });
+    expect(link.getAttribute('href')).toBe('/risk-quiz');
+  });
+
+  it('is hidden again while rebuilding after a withdrawal', async () => {
+    const data = bakedMaya();
+    data.transactions.push({ id: 'used', loafId: 'emergency-fund', type: 'withdrawal', source: 'manual', amountCents: 10_000, at: NOW.toISOString() });
+    mount(data);
+    await screen.findByRole('heading', { name: 'Settings' });
+    expect(screen.queryByRole('link', { name: 'Retake the risk quiz' })).toBeNull();
   });
 });

@@ -382,6 +382,7 @@ export interface SettingsContent {
     string
   >;
   habit: Record<'title' | 'current' | 'weekly' | 'paycheck' | 'save' | 'restartNote' | 'saved' | 'savedRestart', string>;
+  risk: Record<'title' | 'intro' | 'link', string>;
 }
 
 /** Bread names and the copy for streaks, the unlock moment, the bread picker and the demo tools. */

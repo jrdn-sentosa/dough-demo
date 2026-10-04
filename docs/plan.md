@@ -120,7 +120,7 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
 11. **Demo mode, Settings, and PWA** (done, on branch `milestone-11-demo-tools-settings-pwa`)
    - Demo: the Demo pill and Skip a week tools already existed. Added `src/money/seed.ts` (`mayaSeed`: $240 of $400, six weekly seed deposits, a 6-week streak, lessons watched, quiz done) and `signInAsMaya`, `resetDemo`, `startFreshDemo` in `src/money/demo.ts`. "Continue as demo user" signs in Maya on a blank device and keeps existing local demo data otherwise. Her already-earned breads (baguette, bagel, focaccia) are marked seen, so no unlock messages show on open; her next unlock (pretzel) shows normally. Reset demo and Start fresh demo (Settings, behind `?demo=1`; Start fresh also on the login screen) only touch local demo data: hidden for accounts, and refused by the money layer (`not-demo`).
    - Settings: "Change your goal" (1, 3 or 6 months, or a typed amount, through `changeGoal`) and "Change your habit" (the habit form is shared with Saving setup as `HabitForm`; `restartsStreak` drives the "starts a new streak" note, and only a different period length restarts it). Copy lives in `content/settings.json`.
-   - **Changed from the first plan:** "Retake the risk quiz" is not in Settings. The risk quiz route is only open once the emergency fund has baked (the route guard sends everyone else home), so a Settings link would do nothing for most students. It stays reachable from ChooseLoaf.
+   - "Retake the risk quiz" is in Settings only once the emergency fund has baked (`canChooseNext`, the same check the route guard uses), because the risk quiz route is closed before that.
    - Installable app with `vite-plugin-pwa` (generateSW, update prompt): manifest, icons (192, 512, maskable, 180 apple-touch, 32 favicon) and a service worker that precaches the shell, fonts, loaf art and icons. Lessons and quizzes are bundled in the JS. Videos and captions are kept after first play by a small hand-written handler (`public/video-cache.js`), because the Cache API cannot store the partial responses a `<video>` requests. Supabase and any other origin are never cached. "New version available" with Refresh and Not now (`src/app/UpdatePrompt.tsx`).
    - App icon: placeholder in `design/icon/icon.svg` (the one source), `npm run icons` (sharp, dev dependency) writes `public/icons/`.
    - `docs/setup.md`: install on iPhone and Android, replacing the icon, demo tools.
@@ -164,7 +164,7 @@ Not blocking the demo, but each needs doing before real students use it.
 - [ ] Add the real lesson videos and captions to `public/videos/emergency-fund/`, then check they play and keep working offline after first play.
 - [ ] Review every piece of draft content and remove the `draft` flags (`docs/content-review.md`).
 - [ ] Set up the project's own SMTP sender for email codes (see `docs/setup.md`).
-- [ ] Run an accessibility and contrast pass on the installed app.
+- [ ] Accessibility and contrast pass (on the installed app too).
 
 ## Decisions
 

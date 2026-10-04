@@ -182,6 +182,7 @@ export function renderContentReview(): string {
   for (const [heading, copy] of [
     ['Your goal', settings.goal],
     ['Your saving habit', settings.habit],
+    ['Retake the risk quiz', settings.risk],
   ] as const) {
     out.push(`### ${heading}`, '');
     for (const [key, text] of flattenCopy(copy)) out.push(`- ${key}: ${text}`);

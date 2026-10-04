@@ -584,7 +584,7 @@ Unlocks are measured in weeks of saving. Ladder: baguette 2, bagel 4, focaccia 6
 - confirm: Yes, do it
 - cancel: Cancel
 
-## Settings _(draft)_
+## Settings
 
 ### Your goal
 
@@ -612,6 +612,12 @@ Unlocks are measured in weeks of saving. Ladder: baguette 2, bagel 4, focaccia 6
 - restartNote: Changing how often you're paid starts a new streak. Your breads and best streak stay.
 - saved: Your habit is saved.
 - savedRestart: Your habit is saved. A new streak starts now, and your breads and best streak stay.
+
+### Retake the risk quiz
+
+- title: Your investing answers
+- intro: Your situation changed? Retake the risk quiz. There are no right answers, and it never changes your savings.
+- link: Retake the risk quiz
 
 ## Tips while the loaf rises
 

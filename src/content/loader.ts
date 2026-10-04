@@ -397,6 +397,7 @@ export function parseSettings(raw: unknown, where = 'content/settings.json'): Se
     draft: bool(o, 'draft', where),
     goal: record(o.goal, ['title', 'current', 'intro', 'monthsLegend', 'month', 'months', 'noEssentials', 'customLabel', 'save', 'invalid', 'edited', 'growing', 'baked'] as const, `${where} goal`),
     habit: record(o.habit, ['title', 'current', 'weekly', 'paycheck', 'save', 'restartNote', 'saved', 'savedRestart'] as const, `${where} habit`),
+    risk: record(o.risk, ['title', 'intro', 'link'] as const, `${where} risk`),
   };
 }
 

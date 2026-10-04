@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { useAuth } from '../../app/AuthProvider';
 import type { Account } from '../../app/AuthProvider';
 import { useData } from '../../app/DataProvider';
+import { canChooseNext } from '../../app/guard';
 import { DemoActions } from '../../components/DemoActions';
 import { SliceButton } from '../../components/SliceButton';
 import { isDemoMode } from '../../app/demoFlag';
@@ -103,6 +104,18 @@ export function SettingsView({ account, onSignOut }: { account: Account | null; 
           <p className="settings__text">Your situation changed? Retake the quiz. It never changes your savings history.</p>
           <Link className="slice-button" to={RETAKE_PATH}>
             Retake the quiz
+          </Link>
+        </section>
+      )}
+
+      {canChooseNext(data) && (
+        <section className="settings__section" aria-labelledby="settings-risk">
+          <h2 id="settings-risk" className="settings__heading">
+            {getSettings().risk.title}
+          </h2>
+          <p className="settings__text">{getSettings().risk.intro}</p>
+          <Link className="slice-button" to="/risk-quiz">
+            {getSettings().risk.link}
           </Link>
         </section>
       )}

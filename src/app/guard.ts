@@ -39,7 +39,7 @@ function hasBaked(data: AppData): boolean {
  * "Choose your next loaf" is open when a loaf is baked and sitting at its target: not rebuilding after
  * a withdrawal, and not partway through growing. (Growing is how a student keeps saving; a new loaf starts from here.)
  */
-function canChooseNext(data: AppData): boolean {
+export function canChooseNext(data: AppData): boolean {
   return data.loaves.some((l) => {
     const status = statusFor(data, l);
     return status.baked && status.percent >= 100 && !status.growing;

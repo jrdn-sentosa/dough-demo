@@ -1,5 +1,5 @@
 {
-  "draft": true,
+  "draft": false,
   "goal": {
     "title": "Your goal",
     "current": "Your goal is {goal}.",
@@ -24,5 +24,10 @@
     "restartNote": "Changing how often you're paid starts a new streak. Your breads and best streak stay.",
     "saved": "Your habit is saved.",
     "savedRestart": "Your habit is saved. A new streak starts now, and your breads and best streak stay."
+  },
+  "risk": {
+    "title": "Your investing answers",
+    "intro": "Your situation changed? Retake the risk quiz. There are no right answers, and it never changes your savings.",
+    "link": "Retake the risk quiz"
   }
 }
