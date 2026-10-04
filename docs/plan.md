@@ -58,8 +58,9 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
 5. **First-time flow: Login → Placement → Result → NewLoaf**
    - Login with the disclaimer.
    - PlacementQuiz: one question per screen with a progress bar, framed as "Let's get to know your money".
+   - Placement is optional (done in the domain, data, and content; this milestone builds the screens): "Skip for now" on every screen with the confirmation ("Skip" / "Keep answering"). Answers already given are kept, defaults fill the rest. Save with `savePlacement` (`src/data/profile.ts`), which stores `placementStatus` (`complete`, `partial`, `skipped`) on the profile. Result screen uses `resultSkipped` copy when skipped. Fill `{goal}` from `DEFAULT_GOAL_CENTS` with `fillTemplate` and `formatCents`.
    - PlacementResult, titled "Here's where you'll start": first loaf, goal in dollars and months, head start.
-   - NewLoaf: editable target (1, 3, or 6 months), count-existing-savings choice with optional exact amount, estimate note for "Not sure".
+   - NewLoaf: editable target (1, 3, or 6 months), count-existing-savings choice with optional exact amount, note that the $1,000 starter goal is a default for "Not sure" or skipped essentials (`isDefault`), not an estimate of their essentials.
    - Branch for students whose emergency fund starts baked: optional "Understand what you've built" review, then ChooseLoaf.
    - Placement Q3 (accounts, multi-select): "None of these" and "Not sure" each clear the other choices when picked. Picking a real account clears them too.
    - Store the student's essentials figure on the profile (cents). The shelf and ChooseLoaf need it to turn a bake's target into months.
@@ -81,11 +82,14 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
 8. **Loaf done and shelf**
    - LoafComplete celebration. When `baked: true` comes with `rebuilt: true` (a rebuild, not the first bake), use different copy: "You rebuilt your fund". The shelf keeps every bake: a grown fund shows "1 month" and "3 months". When `grown: true` (a fund reaching its grown target), use "Your cushion is at 3 months" copy.
    - Shelf with completion months and outlines.
+   - When `recommendNext` returns `needsPersonalization`, ChooseLoaf shows `personalizePrompt` (opens placement) instead of a recommendation, and every loaf stays choosable. "Grow your cushion" with `growNeedsEssentials` first asks `growOption.askEssentials`, then calls `changeGoal` with `growGoal(...)`.
    - ChooseLoaf with Coming-soon cards (including Debt payoff), the debt note, and the "Grow your cushion to 3 months" option (content in `emergency-fund.json` `growOption`; it calls `setTarget` with `grow: true`).
    - Home while growing: dough-ball start, progress on the new part, and the full fund total shown separately ("$400 of $1,200").
 9. **Demo mode, Settings, and PWA**
    - Demo pill, Maya seed, Start fresh, Skip a week, and Reset.
    - Settings with the disclaimer.
+   - Settings, "Retake the quiz": `questionsToAsk(hasTransactions)` drops the existing-savings question when the loaf has transactions; prefill with `answersFromProfile`; save with `retakePlacement`, which updates the profile only and returns `suggestedTargetCents` for "Update your goal to {amount}?" (never applied silently).
+   - Settings, "Change your goal": 1, 3, or 6 months, or a typed amount, through `changeGoal` in `src/money/`.
    - `vite-plugin-pwa`: manifest, icons, and caching (videos cached after first play).
    - Verify offline via `npm run preview`.
    - Accessibility and contrast pass.
@@ -107,7 +111,7 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
 
 ## Decisions
 
-- **Ranges to numbers.** Bands are listed in CLAUDE.md. Target uses the midpoint of the chosen essentials range, rounded up to the nearest $50. "$1,500 and up" uses its lower bound with `needsExactInput`. "Not sure" gives a $500 starter target flagged `isEstimate`. The target is always editable on "Your new loaf". Existing savings use the band's lower bound, so the loaf never shows more progress than the student has, unless the student types an exact amount.
+- **Ranges to numbers.** Bands are listed in CLAUDE.md. Target uses the midpoint of the chosen essentials range, rounded up to the nearest $50. "$1,500 and up" uses its lower bound with `needsExactInput`. Essentials "Not sure" (or skipped) are unknown, never guessed: the loaf starts at a $1,000 starter goal (`DEFAULT_GOAL_CENTS`) flagged `isDefault`, existing savings count toward it, and `monthsCovered` is not computed. The target is always editable on "Your new loaf". Existing savings use the band's lower bound, so the loaf never shows more progress than the student has, unless the student types an exact amount.
 - **No levels, no knowledge questions in placement.** Placement covers situation only: essentials, savings, accounts, card debt, earned income. It sets the starting point and `monthsCovered` (internal, never shown). Knowledge is checked inside each loaf via the test-out quiz. The 80% check before investing loaves applies to everyone.
 - **Maya's placement.** Checking and regular savings, no emergency savings at start, earned income yes, no card debt, did not test out.
 - **Placeholder videos.** No fake video files. A missing video shows a "Video coming soon" poster, the lesson summary, and "Mark as watched". Real videos are added later by filename.
@@ -118,4 +122,5 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
 - **Habit nudge.** In-app only, no notifications.
 - **Plaid (stretch).** The "no real bank connections" rule now allows Plaid in Sandbox mode only, in milestone 11. It is read-only and creates ordinary transaction rows. Until then, no Plaid code, packages, or keys.
 - **Transaction source.** Every transaction has a `source` (`manual`, `plaid`, `seed`), default `manual`. Added in milestone 3's follow-up. Old saved rows without it load as `manual`. Milestone 9's Maya seed uses `seed`.
+- **Optional placement.** Every placement answer is optional (undefined means unknown). `placementStatus` is `complete`, `partial` or `skipped`, stored on the profile (`profile` on `AppData`, null until placement is answered or skipped). Unknown card debt, earned income or accounts never lead to a Roth IRA recommendation or skip the debt check: ChooseLoaf shows a personalization prompt instead. Grow your cushion still works.
 - **Local auth.** Email-only fake sign-in, clearly local-only, replaced in milestone 10.

@@ -70,7 +70,7 @@ design/
 
 ```
 Login
-  → Placement quiz (about 2 minutes)
+  → Placement quiz (about 2 minutes, optional: "Skip for now" on every screen)
   → Placement result: "Here's where you'll start" (first loaf, goal, head start)
   → Video lessons for this loaf (or "Already know this? Take the quiz first")
   → Loaf quiz
@@ -85,6 +85,8 @@ First-time users go through every step in order. Returning users land on Home.
 ## Placement quiz
 
 Purpose: work out where the student starts: which loaf first, how big the goal is, how much of it they already have, and which setup steps apply. **Placement is about the student's situation, not their knowledge, and assigns no level or label anywhere.** Knowledge is checked inside each loaf (see Lessons and quizzes). Frame placement as "Let's get to know your money," not a test. One question per screen with a progress bar.
+
+**Placement is only for personalization and baseline goals, and it is optional.** Every screen has "Skip for now". Skipping asks for confirmation ("No problem. You'll start from the beginning with a default goal of $1,000, about one month of typical essentials. You can personalize anytime in Settings." with "Skip" and "Keep answering"). Answers already given are kept, and defaults fill only the rest. The profile stores `placementStatus`: `complete` (all 5 answered), `partial` (skipped partway, at least one answer kept), or `skipped` (nothing answered). The $1,000 figure is `DEFAULT_GOAL_CENTS`; content uses a `{goal}` token, never a typed figure.
 
 **5 questions:**
 
@@ -106,7 +108,7 @@ Bands are defined once in `src/domain/` constants. Content refers to them by id.
 | $750–$999 | midpoint |
 | $1,000–$1,499 | midpoint |
 | $1,500 and up | open-ended: lower bound, `needsExactInput: true` |
-| Not sure | starter target of $500, `isEstimate: true` (the result screen says it's an estimate they can change) |
+| Not sure | essentials unknown (`cents: null`). The goal is the $1,000 starter goal, flagged `isDefault: true`, which the student can change in Settings |
 
 Target = midpoint rounded up to the nearest $50.
 
@@ -121,9 +123,18 @@ Target = midpoint rounded up to the nearest $50.
 
 When the student chooses to count existing savings, offer an optional exact amount, prefilled with the band's lower bound. If they enter one, use it instead.
 
+### Unknown answers (skipped or "Not sure")
+
+| Question | When unknown |
+|---|---|
+| Essentials | Unknown, never guessed. The emergency fund starts at the $1,000 starter goal (`isDefault: true`), and existing savings count toward it. If savings already meet $1,000, the fund counts as baked ("Already built"). `monthsCovered` is not computed |
+| Existing savings | None, so the loaf starts as a dough ball |
+| Accounts | Unknown: include the high-yield savings step, and `ef-where-to-keep` stays recommended |
+| Card debt, earned income | Unknown (see ChooseLoaf rules) |
+
 ### Starting point
 
-`monthsCovered` = existing savings ÷ monthly essentials. It is internal only, never shown as a label, and stored on the profile.
+`monthsCovered` = existing savings ÷ monthly essentials. It is internal only, never shown as a label, and stored on the profile. It is null when essentials are unknown.
 
 | Situation | Start |
 |---|---|
@@ -140,7 +151,14 @@ When the student chooses to count existing savings, offer an optional exact amou
 
 ### Placement result screen
 
-Titled "Here's where you'll start." Shows the first loaf, the goal in dollars and months, and how far along existing savings put them.
+Titled "Here's where you'll start." Shows the first loaf, the goal in dollars and months, and how far along existing savings put them. When placement was skipped, it says "Your first loaf: Emergency fund. Starting goal: $1,000, a default you can change in Settings."
+
+### Retaking placement and changing the goal (Settings)
+
+- **Retake the quiz** reruns placement with current answers prefilled. New answers update the profile, account steps, and recommendations. It never deletes or changes transactions.
+- If the new answers suggest a different goal, ask "Update your goal to $X?" instead of changing it silently. If the current target is the $1,000 starter goal and the student now gives essentials, suggest 1 month of essentials. If the target was months-based (1, 3, or 6 months), re-price the same number of months. A custom amount is left alone. Nothing is suggested unless the essentials or savings answer changed.
+- If the current loaf already has transactions, skip the existing savings question: that money is already tracked.
+- **Change your goal:** pick 1, 3, or 6 months, or type an amount. It uses `setTarget` (through `changeGoal`), so the existing rules apply: at or below the balance bakes the loaf, and above it on a baked fund starts growing. While rebuilding, a higher target just edits the goal.
 
 Placement scoring and starting-point rules live in `src/domain/placement.ts` (and siblings) with unit tests.
 
@@ -163,7 +181,7 @@ The emergency fund loaf is the first loaf for students with under 3 months cover
 - **Target:** 1 month of essential costs by default (3 months when they start with 1 to under 3 months covered), rounded up to the nearest $50. The student can choose 1, 3, or 6 months.
 - **Ranges to numbers:** the placement quiz collects ranges, but targets and stages need dollar figures. See "Range bands" under Placement quiz.
   - Open-ended top range: lower bound, and ask the student to type an exact number.
-  - "Not sure": $500 starter target, shown as an estimate they can change.
+  - "Not sure" or skipped: essentials are unknown. Start at the $1,000 starter goal (`isDefault`), which the student can change in Settings.
   - Always let the student edit the target on the "Your new loaf" screen.
   - Existing savings: lower bound of the chosen range, so the loaf never shows more progress than the student really has. An optional exact amount overrides it.
 - **Existing savings:** if the student already has money set aside, ask whether to count it. If yes, the loaf starts at the matching stage. If it already meets the target, suggest a bigger target instead of finishing instantly.
@@ -237,10 +255,13 @@ The emergency fund loaf is the first loaf for students with under 3 months cover
 - **The shelf keeps every bake.** Each loaf stores a list of bakes (target and date, or "Already built" with no date). A grown fund shows two shelf entries, "1 month" and "3 months". Months are worked out from the target and the student's essentials (`monthsForTarget`), not stored. Finishing a rebuild at a target already on the shelf adds nothing; reaching a higher target than any earlier bake adds an entry.
 - ChooseLoaf recommends one next option, in this order, using placement answers and the target that just baked:
   1. Carries credit card debt: recommend Debt payoff, with a note that paying off high-interest debt usually comes before investing.
-  2. The emergency fund target that baked was under 3 months: recommend "Grow your cushion to 3 months" (below).
-  3. Has earned income and no retirement account: recommend Roth IRA. (A Roth IRA requires earned income, so never recommend it without.) "Not sure" about accounts counts as no retirement account. The Roth IRA loaf will start with a "Check whether you already have one" step.
-  4. Otherwise: recommend Index funds.
-- **Grow your cushion to 3 months:** raises the target on the same emergency fund loaf with `setTarget(..., { grow: true })`. It is allowed only when the fund is baked and the new target is bigger. The old target is stored as `growFromCents`. While growing, stage and progress count the new part only: `(balance - growFromCents) / (target - growFromCents)`, so the growth starts as a dough ball and the loaf never shrinks. Home also shows the whole fund total separately, e.g. "$400 of $1,200". Any withdrawal ends growing, and progress goes back to `balance / target` (rebuild mode). Reaching the new target returns `baked: true` and `grown: true` (not `rebuilt`), and adds the second shelf entry. Plain `setTarget` without `grow` only edits the goal.
+  2. The emergency fund target that baked was under 3 months, or was the $1,000 starter goal: recommend "Grow your cushion to 3 months" (below). It only depends on the target, so unknown answers don't block it.
+  3. Card debt unknown: show "Answer a few quick questions for a personalized pick" (opens placement) instead of a recommendation. Never skip the debt check.
+  4. Has a retirement account, or no earned income: recommend Index funds.
+  5. Has earned income and no retirement account: recommend Roth IRA. (A Roth IRA requires earned income, so never recommend it without.) "Not sure" about accounts counts as no retirement account. The Roth IRA loaf will start with a "Check whether you already have one" step.
+  6. Earned income or accounts unknown on that path: show the personalization prompt. Never recommend Roth IRA with unknown earned income.
+  All options stay choosable, including when the prompt is shown.
+- **Grow your cushion to 3 months:** raises the target on the same emergency fund loaf with `setTarget(..., { grow: true })`. If essentials are unknown, first ask "To size your 3-month goal, about how much do you need each month?", then set the target to 3 times the answer (`growGoal`). It is allowed only when the fund is baked and the new target is bigger. The old target is stored as `growFromCents`. While growing, stage and progress count the new part only: `(balance - growFromCents) / (target - growFromCents)`, so the growth starts as a dough ball and the loaf never shrinks. Home also shows the whole fund total separately, e.g. "$400 of $1,200". Any withdrawal ends growing, and progress goes back to `balance / target` (rebuild mode). Reaching the new target returns `baked: true` and `grown: true` (not `rebuilt`), and adds the second shelf entry. Plain `setTarget` without `grow` only edits the goal.
 - **Multiple loaves (future, not in demo):** after the emergency fund loaf is done, allow up to 2 active loaves. Each deposit is assigned to one loaf when logged.
 
 ## Money and data rules
@@ -257,7 +278,7 @@ The emergency fund loaf is the first loaf for students with under 3 months cover
 - **Demo clock** (`src/money/clock.ts`): `now()`, `advance(days)`, `reset()`. It is saved as part of the data so it survives a reload. Every transaction's date comes from it. Only this file reads the real time.
 - **Local storage:** one versioned key, `dough:v1`. If saved data is missing, unreadable, or the wrong version, start fresh instead of crashing. Every read and write is wrapped in try/catch because some browsers block storage in private mode. If writes are blocked, the app keeps working from memory.
 - **Tests** use an in-memory adapter that implements the same `DataAdapter` interface, so they never touch real browser storage.
-- Supabase tables: `profiles` (essentials range, existing savings range, `accounts`, `cardDebt`, `earnedIncome`, `monthsCovered`), `placement_results`, `loaves`, `transactions` (with a `type` of `starting`, `deposit`, or `withdrawal`, and a `source` of `manual`, `plaid`, or `seed`), `lesson_progress`, `quiz_attempts`.
+- Supabase tables: `profiles` (`placementStatus`, essentials range and figure, existing savings range, `accounts`, `cardDebt`, `earnedIncome`, `monthsCovered`; any of these can be null when unknown), `placement_results`, `loaves`, `transactions` (with a `type` of `starting`, `deposit`, or `withdrawal`, and a `source` of `manual`, `plaid`, or `seed`), `lesson_progress`, `quiz_attempts`.
 - **Transaction source:** every row records where it came from: `manual` (the student typed it, the default), `plaid` (read from a linked sandbox account), or `seed` (demo seed data such as Maya's history). Source never changes how balances, stages, or baking work. Rows saved before `source` existed load as `manual`.
 - Row Level Security is on for every table. Users can only read and write their own rows.
 - Env vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` in `.env.local`.

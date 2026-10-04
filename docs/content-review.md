@@ -4,7 +4,15 @@ Generated from `content/` and `public/videos/`. Do not edit by hand: change the 
 
 ## Placement: Let's get to know your money _(draft)_
 
-Five quick questions about your situation. There are no right answers and nothing is graded. Ranges are fine, and you can change your goal any time.
+A few quick questions to set your first goal. There are no right answers, and you can skip anytime.
+
+**Skip for now** on every screen. Confirmation: No problem. You'll start from the beginning with a default goal of $1,000, about one month of typical essentials. You can personalize anytime in Settings. Buttons: "Skip" and "Keep answering".
+
+Result screen when skipped: Your first loaf: Emergency fund. Starting goal: $1,000, a default you can change in Settings.
+
+Settings, retake: Update your goal to $X?
+
+ChooseLoaf when an answer is unknown: Answer a few quick questions for a personalized pick.
 
 ### 1. About how much do you need each month to cover your essentials?
 
@@ -76,6 +84,8 @@ Target: 1 month(s) by default. Choices: 1, 3, 6 months.
 
 Option after it bakes: **Grow your cushion to 3 months**. Your cushion is built. Raise the goal to three months of essentials to cover longer gaps, like losing a job or a bigger medical bill. Your first bake stays on the shelf.
 
+If essentials are unknown, it first asks: To size your 3-month goal, about how much do you need each month?
+
 ## Lessons
 
 ### Lesson 1: What an emergency fund is for _(draft)_
@@ -107,7 +117,7 @@ Next up: how much you need.
 
 ### Lesson 2: How much you need _(draft)_
 
-Video: `/videos/emergency-fund/ef-how-much.mp4` (105 seconds). Captions: `/videos/emergency-fund/ef-how-much.vtt`.
+Video: `/videos/emergency-fund/ef-how-much.mp4` (110 seconds). Captions: `/videos/emergency-fund/ef-how-much.vtt`.
 
 The right size for your fund starts with your **essentials**: what you'd need to get by for a month.
 
@@ -123,7 +133,7 @@ Rent, food, phone, transportation, and anything else you can't skip. If your hou
 
 ## Start where you are
 
-Dough! picks a starting goal for you based on your answers, and you can change it any time. If you already have some savings set aside, it can count toward the goal so your loaf starts partway risen.
+Dough! picks a starting goal for you based on your answers. If you skip the questions, it starts with a common starter goal. You can change it any time. If you already have some savings set aside, it can count toward the goal so your loaf starts partway risen.
 
 Progress matters more than perfect. A small fund you actually build beats a big goal you never start.
 
