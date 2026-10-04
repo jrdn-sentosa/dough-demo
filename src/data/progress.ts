@@ -2,19 +2,26 @@ import { nowIso } from '../money/clock';
 import type { QuizGrade } from '../domain/quiz';
 import type { LoafId } from '../domain/types';
 import type { DataAdapter } from './adapter';
+import { serialized } from './points';
 import type { LessonProgress, QuizAttempt, QuizMode } from './types';
 
-/** Marks a lesson watched. Saying it twice changes nothing: the first time and way are kept. */
-export async function markLessonWatched(
+/**
+ * Marks a lesson watched. Saying it twice changes nothing: the first time and way are kept.
+ * It runs in the points queue because a video reaching 90% marks the lesson watched and earns its point in the
+ * same moment, and two writes that load the same data would otherwise overwrite each other.
+ */
+export function markLessonWatched(
   adapter: DataAdapter,
   loafId: LoafId,
   lessonId: string,
   how: LessonProgress['how'],
 ): Promise<void> {
-  const data = await adapter.load();
-  if (data.lessonProgress.some((p) => p.loafId === loafId && p.lessonId === lessonId)) return;
-  data.lessonProgress.push({ loafId, lessonId, watchedAt: await nowIso(adapter), how });
-  await adapter.save(data);
+  return serialized(async () => {
+    const data = await adapter.load();
+    if (data.lessonProgress.some((p) => p.loafId === loafId && p.lessonId === lessonId)) return;
+    data.lessonProgress.push({ loafId, lessonId, watchedAt: await nowIso(adapter), how });
+    await adapter.save(data);
+  });
 }
 
 /** Saves one finished quiz. Every attempt is kept, so retries never overwrite earlier ones. */

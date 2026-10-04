@@ -13,15 +13,18 @@ import { LoafIllustration } from '../../components/LoafIllustration';
 import { SliceButton } from '../../components/SliceButton';
 import { StageBar } from '../../components/StageBar';
 import { TipRow } from '../../components/TipRow';
-import { getBreads, getLoaf } from '../../content/loader';
+import { DailyQuizCard } from '../../components/DailyQuizCard';
+import { getBreads, getLoaf, getPoints } from '../../content/loader';
 import { fillTemplate } from '../../content/template';
 import { markTipSeen, setHysaCard } from '../../data/habit';
+import { syncPoints } from '../../data/points';
 import { addHighYieldAccount } from '../../data/profile';
 import { markUnlockSeen, streakFromData, syncStreaks, unlockedBreads, unseenUnlock } from '../../data/streaks';
 import type { UnlockableBread } from '../../domain/breads';
 import { habitPeriod } from '../../domain/habits';
 import { isMastered } from '../../domain/mastery';
 import { accountRules } from '../../domain/placement';
+import { pointsTotal } from '../../domain/points';
 import { stageChange, tipId, tipStatus } from '../../domain/tips';
 import type { TipContext } from '../../domain/tips';
 import { MAX_ENTRY_CENTS, checkAmount } from '../../money/amounts';
@@ -73,9 +76,12 @@ export function Home() {
   useEffect(() => {
     if (!data) return;
     let cancelled = false;
-    void syncStreaks(adapter).then(async ({ changed }) => {
-      if (changed && !cancelled) await refresh();
-    });
+    // One after the other: both load, change and save the whole data, so running together could drop a write.
+    void (async () => {
+      const streaks = await syncStreaks(adapter);
+      const points = await syncPoints(adapter); // back-fills fund-day points for days the app wasn't opened
+      if ((streaks.changed || points.changed) && !cancelled) await refresh();
+    })();
     return () => {
       cancelled = true;
     };
@@ -85,6 +91,8 @@ export function Home() {
   if (!data || !record) return null;
 
   const breads = getBreads();
+  const pointsCopy = getPoints().home;
+  const total = pointsTotal(data.points);
   const unseen = unseenUnlock(data);
 
   const status = statusFor(data, record);
@@ -143,6 +151,7 @@ export function Home() {
       return;
     }
     await syncStreaks(adapter);
+    await syncPoints(adapter); // a bake earns points
     await refresh();
     closeSheet();
     setMessage(null);
@@ -184,6 +193,7 @@ export function Home() {
 
   async function skipAWeek() {
     const result = await skipWeek(adapter, FLOW_LOAF);
+    await syncPoints(adapter);
     await refresh();
     if (!result.ok) {
       setMessage(result.message);
@@ -198,6 +208,7 @@ export function Home() {
 
   async function skipAWeekWithoutSaving() {
     await skipWeekWithoutSaving(adapter);
+    await syncPoints(adapter);
     await refresh();
     setMessage(null);
     setNotice(null);
@@ -228,6 +239,9 @@ export function Home() {
           </span>
         </div>
         <h1 className="home__title">{loaf.title}</h1>
+        <Link className="home__points" to="/points" aria-label={fillTemplate(pointsCopy.linkLabel, { points: String(total) })}>
+          <strong>{total}</strong> {pointsCopy.label}
+        </Link>
         <DraftNote draft={loaf.draft} />
       </div>
 
@@ -288,6 +302,8 @@ export function Home() {
           copy={breads}
         />
       )}
+
+      <DailyQuizCard quizCopy={loaf.flow.quiz} />
 
       <div className="home__actions">
         {readyForNext ? (

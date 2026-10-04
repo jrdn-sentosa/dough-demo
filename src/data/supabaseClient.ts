@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import type { FeedbackRow } from '../domain/feedback';
 import type { Db } from './supabaseAdapter';
 import { KEY_COLUMNS, type Row } from './supabaseMapping';
 
@@ -25,6 +26,17 @@ export function getSupabase(): SupabaseClient | null {
   const env = supabaseEnv();
   client = env ? createClient(env.url, env.key, { auth: { flowType: 'pkce' } }) : null;
   return client;
+}
+
+/**
+ * Sends one feedback row. The `feedback` table is insert-only for signed-in users: no select policy, so
+ * nothing is read back (the insert asks for no returned row).
+ */
+export function feedbackSender(supabase: SupabaseClient): (row: FeedbackRow) => Promise<void> {
+  return async (row) => {
+    const { error } = await supabase.from('feedback').insert(row);
+    if (error) throw new Error(error.message);
+  };
 }
 
 /** The real `Db` for the adapter. Reads the user from the saved session, so it works with no network. */

@@ -46,14 +46,15 @@ src/
   app/          routing, providers, app shell, phone frame for desktop
   screens/      Login, PlacementQuiz, PlacementResult, NewLoaf, Lesson,
                 LoafQuiz, SavingSetup, Home, LoafComplete, ChooseLoaf,
-                Shelf, RiskQuiz, RiskResult, Settings
+                Shelf, RiskQuiz, RiskResult, Settings, Points
   components/   LoafButton, SliceButton, LoafIllustration, ProgressBar,
                 ChoiceGroup (radio or checkbox inputs styled as slice buttons,
                 used by placement and the quiz), VideoPlayer, QuizQuestion, LessonRow,
                 StageBar, HabitCard, TipRow, AmountSheet, HysaPoints (Home and Saving setup),
-                HabitForm (Saving setup and Settings), DemoActions (Reset and Start fresh demo)
+                HabitForm (Saving setup and Settings), DemoActions (Reset and Start fresh demo),
+                DailyQuizCard (Home)
   domain/       pure logic: placement scoring, targets, stages,
-                recommendations, quiz grading (no React, no Supabase)
+                recommendations, quiz grading, points, daily quiz, local days (no React, no Supabase)
   content/      typed loader for everything in content/ (import.meta.glob),
                 throws on malformed content; review-page renderer
   money/        simulated deposits and withdrawals, demo clock
@@ -63,7 +64,8 @@ src/
 content/
   placement.json            placement quiz questions and scoring
   risk.json                 risk quiz questions and result copy (educational)
-  settings.json             Settings copy: change your goal, change your habit
+  settings.json             Settings copy: change your goal, change your habit, send feedback
+  points.json               Dough points, points history and daily quiz copy
   loaves/<loaf>.json        loaf definition: title, bread, lessons, quiz, tips
   lessons/<loaf>/<id>.md    lesson page text and video metadata
   quizzes/<loaf>.json       loaf quiz questions
@@ -165,7 +167,7 @@ Titled "Here's where you'll start." Shows the first loaf, the goal in dollars an
 
 ### Retaking placement and changing the goal (Settings)
 
-Settings (`/settings`, linked from Home) has, in order: **Change your goal**, **Change your habit**, the signed-in email and **Sign out** (real accounts) or **Exit demo** (the demo user, who has no account; it uses `signOutLocal` and keeps the local demo data, so "Continue as demo user" picks up where they left off), the demo tools (only with `?demo=1`, demo user only: **Reset demo** and **Start fresh demo**, each asking first), **Retake the quiz** (`/placement?retake=1&return=/settings`) and the disclaimer. Copy is in `content/settings.json`. **Retake the risk quiz** appears only once the emergency fund has baked (the same `canChooseNext` check as the `/risk-quiz` route guard), since the route is closed before that.
+Settings (`/settings`, linked from Home) has, in order: **Change your goal**, **Change your habit**, the signed-in email and **Sign out** (real accounts) or **Exit demo** (the demo user, who has no account; it uses `signOutLocal` and keeps the local demo data, so "Continue as demo user" picks up where they left off), the demo tools (only with `?demo=1`, demo user only: **Reset demo** and **Start fresh demo**, each asking first), **Retake the quiz** (`/placement?retake=1&return=/settings`), **Send feedback** (see "Dough points, daily quiz, and feedback") and the disclaimer. Copy is in `content/settings.json`. **Retake the risk quiz** appears only once the emergency fund has baked (the same `canChooseNext` check as the `/risk-quiz` route guard), since the route is closed before that.
 
 - **Retake the quiz** reruns placement with current answers prefilled. New answers update the profile, account steps, and recommendations. It never deletes or changes transactions.
 - If the new answers suggest a different goal, ask "Update your goal to $X?" instead of changing it silently. If the current target is the $1,000 starter goal and the student now gives essentials, suggest 1 month of essentials. If the target was months-based (1, 3, or 6 months), re-price the same number of months. A custom amount is left alone. Nothing is suggested unless the essentials or savings answer changed.
@@ -320,6 +322,21 @@ The result is a pure function in `src/domain/risk.ts` with unit tests:
 - **One gate.** Every premium check goes through one pure function (`src/domain/entitlements.ts`), so real billing can replace the flag later. No other code reads the flag.
 - **Later, not now:** charging real money needs Vercel's paid plan and clear renewal and cancellation terms. A payment provider in test mode would be its own milestone.
 
+## Dough points, daily quiz, and feedback (milestone 13)
+
+- **Points are not money.** They are trust-based until Plaid verifies balances, so they must not be redeemable for anything of real value (no cash, prizes, discounts) before then. Copy never calls them a reward you can cash in, and the points screen says they aren't money.
+- **Ledger:** `AppData.points` is append-only. Each award has a unique key, so nothing is awarded twice, and points are never deducted (loading drops non-positive rows and duplicate keys). Values live in `POINT_VALUES` (`src/domain/points.ts`), never in copy. Keys: `fund-day:<day>`, `video:<lessonId>`, `mastery:<loafId>`, `bake:<loafId>:<targetCents>`, `quiz:<day>`. Local for the demo user, the `point_events` table for accounts (own-row select and insert only, no update or delete; the adapter writes it with insert-ignore-duplicates and never deletes from it).
+- **Awards:**
+  - **Fund holds steady, 1 point a day:** the emergency fund's balance at the end of a finished local day is above $0 and not lower than at the end of the day before (the first day compares to $0). Only the one `emergency-fund` loaf counts, and a `starting` row counts like any balance. Days are local midnight to midnight on the demo clock. `syncPoints` back-fills every missed day from the transactions when Home opens. The per-day balances come from `endOfDayBalances` in `src/money/ledger.ts`, because only `src/money/` calculates balances.
+  - **Video, 1 point once per lesson:** when the seconds actually played (the media element's `played` ranges, so skipping ahead and replays add nothing) reach 90% of the video. Played time counts for one visit only. "Mark as watched" and the "Video coming soon" poster never earn points.
+  - **Mastery, 5 points once per module,** dated by the first mastering attempt. **Loaf baked, 10 points once per bake,** keyed by the target, so rebuilding to the same goal awards nothing and growing to a new goal does. An "Already built" bake earns nothing.
+  - **Daily quiz, 1 point if right,** once a day (`quiz:<day>`).
+- **Writes** that load, change and save the whole data (points, daily quiz, marking a lesson watched) run one after another through `serialized` in `src/data/points.ts`, so a video finishing while Home syncs can't overwrite either write. On Home, `syncStreaks` and `syncPoints` run in sequence.
+- **Daily quiz:** available only after at least one module is mastered. One question a day drawn from the quizzes of mastered modules, avoiding the last 3 questions shown (the avoid list shrinks, oldest first, when the pool is that small). The first Home view of the day picks it and saves it (`AppData.dailyQuizzes`, the `daily_quizzes` table), so a reload shows the same one. One try a day, with the explanation either way. Logic in `src/domain/dailyQuiz.ts`; the card is `DailyQuizCard`.
+- **UI:** the points total on Home links to `/points` (the history: what earned each point, and when, newest first). Copy is in `content/points.json`. No guilt: a day without a point is never mentioned, and a test checks the copy for loss words.
+- **Feedback (Settings):** a text box (max 1,000 characters) and an optional category (bug, idea, other). Accounts insert a row into `feedback` (RLS: insert of own rows only, never select; the length is also checked in the database). It carries the app version (`__APP_VERSION__` from `vite.config.ts`: the `package.json` version plus the short commit on Vercel) and the path of the screen the student came from, never a query string or any financial data. The demo user, who has no account, gets a `mailto:` link to the address in `content/settings.json`.
+- **Referrals (milestone 14, next):** 10 points to the referrer when the friend finishes placement and makes a first deposit, awarded by a Supabase database function (`security definer`) so one account never writes another's rows. Not built yet.
+
 ## Streaks and bread unlocks (milestone 9)
 
 - **Streak** = consecutive habit periods with a deposit. A period is the habit's period (week, or the paycheck period); for "it varies" it is a month (30 days). A period with no deposit yet only ends the streak once that period is over. Counted from deposits only: a withdrawal never breaks a streak. Logic is in `src/domain/streaks.ts`; `src/data/streaks.ts` works the streak out from `AppData` (`streakFromData`) and saves unlocks (`syncStreaks`, which Home runs on load and after a deposit).
@@ -352,7 +369,7 @@ The result is a pure function in `src/domain/risk.ts` with unit tests:
 - **Offline and two devices (real accounts only):** if the connection drops, the loaf stays readable (the adapter keeps a read-only copy under `dough:cache:<user id>`, removed on sign out) and a banner says changes can't be saved. There is no offline syncing: a change made offline is not kept. The adapter never writes before it has read, so an empty screen from a failed load can't overwrite saved rows. Using two devices at the same time is "last save wins" for loaf and `user_state` rows. Transactions are insert-only with random ids, so deposits are never lost. Fine for the demo.
 - **Local storage:** one versioned key, `dough:v1`. If saved data is missing, unreadable, or the wrong version, start fresh instead of crashing. Every read and write is wrapped in try/catch because some browsers block storage in private mode. If writes are blocked, the app keeps working from memory.
 - **Tests** use an in-memory adapter that implements the same `DataAdapter` interface, so they never touch real browser storage.
-- Supabase tables: `profiles` (`placementStatus`, essentials range and figure, existing savings range, `accounts`, `cardDebt`, `earnedIncome`, `monthsCovered`, and the risk quiz `risk` status, answers and result; any of these can be null when unknown), `loaves`, `transactions` (with a `type` of `starting`, `deposit`, or `withdrawal`, and a `source` of `manual`, `plaid`, or `seed`), `lesson_progress`, `quiz_attempts`, and `user_state` (one row per user: `habit`, `tips_seen`, `hysa_card`, `streaks`, and the demo clock offset). There is no `placement_results` table: placement results are derived from `profiles` (the starting point is recomputed from the answers). The schema is in `supabase/migrations/`, and a test checks that every table has Row Level Security and an own-rows policy.
+- Supabase tables: `profiles` (`placementStatus`, essentials range and figure, existing savings range, `accounts`, `cardDebt`, `earnedIncome`, `monthsCovered`, and the risk quiz `risk` status, answers and result; any of these can be null when unknown), `loaves`, `transactions` (with a `type` of `starting`, `deposit`, or `withdrawal`, and a `source` of `manual`, `plaid`, or `seed`), `lesson_progress`, `quiz_attempts`, `point_events` (the points ledger, append-only), `daily_quizzes`, `feedback` (insert-only), and `user_state` (one row per user: `habit`, `tips_seen`, `hysa_card`, `streaks`, and the demo clock offset). There is no `placement_results` table: placement results are derived from `profiles` (the starting point is recomputed from the answers). The schema is in `supabase/migrations/`, and a test checks that every table has Row Level Security and an own-rows policy.
 - **Transaction source:** every row records where it came from: `manual` (the student typed it, the default), `plaid` (read from a linked sandbox account), or `seed` (demo seed data such as Maya's history). Source never changes how balances, stages, or baking work. Rows saved before `source` existed load as `manual`.
 - Saving habit, opened tips and the high-yield reminder (`habit`, `tipsSeen`, `hysaCard` on `AppData`) are plans and flags, not money. They live in `src/data/` (`habit.ts`, `profile.ts`) and are stored in `user_state`. Old saved data without them loads with no habit, no seen tips and no reminder.
 - Row Level Security is on for every table. Users can only read and write their own rows.

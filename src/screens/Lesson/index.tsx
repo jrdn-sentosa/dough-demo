@@ -4,6 +4,7 @@ import { useData } from '../../app/DataProvider';
 import { DraftNote } from '../../components/DraftNote';
 import { LoafButton } from '../../components/LoafButton';
 import { VideoPlayer } from '../../components/VideoPlayer';
+import { awardVideoPoint } from '../../data/points';
 import { markLessonWatched } from '../../data/progress';
 import { nextLessonId } from '../../domain/lessons';
 import { useLessonFlow } from '../useLessonFlow';
@@ -51,6 +52,7 @@ export function Lesson() {
         captionsUrl={lesson.captionsUrl}
         startAt={startAt}
         onWatched={() => void watch('video')}
+        onPlayed={() => void awardVideoPoint(adapter, lesson.id).then(refresh)}
         posterTitle={t.videoSoon}
         posterNote={t.videoSoonNote}
       />

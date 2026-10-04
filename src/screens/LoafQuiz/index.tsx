@@ -9,6 +9,7 @@ import type { QuestionReveal } from '../../components/QuizQuestion';
 import { getQuiz } from '../../content/loader';
 import { fillTemplate } from '../../content/template';
 import type { Lesson, QuizQuestionContent } from '../../content/types';
+import { syncPoints } from '../../data/points';
 import { recordQuizAttempt } from '../../data/progress';
 import type { QuizMode } from '../../data/types';
 import { isMastered, isMasteryScore } from '../../domain/mastery';
@@ -83,6 +84,7 @@ export function LoafQuiz() {
     setMasteredBefore(isMastered(data?.quizAttempts ?? [], loafId));
     const result = gradeQuiz(questions, answers);
     await recordQuizAttempt(adapter, loafId, mode, result, answers);
+    await syncPoints(adapter); // mastering the lessons earns points
     await refresh();
     setGrade(result);
   }

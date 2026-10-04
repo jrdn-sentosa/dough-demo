@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { reachedWatchThreshold } from '../domain/lessons';
+import { playedSeconds, reachedPlayedThreshold, reachedWatchThreshold } from '../domain/lessons';
 
 interface VideoPlayerProps {
   title: string;
@@ -9,6 +9,11 @@ interface VideoPlayerProps {
   startAt?: number;
   /** Called once, when playback reaches 90% or the video ends. */
   onWatched: () => void;
+  /**
+   * Called once, when the seconds actually played (not skipped over) reach 90% of the video. This is what earns
+   * the lesson's point. Played time is counted for this visit only.
+   */
+  onPlayed?: () => void;
   posterTitle: string;
   posterNote: string;
 }
@@ -19,14 +24,32 @@ interface VideoPlayerProps {
  * "Video coming soon" poster shows instead. The lesson summary and the
  * "Mark as watched" button live on the lesson screen, so they work either way.
  */
-export function VideoPlayer({ title, videoUrl, captionsUrl, startAt = 0, onWatched, posterTitle, posterNote }: VideoPlayerProps) {
+export function VideoPlayer({
+  title,
+  videoUrl,
+  captionsUrl,
+  startAt = 0,
+  onWatched,
+  onPlayed,
+  posterTitle,
+  posterNote,
+}: VideoPlayerProps) {
   const [failed, setFailed] = useState(false);
   const reported = useRef(false);
+  const playedReported = useRef(false);
 
   function report() {
     if (reported.current) return;
     reported.current = true;
     onWatched();
+  }
+
+  /** `played` lists the stretches that were really played, so seeking ahead adds nothing. */
+  function checkPlayed(v: HTMLVideoElement) {
+    if (playedReported.current || !onPlayed) return;
+    if (!reachedPlayedThreshold(playedSeconds(v.played), v.duration)) return;
+    playedReported.current = true;
+    onPlayed();
   }
 
   if (failed) {
@@ -54,8 +77,12 @@ export function VideoPlayer({ title, videoUrl, captionsUrl, startAt = 0, onWatch
       onTimeUpdate={(e) => {
         const v = e.currentTarget;
         if (reachedWatchThreshold(v.currentTime, v.duration)) report();
+        checkPlayed(v);
       }}
-      onEnded={report}
+      onEnded={(e) => {
+        report();
+        checkPlayed(e.currentTarget);
+      }}
     >
       <track kind="captions" src={captionsUrl} srcLang="en" label="English" default />
     </video>

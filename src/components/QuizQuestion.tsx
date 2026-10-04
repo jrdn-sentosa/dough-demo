@@ -11,7 +11,7 @@ export interface QuestionReveal {
   answerLine: string;
   explain: string;
   /** The "Rewatch this part" or "Read the summary" link. Shown only for a wrong pick. */
-  rewatch: ReactNode;
+  rewatch: ReactNode | null;
   statusText: Record<ChoiceStatus, string>;
 }
 
@@ -53,7 +53,7 @@ export function QuizQuestion({ question, choices, picked, onPick, reveal }: Quiz
           <p className="feedback__heading">{reveal.heading}</p>
           {!reveal.correct && <p>{reveal.answerLine}</p>}
           <p>{reveal.explain}</p>
-          {!reveal.correct && <p>{reveal.rewatch}</p>}
+          {!reveal.correct && reveal.rewatch && <p>{reveal.rewatch}</p>}
         </div>
       )}
     </>
