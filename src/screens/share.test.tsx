@@ -20,11 +20,13 @@ const render_ = vi.mocked(renderCard);
 
 beforeEach(() => {
   render_.mockClear();
+  vi.stubEnv('VITE_APP_URL', '');
   vi.stubGlobal('URL', Object.assign(URL, { createObjectURL: () => 'blob:preview', revokeObjectURL: () => {} }));
 });
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
   vi.restoreAllMocks();
   Reflect.deleteProperty(navigator, 'share');
   Reflect.deleteProperty(navigator, 'canShare');
@@ -79,6 +81,17 @@ describe('Share on the celebration screen', () => {
     // The fund is $9,876.54: none of its digits, and no dollar sign, can be anywhere in the request.
     expect(JSON.stringify(request)).not.toMatch(/\$|9,?876|54/);
     expect(screen.getByRole('dialog').textContent).not.toMatch(/\$|9,?876/);
+  });
+
+  it('shows the fixed app address instead of the page address when VITE_APP_URL is set', async () => {
+    vi.stubEnv('VITE_APP_URL', 'https://dough-demo.vercel.app');
+    const user = userEvent.setup({ delay: null });
+    mount(await bakedAdapter(true));
+    await user.click(await screen.findByRole('button', { name: 'Share' }));
+    await waitFor(() => expect(render_).toHaveBeenCalled());
+    expect(render_.mock.calls[0][0].content.address).toBe('dough-demo.vercel.app');
+    await user.click(await screen.findByRole('button', { name: 'Copy text' }));
+    expect(await navigator.clipboard.readText()).toBe('I just baked my emergency fund loaf\nStack that bread.\nhttps://dough-demo.vercel.app/');
   });
 
   it('has no golden finish when the lessons are not mastered', async () => {

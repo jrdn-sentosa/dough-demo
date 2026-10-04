@@ -347,7 +347,7 @@ The result is a pure function in `src/domain/risk.ts` with unit tests:
 ## Sharing (milestone 14)
 
 - **Where:** a "Share" button on the celebration screen (loaf baked) and on the quiz end screen, the second only when that attempt mastered the lessons (not on the test-out end screen). It opens a sheet (`ShareButton`, `ShareSheet`).
-- **The card:** an image made in the browser on a canvas (`src/share/renderCard.ts`): the loaf in its bread, the golden finish and sparkles when mastered (the artwork paths are shared with `GoldenFinish` in `goldenFinishArt.ts`), a short line ("I just baked my emergency fund loaf" or "I mastered the emergency fund lessons"), "Stack that bread." and the app's address (the host). Two sizes, 1080x1920 (story) and 1080x1080 (post). It waits for the app fonts (`document.fonts.load`) before drawing, and uses the palette as hex values copied from `tokens.css`. Only bundled, same-origin art is drawn, so the canvas is never tainted and it works offline.
+- **The card:** an image made in the browser on a canvas (`src/share/renderCard.ts`): the loaf in its bread, the golden finish and sparkles when mastered (the artwork paths are shared with `GoldenFinish` in `goldenFinishArt.ts`), a short line ("I just baked my emergency fund loaf" or "I mastered the emergency fund lessons"), "Stack that bread." and the app's address (the host of the share link: `VITE_APP_URL`, which is `https://dough-demo.vercel.app` in Vercel, falling back to `window.location.origin` when it's empty; only `buildShareLink` reads it). Two sizes, 1080x1920 (story) and 1080x1080 (post). It waits for the app fonts (`document.fonts.load`) before drawing, and uses the palette as hex values copied from `tokens.css`. Only bundled, same-origin art is drawn, so the canvas is never tainted and it works offline.
 - **Never money:** no amounts, goals, balances or anything about the student's money. `shareCardContent` in `src/domain/share.ts` takes only the kind, the copy and the link, so there is nowhere for money to enter, and tests check the card, the copied text and `content/share.json`.
 - **Sending:** the phone's share sheet with the image when the device can send files (`navigator.canShare`), otherwise the image downloads. "Copy text" is always offered. Closing the share sheet is quiet. The picture is made when the sheet opens, so the "Share picture" tap only hands over a finished picture (share sheets need a recent tap).
 - **One link function:** `buildShareLink` (`src/domain/share.ts`) is the only place a share link is built. It is the app's address with no path or query; a referral code goes in its `ref` argument when referrals exist (milestone 15).
@@ -390,7 +390,7 @@ The result is a pure function in `src/domain/risk.ts` with unit tests:
 - **Transaction source:** every row records where it came from: `manual` (the student typed it, the default), `plaid` (read from a linked sandbox account), or `seed` (demo seed data such as Maya's history). Source never changes how balances, stages, or baking work. Rows saved before `source` existed load as `manual`.
 - Saving habit, opened tips and the high-yield reminder (`habit`, `tipsSeen`, `hysaCard` on `AppData`) are plans and flags, not money. They live in `src/data/` (`habit.ts`, `profile.ts`) and are stored in `user_state`. Old saved data without them loads with no habit, no seen tips and no reminder.
 - Row Level Security is on for every table. Users can only read and write their own rows.
-- Env vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` (the `sb_publishable_...` key) in `.env.local`. The app uses only these two. Secret keys never go in the app, never get a `VITE_` prefix, and never go in git.
+- Env vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` (the `sb_publishable_...` key) in `.env.local`. The app uses only these two for Supabase (plus the public flags `VITE_GOOGLE_SIGNIN`, `VITE_DEMO_MODE` and `VITE_APP_URL`). Secret keys never go in the app, never get a `VITE_` prefix, and never go in git.
 
 ## Demo mode
 
@@ -489,7 +489,7 @@ Content for the Index funds, Bonds, Roth IRA, and Debt payoff loaves (cards only
 
 - The app is hosted on Vercel. Pushes to `main` deploy to production automatically, and every other branch gets its own preview link.
 - `vercel.json` rewrites page routes only to `index.html`, so refreshing or opening a link like `/placement` works. `react-router` handles routing in the browser. Paths under `assets/`, `videos/`, `icons/`, and any path ending in a file extension are not rewritten, so a missing video, image, or icon returns a real 404. (The video player still has an `onError` poster as a backup, because the dev and preview servers answer a missing file with the app's index page.)
-- Environment variables (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_DEMO_MODE`) are set in the Vercel dashboard, never committed. Only `.env.example` (with empty values) is in git.
+- Environment variables (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_DEMO_MODE`, `VITE_APP_URL` = `https://dough-demo.vercel.app`) are set in the Vercel dashboard, never committed. Only `.env.example` (with empty values) is in git.
 
 ## How to work in this repo
 

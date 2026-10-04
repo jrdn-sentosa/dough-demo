@@ -1,9 +1,11 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import shareJson from '../../content/share.json';
 import { getShare, parseShare } from '../content/loader';
 import { ContentError } from '../content/guards';
 import { addressOf, buildShareLink, CARD_SIZES, cardFileName, shareCardContent, shareText } from './share';
 import type { ShareKind } from './share';
+
+afterEach(() => vi.unstubAllEnvs());
 
 const lines = getShare().card;
 const kinds: ShareKind[] = ['baked', 'mastered'];
@@ -83,6 +85,28 @@ describe('buildShareLink', () => {
     expect(buildShareLink({ origin: 'https://dough.example' })).not.toContain('ref');
     expect(buildShareLink({ origin: 'https://dough.example', ref: 'abc123' })).toBe('https://dough.example/?ref=abc123');
     expect(buildShareLink({ origin: 'https://dough.example', ref: 'a b&c' })).toBe('https://dough.example/?ref=a+b%26c');
+  });
+
+  it('uses the fixed app address when one is set, whatever the page address is', () => {
+    const appUrl = 'https://dough-demo.vercel.app';
+    expect(buildShareLink({ origin: 'https://branch-abc.vercel.app', appUrl })).toBe('https://dough-demo.vercel.app/');
+    expect(buildShareLink({ origin: 'http://localhost:5173', appUrl: ` ${appUrl}/some/path?x=1 ` })).toBe('https://dough-demo.vercel.app/');
+    expect(buildShareLink({ origin: 'http://localhost:5173', appUrl, ref: 'abc' })).toBe('https://dough-demo.vercel.app/?ref=abc');
+    expect(shareCardContent('baked', lines, buildShareLink({ origin: 'http://localhost:5173', appUrl })).address).toBe('dough-demo.vercel.app');
+  });
+
+  it('falls back to the page address when the fixed one is empty or missing', () => {
+    expect(buildShareLink({ origin: 'https://branch-abc.vercel.app', appUrl: '' })).toBe('https://branch-abc.vercel.app/');
+    expect(buildShareLink({ origin: 'https://branch-abc.vercel.app', appUrl: '  ' })).toBe('https://branch-abc.vercel.app/');
+    expect(buildShareLink({ origin: 'https://branch-abc.vercel.app', appUrl: undefined })).toBe('https://branch-abc.vercel.app/');
+  });
+
+  it('reads VITE_APP_URL by itself when no address is passed', () => {
+    vi.stubEnv('VITE_APP_URL', 'https://dough-demo.vercel.app');
+    expect(buildShareLink({ origin: 'http://localhost:5173' })).toBe('https://dough-demo.vercel.app/');
+    vi.stubEnv('VITE_APP_URL', '');
+    expect(buildShareLink({ origin: 'http://localhost:5173' })).toBe('http://localhost:5173/');
+    vi.unstubAllEnvs();
   });
 
   it('gives an empty link for an address that is not a web address', () => {

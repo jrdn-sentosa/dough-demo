@@ -34,10 +34,22 @@ export interface CardContent {
  * The one place a share link is built. Today it is just the app's address. A referral code goes in `ref`
  * (it becomes `?ref=<code>`) when referrals exist; nothing else should put a link together.
  * An address that isn't a real URL gives an empty link, so a share still works without one.
+ *
+ * The address is `VITE_APP_URL` (a fixed address, so a preview link or a local run still shares the real app)
+ * and falls back to `origin` (`window.location.origin`) when that is empty. This is the only code that reads
+ * `VITE_APP_URL`. `appUrl` is a parameter only so tests can set it.
  */
-export function buildShareLink({ origin, ref }: { origin: string; ref?: string }): string {
+export function buildShareLink({
+  origin,
+  ref,
+  appUrl = import.meta.env.VITE_APP_URL,
+}: {
+  origin: string;
+  ref?: string;
+  appUrl?: string;
+}): string {
   try {
-    const url = new URL(origin);
+    const url = new URL(appUrl?.trim() || origin);
     if (url.protocol !== 'http:' && url.protocol !== 'https:') return '';
     url.pathname = '/';
     url.search = '';
