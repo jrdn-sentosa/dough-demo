@@ -29,6 +29,9 @@ describe('vercel.json', () => {
       '/favicon.ico',
       '/manifest.webmanifest',
       '/sw.js',
+      '/video-cache.js',
+      '/workbox-1ab4f314.js',
+      '/icons/apple-touch-icon.png',
       '/design/loaves/sandwich/mix.svg',
     ]) {
       expect(rewritten(path), path).toBe(false);

@@ -1607,3 +1607,46 @@ input:focus-visible {
   font-size: 13px;
   color: var(--text-muted);
 }
+
+/* "New version available" */
+.update-banner {
+  margin: 0 0 var(--space-3);
+  padding: 12px 14px;
+  border: 1.5px solid var(--divider);
+  border-radius: 14px;
+  background: var(--crumb);
+  display: grid;
+  gap: 10px;
+}
+
+.update-banner__text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--rye);
+}
+
+.update-banner__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.update-banner__button {
+  flex: 1;
+  min-height: 44px;
+  padding: 6px 12px;
+  border: 2px solid var(--toast-edge);
+  border-radius: 12px;
+  background: var(--ground);
+  color: var(--crust);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  touch-action: manipulation;
+}
+
+.update-banner__button--main {
+  background: var(--crust);
+  border-color: var(--deep-crust);
+  color: #fff;
+}
