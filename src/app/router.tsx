@@ -16,6 +16,7 @@ import { LoafComplete } from '../screens/LoafComplete';
 import { RiskQuiz } from '../screens/RiskQuiz';
 import { RiskResult } from '../screens/RiskResult';
 import { Shelf } from '../screens/Shelf';
+import { DailyQuiz } from '../screens/DailyQuiz';
 import { Points } from '../screens/Points';
 import { Settings } from '../screens/Settings';
 
@@ -40,6 +41,7 @@ export const routes: RouteObject[] = [
       { path: '/risk-quiz', element: <RiskQuiz /> },
       { path: '/risk-result', element: <RiskResult /> },
       { path: '/points', element: <Points /> },
+      { path: '/daily-quiz', element: <DailyQuiz /> },
       { path: '/settings', element: <Settings /> },
     ],
   },

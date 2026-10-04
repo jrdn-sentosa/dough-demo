@@ -1,5 +1,5 @@
 import { DEFAULT_BREAD, UNLOCKABLE_BREADS, isBreadId } from '../domain/breads';
-import type { DailyQuizEntry } from '../domain/dailyQuiz';
+import type { DailyQuestionEntry, DailyQuizEntry, PopupPrefs } from '../domain/dailyQuiz';
 import { POINT_KINDS, type PointEvent } from '../domain/points';
 import { TRANSACTION_SOURCES, type AppData, type Bake, type LoafRecord, type Streaks, type TransactionSource } from './types';
 
@@ -61,23 +61,42 @@ function withPoints(points: unknown): PointEvent[] {
   return out;
 }
 
-/** Keeps well-formed daily quiz entries, one per day. */
+/** One question of a daily quiz, or null when it isn't well formed. */
+function withDailyQuestion(q: Partial<DailyQuestionEntry> | null | undefined): DailyQuestionEntry | null {
+  if (typeof q?.loafId !== 'string' || typeof q.questionId !== 'string') return null;
+  return {
+    loafId: q.loafId,
+    questionId: q.questionId,
+    choiceId: typeof q.choiceId === 'string' ? q.choiceId : null,
+    correct: typeof q.correct === 'boolean' ? q.correct : null,
+  };
+}
+
+/**
+ * Keeps well-formed daily quiz entries, one per day. A day saved when the quiz asked a single question
+ * (`loafId`, `questionId`, `choiceId` and `correct` on the entry itself) becomes a one-question entry.
+ */
 function withDailyQuizzes(entries: unknown): DailyQuizEntry[] {
   if (!Array.isArray(entries)) return [];
   const seen = new Set<string>();
   const out: DailyQuizEntry[] = [];
-  for (const e of entries as DailyQuizEntry[]) {
-    if (typeof e?.day !== 'string' || typeof e.loafId !== 'string' || typeof e.questionId !== 'string' || seen.has(e.day)) continue;
+  for (const e of entries as (Partial<DailyQuizEntry> & Partial<DailyQuestionEntry>)[]) {
+    if (typeof e?.day !== 'string' || seen.has(e.day)) continue;
+    const raw = Array.isArray(e.questions) ? e.questions : [e];
+    const questions = raw.map(withDailyQuestion).filter((q): q is DailyQuestionEntry => q !== null);
+    if (questions.length === 0) continue;
     seen.add(e.day);
-    out.push({
-      day: e.day,
-      loafId: e.loafId,
-      questionId: e.questionId,
-      choiceId: typeof e.choiceId === 'string' ? e.choiceId : null,
-      correct: typeof e.correct === 'boolean' ? e.correct : null,
-    });
+    out.push({ day: e.day, questions });
   }
   return out;
+}
+
+/** Old saved data has no popup preference: the popup is on and nothing is hidden. */
+function withPopupPrefs(prefs: Partial<PopupPrefs> | null | undefined): PopupPrefs {
+  return {
+    off: prefs?.off === true,
+    hiddenDay: typeof prefs?.hiddenDay === 'string' ? prefs.hiddenDay : null,
+  };
 }
 
 /**
@@ -106,6 +125,7 @@ export function normalizeAppData(data: AppData): AppData {
     streaks: withStreaks(data.streaks),
     points: withPoints(data.points),
     dailyQuizzes: withDailyQuizzes(data.dailyQuizzes),
+    dailyQuizPopup: withPopupPrefs(data.dailyQuizPopup),
     transactions: data.transactions.map((t) => ({
       ...t,
       source: TRANSACTION_SOURCES.includes(t.source) ? t.source : ('manual' as TransactionSource),

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
+import { useAppOpen } from '../../app/AppOpen';
 import { isDemoMode } from '../../app/demoFlag';
 import { useData } from '../../app/DataProvider';
 import { AmountSheet } from '../../components/AmountSheet';
@@ -13,14 +14,17 @@ import { LoafIllustration } from '../../components/LoafIllustration';
 import { SliceButton } from '../../components/SliceButton';
 import { StageBar } from '../../components/StageBar';
 import { TipRow } from '../../components/TipRow';
-import { DailyQuizCard } from '../../components/DailyQuizCard';
+import { DailyQuizPopup } from '../../components/DailyQuizPopup';
 import { getBreads, getLoaf, getPoints } from '../../content/loader';
 import { fillTemplate } from '../../content/template';
+import { hidePopupForToday, setPopupOff } from '../../data/dailyQuizPopup';
 import { markTipSeen, setHysaCard } from '../../data/habit';
 import { syncPoints } from '../../data/points';
 import { addHighYieldAccount } from '../../data/profile';
 import { markUnlockSeen, streakFromData, syncStreaks, unlockedBreads, unseenUnlock } from '../../data/streaks';
 import type { UnlockableBread } from '../../domain/breads';
+import { popupDue } from '../../domain/dailyQuiz';
+import { localDayKey } from '../../domain/days';
 import { habitPeriod } from '../../domain/habits';
 import { isMastered } from '../../domain/mastery';
 import { accountRules } from '../../domain/placement';
@@ -35,6 +39,7 @@ import { deposit, statusFor, withdraw } from '../../money/ledger';
 import type { LoafStatus } from '../../money/ledger';
 import { centsToInput, parseDollarsToCents } from '../../money/parse';
 import { FLOW_LOAF } from '../useLessonFlow';
+import { dailyQuizWaiting } from './dailyQuiz';
 import { stageNotice } from './notice';
 import type { StageNotice } from './notice';
 import { streakView } from './streakView';
@@ -63,6 +68,7 @@ export function Home() {
   const tips = loaf.tips;
   const { adapter, data, refresh } = useData();
   const navigate = useNavigate();
+  const appOpen = useAppOpen();
 
   const [sheet, setSheet] = useState<Sheet>(null);
   const [amountText, setAmountText] = useState('');
@@ -92,6 +98,7 @@ export function Home() {
 
   const breads = getBreads();
   const pointsCopy = getPoints().home;
+  const dailyCopy = getPoints().daily;
   const total = pointsTotal(data.points);
   const unseen = unseenUnlock(data);
 
@@ -124,6 +131,17 @@ export function Home() {
   const tipStages = tips.map((t) => t.stage);
   const showHysaCard = data.hysaCard === 'pending' && accountRules(data.profile?.accounts ?? undefined).needsHysaStep;
 
+  // The daily quiz popup waits for any other moment on this screen, and is shown at most once per app open.
+  const quizWaiting = dailyQuizWaiting(data);
+  const showPopup = popupDue({
+    prefs: data.dailyQuizPopup,
+    today: localDayKey(nowFromData(data)),
+    waiting: quizWaiting,
+    openPending: appOpen.pending,
+    otherMomentShowing:
+      unseen !== null || notice !== null || message !== null || showHysaCard || sheet !== null || appOpen.updateShowing,
+  });
+
   const entry = readAmount(amountText, sheet === 'use' ? copy.useSheet.invalid : copy.addSheet.invalid);
   const amountCents = entry.cents;
 
@@ -150,6 +168,8 @@ export function Home() {
       setSheetError(result.message);
       return;
     }
+    // A bake goes to the celebration, so this open's popup never shows (not even for a moment while the screen changes).
+    if (result.baked) appOpen.spend();
     await syncStreaks(adapter);
     await syncPoints(adapter); // a bake earns points
     await refresh();
@@ -193,6 +213,7 @@ export function Home() {
 
   async function skipAWeek() {
     const result = await skipWeek(adapter, FLOW_LOAF);
+    if (result.ok && result.deposit.baked) appOpen.spend();
     await syncPoints(adapter);
     await refresh();
     if (!result.ok) {
@@ -212,6 +233,25 @@ export function Home() {
     await refresh();
     setMessage(null);
     setNotice(null);
+  }
+
+  /** Closing the popup (any way) uses up this open's chance, so it doesn't come back until the app opens again. */
+  async function closePopup(hideToday: boolean) {
+    appOpen.spend();
+    if (!hideToday) return;
+    await hidePopupForToday(adapter);
+    await refresh();
+  }
+
+  async function startQuizFromPopup(hideToday: boolean) {
+    await closePopup(hideToday);
+    navigate('/daily-quiz');
+  }
+
+  async function neverShowPopup() {
+    appOpen.spend();
+    await setPopupOff(adapter, true);
+    await refresh();
   }
 
   async function haveHysa() {
@@ -239,8 +279,13 @@ export function Home() {
           </span>
         </div>
         <h1 className="home__title">{loaf.title}</h1>
-        <Link className="home__points" to="/points" aria-label={fillTemplate(pointsCopy.linkLabel, { points: String(total) })}>
+        <Link
+          className="home__points"
+          to="/points"
+          aria-label={`${fillTemplate(pointsCopy.linkLabel, { points: String(total) })}${quizWaiting ? ` ${dailyCopy.dotLabel}.` : ''}`}
+        >
           <strong>{total}</strong> {pointsCopy.label}
+          {quizWaiting && <span className="home__points-dot" aria-hidden="true" />}
         </Link>
         <DraftNote draft={loaf.draft} />
       </div>
@@ -302,8 +347,6 @@ export function Home() {
           copy={breads}
         />
       )}
-
-      <DailyQuizCard quizCopy={loaf.flow.quiz} />
 
       <div className="home__actions">
         {readyForNext ? (
@@ -376,6 +419,14 @@ export function Home() {
       )}
 
       <p className="home__disclaimer">{copy.disclaimer}</p>
+
+      {showPopup && (
+        <DailyQuizPopup
+          onStart={(hide) => void startQuizFromPopup(hide)}
+          onClose={(hide) => void closePopup(hide)}
+          onNever={() => void neverShowPopup()}
+        />
+      )}
 
       {sheet === 'add' && (
         <AmountSheet

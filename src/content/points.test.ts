@@ -36,11 +36,31 @@ describe('content/points.json', () => {
     allowed(c.home.linkLabel, 'points');
     allowed(c.history.total, 'points');
     allowed(c.history.earned, 'points');
-    allowed(c.daily.right, 'points');
+    allowed(c.daily.popupBody, 'count', 'points', 'bonus');
+    allowed(c.daily.progress, 'current', 'total');
+    allowed(c.daily.resultScore, 'right', 'total');
+    allowed(c.daily.resultFinished, 'points');
+    allowed(c.daily.resultBonus, 'points');
+    for (const [key, text] of Object.entries(c.daily)) {
+      if (!['popupBody', 'progress', 'resultScore', 'resultFinished', 'resultBonus'].includes(key)) allowed(text);
+    }
     allowed(c.history.reasons['fund-day'], 'date');
     allowed(c.history.reasons.video, 'lesson');
     allowed(c.history.reasons.mastery, 'loaf');
     allowed(c.history.reasons.bake, 'loaf');
+  });
+
+  it('has the daily quiz popup copy: the pitch with its figures filled in, and a calm way out', () => {
+    const d = pointsJson.daily;
+    expect(d.popupBody).toContain('{count}');
+    expect(d.popupBody).toContain('{points}');
+    expect(d.popupBody).toContain('{bonus}');
+    expect(d.start).toBe('Start');
+    expect(d.notNow).toBe('Not now');
+    expect(d.hideToday).toBe('Hide for today');
+    expect(d.dontShowAgain).toBe("Don't show this again");
+    expect(d.dotLabel).toMatch(/waiting/);
+    expect(d.takeQuiz).toBe("Take today's quiz");
   });
 
   it('never uses guilt words and never mentions a day without a point', () => {

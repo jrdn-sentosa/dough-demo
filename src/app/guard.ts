@@ -90,6 +90,7 @@ export function guardRedirect(pathname: string, data: AppData, search = ''): str
     case '/lessons':
     case '/quiz':
     case '/points':
+    case '/daily-quiz':
       return hasLoaf ? null : destinationFor(data);
     case '/saving-setup':
       if (!hasLoaf) return destinationFor(data);

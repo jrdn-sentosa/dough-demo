@@ -73,6 +73,17 @@ describe('Supabase migrations', () => {
     expect(code).not.toMatch(/balance/i);
   });
 
+  it('moves the daily quiz to a list of questions per day, keeping old days, and allows the bonus point', () => {
+    const code = sql.replace(/--.*$/gm, '');
+    expect(code).toMatch(/alter\s+table\s+public\.daily_quizzes\s+add\s+column\s+questions\s+jsonb/i);
+    // Days saved with one question stay valid: their columns become optional and are copied into the list.
+    expect(code).toMatch(/alter\s+column\s+loaf_id\s+drop\s+not\s+null/i);
+    expect(code).toMatch(/alter\s+column\s+question_id\s+drop\s+not\s+null/i);
+    expect(code).toMatch(/update\s+public\.daily_quizzes\s+set\s+questions\s*=/i);
+    expect(code).toMatch(/kind\s+in\s*\([^)]*'quiz'[^)]*'quiz-bonus'[^)]*\)/i);
+    expect(code).toMatch(/alter\s+table\s+public\.user_state\s+add\s+column\s+daily_quiz_popup\s+jsonb/i);
+  });
+
   it('takes everything away from signed-out visitors', () => {
     expect(sql).toMatch(/revoke\s+all\s+on[\s\S]*from\s+anon/i);
   });

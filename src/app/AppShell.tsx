@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router';
+import { AppOpenProvider } from './AppOpen';
 import { trackScreen } from './screenTracker';
 import { isDemoMode } from './demoFlag';
 import { useData } from './DataProvider';
@@ -11,6 +12,14 @@ export const OFFLINE_MESSAGE = "You're offline. Your loaf is safe, but changes c
 export const ERROR_MESSAGE = "We couldn't save that just now. Your loaf is safe. Please try again in a moment.";
 
 export function AppShell() {
+  return (
+    <AppOpenProvider>
+      <Shell />
+    </AppOpenProvider>
+  );
+}
+
+function Shell() {
   const { data, connection } = useData();
   const { pathname, search } = useLocation();
   const redirect = data ? guardRedirect(pathname, data, search) : null;

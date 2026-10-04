@@ -203,7 +203,7 @@ In this demo, no real account is opened and no real money moves.
 
 ## Quiz _(draft)_
 
-The question bank has 10 questions. Each attempt of the quiz and of the test-out asks 5 of them, drawn at random with at least one from every lesson, and mastery is still 4 out of 5. The daily quiz can ask any of the 10, avoiding the last 3 it asked.
+The question bank has 10 questions. Each attempt of the quiz and of the test-out asks 5 of them, drawn at random with at least one from every lesson, and mastery is still 4 out of 5. The daily quiz asks 3 a day from any of the 10, avoiding the questions it asked on the last 2 days when the pool allows.
 
 ### Question 1: What is an emergency fund for?
 
@@ -710,7 +710,7 @@ Unlocks are measured in weeks of saving. Ladder: baguette 2, bagel 4, focaccia 6
 
 ## Dough points and the daily quiz _(draft)_
 
-Points: fund-day 1, video 1, mastery 5, bake 10, quiz 1. The numbers come from the app, not from this copy.
+Points: fund-day 1, video 1, mastery 5, bake 10, quiz 1, quiz-bonus 1. The numbers come from the app, not from this copy.
 
 ### Home
 
@@ -732,16 +732,36 @@ Points: fund-day 1, video 1, mastery 5, bake 10, quiz 1. The numbers come from t
 - reasons.video: Watched "{lesson}"
 - reasons.mastery: Mastered the {loaf} lessons
 - reasons.bake: Baked your {loaf}
-- reasons.quiz: Daily quiz answered right
+- reasons.quiz: Finished the daily quiz
+- reasons.quiz-bonus: Daily quiz: every question right
 
-### Daily quiz card
+### Daily quiz (popup, quiz screen, result and Settings switch)
 
 - title: Daily quiz
-- intro: One quick question from the lessons you've mastered.
+- popupBody: Daily quiz: {count} quick questions from lessons you've mastered. Finish for {points} point, and get all {count} right for {bonus} extra.
+- start: Start
+- notNow: Not now
+- hideToday: Hide for today
+- dontShowAgain: Don't show this again
+- dotLabel: Today's daily quiz is waiting
+- takeQuiz: Take today's quiz
+- progress: Question {current} of {total}
 - check: Check answer
-- right: That's right. +{points} point.
+- next: Next question
+- finish: See how it went
+- right: That's right.
 - wrong: Not quite. Here's the idea:
-- done: That's today's question. A new one is waiting tomorrow.
+- resultTitle: That's today's quiz
+- resultScore: You got {right} of {total} right.
+- resultFinished: +{points} point for finishing.
+- resultBonus: +{points} extra point for getting every question right.
+- resultNext: A new set is waiting tomorrow.
+- backHome: Back to Home
+- alreadyDone: You've finished today's quiz. A new set is waiting tomorrow.
+- unavailable: The daily quiz opens once you've mastered a loaf's lessons.
+- settingsTitle: Daily quiz popup
+- settingsIntro: A small popup when you open the app, offering the day's quiz. You can always start it from your Dough points.
+- settingsLabel: Show the daily quiz popup
 
 ## Sharing _(draft)_
 

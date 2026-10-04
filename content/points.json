@@ -19,15 +19,35 @@
       "video": "Watched \"{lesson}\"",
       "mastery": "Mastered the {loaf} lessons",
       "bake": "Baked your {loaf}",
-      "quiz": "Daily quiz answered right"
+      "quiz": "Finished the daily quiz",
+      "quiz-bonus": "Daily quiz: every question right"
     }
   },
   "daily": {
     "title": "Daily quiz",
-    "intro": "One quick question from the lessons you've mastered.",
+    "popupBody": "Daily quiz: {count} quick questions from lessons you've mastered. Finish for {points} point, and get all {count} right for {bonus} extra.",
+    "start": "Start",
+    "notNow": "Not now",
+    "hideToday": "Hide for today",
+    "dontShowAgain": "Don't show this again",
+    "dotLabel": "Today's daily quiz is waiting",
+    "takeQuiz": "Take today's quiz",
+    "progress": "Question {current} of {total}",
     "check": "Check answer",
-    "right": "That's right. +{points} point.",
+    "next": "Next question",
+    "finish": "See how it went",
+    "right": "That's right.",
     "wrong": "Not quite. Here's the idea:",
-    "done": "That's today's question. A new one is waiting tomorrow."
+    "resultTitle": "That's today's quiz",
+    "resultScore": "You got {right} of {total} right.",
+    "resultFinished": "+{points} point for finishing.",
+    "resultBonus": "+{points} extra point for getting every question right.",
+    "resultNext": "A new set is waiting tomorrow.",
+    "backHome": "Back to Home",
+    "alreadyDone": "You've finished today's quiz. A new set is waiting tomorrow.",
+    "unavailable": "The daily quiz opens once you've mastered a loaf's lessons.",
+    "settingsTitle": "Daily quiz popup",
+    "settingsIntro": "A small popup when you open the app, offering the day's quiz. You can always start it from your Dough points.",
+    "settingsLabel": "Show the daily quiz popup"
   }
 }

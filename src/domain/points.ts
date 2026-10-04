@@ -7,7 +7,7 @@ import type { LoafId } from './types';
  * twice, and a point is never taken back. Points are trust-based until a bank link verifies balances, so they
  * have no cash, prize or discount value anywhere in the app.
  */
-export type PointKind = 'fund-day' | 'video' | 'mastery' | 'bake' | 'quiz';
+export type PointKind = 'fund-day' | 'video' | 'mastery' | 'bake' | 'quiz' | 'quiz-bonus';
 
 export interface PointEvent {
   /** Unique per award, for example `fund-day:2026-10-05`. */
@@ -21,7 +21,7 @@ export interface PointEvent {
   ref: string;
 }
 
-export const POINT_KINDS: readonly PointKind[] = ['fund-day', 'video', 'mastery', 'bake', 'quiz'];
+export const POINT_KINDS: readonly PointKind[] = ['fund-day', 'video', 'mastery', 'bake', 'quiz', 'quiz-bonus'];
 
 export const POINT_VALUES: Record<PointKind, number> = {
   'fund-day': 1,
@@ -29,13 +29,17 @@ export const POINT_VALUES: Record<PointKind, number> = {
   mastery: 5,
   bake: 10,
   quiz: 1,
+  'quiz-bonus': 1,
 };
 
 export const fundDayKey = (day: string) => `fund-day:${day}`;
 export const videoKey = (lessonId: string) => `video:${lessonId}`;
 export const masteryKey = (loafId: LoafId) => `mastery:${loafId}`;
 export const bakeKey = (loafId: LoafId, targetCents: number) => `bake:${loafId}:${targetCents}`;
+/** 1 point for finishing the day's quiz. */
 export const quizKey = (day: string) => `quiz:${day}`;
+/** 1 extra point for getting every question right. */
+export const quizBonusKey = (day: string) => `quiz-bonus:${day}`;
 
 export function pointEvent(kind: PointKind, key: string, ref: string, at: string): PointEvent {
   return { key, kind, points: POINT_VALUES[kind], at, ref };
