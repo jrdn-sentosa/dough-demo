@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import indexHtml from '../../index.html?raw';
 import packageJson from '../../package.json?raw';
 import iconSource from '../../design/icon/icon.svg?raw';
+import maskableSource from '../../design/icon/icon-maskable.svg?raw';
+import generator from '../../scripts/generate-icons.mjs?raw';
 import { pwa } from '../../pwa.config.ts';
 
 // Every generated icon, as a base64 data URL (the "?inline" import), so the test needs no file access.
@@ -47,9 +49,19 @@ describe('manifest', () => {
     expect(indexHtml).toContain('href="/icons/apple-touch-icon.png"');
   });
 
-  it('keeps the one icon source that the generator reads', () => {
+  it('keeps the two icon sources that the generator reads', () => {
     expect(iconSource).toContain('<svg');
+    expect(maskableSource).toContain('<svg');
     expect(packageJson).toContain('"icons": "node scripts/generate-icons.mjs"');
+  });
+
+  it('makes only the maskable icon from the maskable source', () => {
+    const line = (file: string) => generator.split('\n').find((l) => l.includes(`file: '${file}'`)) ?? '';
+    expect(line('maskable-512.png')).toContain("source: 'maskable'");
+    for (const file of ['icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'favicon-32.png']) {
+      expect(line(file), file).toContain("source: 'regular'");
+    }
+    expect(manifest.icons?.filter((i) => i.purpose === 'maskable').map((i) => i.src)).toEqual(['/icons/maskable-512.png']);
   });
 });
 

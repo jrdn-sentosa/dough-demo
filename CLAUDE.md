@@ -37,7 +37,7 @@ Ask before adding any dependency not listed here.
 - `npm run preview`: serve the production build, used to test PWA install and offline behavior
 - `npm run test`: run Vitest
 - `npm run lint`: run ESLint
-- `npm run icons`: regenerate every app icon in `public/icons/` from `design/icon/icon.svg`
+- `npm run icons`: regenerate every app icon in `public/icons/` from `design/icon/icon.svg` (regular icons and apple-touch) and `design/icon/icon-maskable.svg` (maskable icon only)
 
 ## Folder structure
 
@@ -74,7 +74,10 @@ public/
   icons/                    PWA icons (generated: npm run icons)
   video-cache.js            service worker helper that keeps played videos for offline
 design/
-  icon/icon.svg             the one source for every app icon (placeholder)
+  icon/icon.svg             source for the regular icons and apple-touch icon (artwork about 85% of the width)
+  icon/icon-maskable.svg    source for the maskable icon only (artwork's farthest point at most 36% from the centre)
+  icon/icon-original.svg    the untouched original artwork, kept for reference
+  icon/preview.html         shows each crop with the source it uses (open locally; not served)
   loaves/                   stage illustrations as SVG
 ```
 
@@ -438,7 +441,7 @@ Warm, encouraging, plain. Explain the why behind every nudge. No guilt, no shame
 - Videos use `playsinline` so they don't force full-screen on iPhone.
 - The service worker (`vite-plugin-pwa`, settings in `pwa.config.ts`) precaches the app shell, fonts, loaf art, and icons. Lesson text and quizzes are bundled into the JS, so they come with it. Videos and captions under `/videos/` are kept only after first play, by `public/video-cache.js` (the first play streams from the network, then the whole file is stored once and range requests are answered from it; a missing file is never stored). **Never cache Supabase or any other origin**: there is no runtime rule for other origins, and sign-in paths are never answered from the cache. A test checks this.
 - **Updates:** a new version waits until the student taps Refresh on the calm "New version available" message (`UpdatePrompt`, with "Not now"). It never swaps in mid-lesson. Only the production build registers the service worker.
-- **App icon:** one source file, `design/icon/icon.svg` (a placeholder loaf; full-bleed square, artwork in the centre 80% so it also works as the maskable icon). `npm run icons` (`scripts/generate-icons.mjs`, uses `sharp`) writes every size to `public/icons/`. Steps to swap in the final logo are in `docs/setup.md`.
+- **App icon:** two source files, both full-bleed squares with the artwork centred. `design/icon/icon.svg` has the artwork at about 85% of the width and makes the regular icons (192, 512, favicon) and the apple-touch icon, which are shown whole or with rounded corners. `design/icon/icon-maskable.svg` has the artwork's farthest point at most 36% of the size from the centre (inside the 40% safe zone that Android masks keep) and makes the maskable icon only. `npm run icons` (`scripts/generate-icons.mjs`, uses `sharp`) writes every size to `public/icons/`, and a test measures the generated PNGs against these rules. The manifest file names did not change. Steps to swap in the final logo are in `docs/setup.md`.
 - Nothing may depend on hover. Touch targets are at least 44×44px.
 - On screens wider than 600px, center the app in a 390×844 phone frame on a `--crumb` backdrop, so it presents well on a laptop.
 

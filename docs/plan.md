@@ -124,7 +124,7 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
    - Settings: "Change your goal" (1, 3 or 6 months, or a typed amount, through `changeGoal`) and "Change your habit" (the habit form is shared with Saving setup as `HabitForm`; `restartsStreak` drives the "starts a new streak" note, and only a different period length restarts it). Copy lives in `content/settings.json`.
    - "Retake the risk quiz" is in Settings only once the emergency fund has baked (`canChooseNext`, the same check the route guard uses), because the risk quiz route is closed before that.
    - Installable app with `vite-plugin-pwa` (generateSW, update prompt): manifest, icons (192, 512, maskable, 180 apple-touch, 32 favicon) and a service worker that precaches the shell, fonts, loaf art and icons. Lessons and quizzes are bundled in the JS. Videos and captions are kept after first play by a small hand-written handler (`public/video-cache.js`), because the Cache API cannot store the partial responses a `<video>` requests. Supabase and any other origin are never cached. "New version available" with Refresh and Not now (`src/app/UpdatePrompt.tsx`).
-   - App icon: placeholder in `design/icon/icon.svg` (the one source), `npm run icons` (sharp, dev dependency) writes `public/icons/`.
+   - App icon: two sources, `design/icon/icon.svg` (regular icons and apple-touch, artwork about 85% of the width) and `design/icon/icon-maskable.svg` (maskable only, artwork at most 36% of the size from the centre). `npm run icons` (sharp, dev dependency) writes `public/icons/`. Originally a single placeholder source; replaced with the character artwork during milestone 13.
    - `docs/setup.md`: install on iPhone and Android, replacing the icon, demo tools.
    - Checked in a real browser against `npm run preview`: the service worker activates, the manifest has no installability errors, and the app (and a deep link) loads with the server stopped, fonts included. A real second build showed the update message, and Refresh reloaded into the new version. The video handler is covered by unit tests only (no video files exist yet); try it with the first real video.
    - Still open from the original list: the accessibility and contrast pass.
@@ -179,7 +179,7 @@ Each milestone ends with `npm run test`, `npm run build`, and `npm run lint` pas
 
 Not blocking the demo, but each needs doing before real students use it.
 
-- [ ] **Replace the placeholder app icon with the final logo.** Swap `design/icon/icon.svg`, run `npm run icons`, commit `public/icons/`. Exact steps are in `docs/setup.md` ("Replace the placeholder app icon").
+- [ ] **Replace the placeholder app icon with the final logo.** Swap `design/icon/icon.svg` and `design/icon/icon-maskable.svg`, run `npm run icons`, commit `public/icons/`. Exact steps are in `docs/setup.md` ("Replace the placeholder app icon").
 - [ ] Add the real lesson videos and captions to `public/videos/emergency-fund/`, then check they play and keep working offline after first play.
 - [ ] Review every piece of draft content and remove the `draft` flags (`docs/content-review.md`).
 - [ ] Set up the project's own SMTP sender for email codes (see `docs/setup.md`).
